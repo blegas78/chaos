@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "--------------------------------------------------------"
-echo "Startgin Chaos:"
+echo "Starting Chaos:"
 
 cd /home/pi/chaos/raw-gadget/raw_gadget
 ./insmod.sh
