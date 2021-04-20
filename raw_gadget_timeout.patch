@@ -1,0 +1,44 @@
+diff --git a/raw_gadget/raw_gadget.c b/raw_gadget/raw_gadget.c
+index a3479a7..62e2638 100644
+--- a/raw_gadget/raw_gadget.c
++++ b/raw_gadget/raw_gadget.c
+@@ -24,6 +24,8 @@
+ #include <linux/usb/ch11.h>
+ #include <linux/usb/gadget.h>
+ 
++#include <linux/jiffies.h>
++
+ #include "raw_gadget.h"
+ 
+ #define	DRIVER_DESC "USB Raw Gadget"
+@@ -1024,8 +1026,17 @@ static int raw_process_ep_io(struct raw_dev *dev, struct usb_raw_ep_io *io,
+ 		goto out_done;
+ 	}
+ 
+-	ret = wait_for_completion_interruptible(&done);
+-	if (ret) {
++	ret = wait_for_completion_interruptible_timeout(&done, usecs_to_jiffies(100000));
++	if (ret == 0) {
++		usb_ep_dequeue(ep->ep, ep->req);
++		//dev_dbg(&dev->gadget->dev, "wait timeout!\n");
++		wait_for_completion(&done);
++		spin_lock_irqsave(&dev->lock, flags);
++		ret = -ETIMEDOUT;
++		goto out_done;
++	} else if (ret < 0) {
++//		ret = wait_for_completion_interruptible(&done);
++//	if(ret) {
+ 		dev_dbg(&dev->gadget->dev, "wait interrupted\n");
+ 		usb_ep_dequeue(ep->ep, ep->req);
+ 		wait_for_completion(&done);
+@@ -1201,6 +1212,10 @@ static long raw_ioctl(struct file *fd, unsigned int cmd, unsigned long value)
+ 
+ 	if (!dev)
+ 		return -EBUSY;
++	
++//	if((fd->f_flags & O_NONBLOCK) &&
++//	   spin_is_locked(&dev->lock))
++//		return -EBUSY;
+ 
+ 	switch (cmd) {
+ 	case USB_RAW_IOCTL_INIT:

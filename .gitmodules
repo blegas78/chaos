@@ -1,0 +1,12 @@
+[submodule "usb-sniffify"]
+	path = usb-sniffify
+	url = https://github.com/blegas78/usb-sniffify.git
+[submodule "zmqpp"]
+	path = zmqpp
+	url = https://github.com/zeromq/zmqpp.git
+[submodule "nico"]
+	path = nico
+	url = https://github.com/mogillc/nico.git
+[submodule "raw-gadget-timeout"]
+	path = raw-gadget-timeout
+	url = https://github.com/xairy/raw-gadget.git

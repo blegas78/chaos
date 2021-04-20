@@ -1,0 +1,13 @@
+[Unit]
+Description=ChaosController interceptor
+After=network.target
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+ExecStart=/bin/bash /home/pi/chaos/start.sh
+#ExecStart=/home/pi/chaos2/build/chaos
+
+[Install]
+WantedBy=multi-user.target
