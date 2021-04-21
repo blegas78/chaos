@@ -1,6 +1,6 @@
 # Twitch Controls Chaos (Controller Edition)
 
-![Chaos](https://raw.githubusercontent.com/blegas78/chaos/main/docs/images/chaos.jpg)
+![Chaos](https://github.com/blegas78/chaos/blob/main/docs/images/chaos.jpg?raw=true)
 
 
 This project was inspired after watching Twitch user DarkViperAU stream "Twich Controls Chaos" using  [ChaosModV](https://github.com/gta-chaos-mod/ChaosModV).  Here are a few differences between that and this version:
