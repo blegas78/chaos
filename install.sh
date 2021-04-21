@@ -24,7 +24,8 @@ then
 	sudo apt-get install -y ${toInstall[@]}
 fi
 
-
+git submodule init
+git submodule update
 
 if [ ! -d "build" ];
 then
