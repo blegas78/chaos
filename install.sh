@@ -4,7 +4,7 @@ echo "--------------------------------------------------------"
 echo "Installing Chaos:"
 
 #build dependencies:
-declare -a depencencies=(build-essential libncurses5-dev libusb-1.0-0-dev cmake git libftdi1-dev libzmq3-dev raspberrypi-kernel-headers)
+declare -a depencencies=(build-essential libncurses5-dev libusb-1.0-0-dev cmake git libzmq3-dev raspberrypi-kernel-headers python3-dev libatlas-base-dev python3-pip)
 toInstall=()
 echo "Dependencies:" ${depencencies[@]}
 for dependency in "${depencencies[@]}"
@@ -42,7 +42,7 @@ cd ..
 sudo -s eval "grep -qxF 'dtoverlay=dwc2' /boot/config.txt  || echo 'dtoverlay=dwc2' >> /boot/config.txt "
 
 
-pip3 install flexx pyzmq
+sudo -s eval "pip3 install flexx pyzmq numpy --system"
 
 if [ ! -f "/home/pi/chaosConfig.json" ];
 then

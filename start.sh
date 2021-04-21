@@ -3,13 +3,13 @@
 echo "--------------------------------------------------------"
 echo "Starting Chaos:"
 
-cd /home/pi/chaos/raw-gadget/raw_gadget
+cd /home/pi/chaos/raw-gadget-timeout/raw_gadget
 ./insmod.sh
 
-while true;
-do
+#while true;
+#do
 	/home/pi/chaos/build/chaos
-done
+#done
 
 echo "Done."
 echo "--------------------------------------------------------"
