@@ -15,12 +15,18 @@ This project was inspired after watching Twitch user DarkViperAU stream "Twich C
 
 Currently this is hard-coded for The Last Of Us Part 2.  Controller-based Chaos works very well for this game due to the massive amount of accessiility options, gamepaly modifiers, and render modes.  Eventually I will make this more portable for other games, storting with Uncharted 4/The Lost Legacy.
 
+## What is Chaos?
+
+[Watch a minute long video brief explanation of how users can interract with a controller.](https://www.twitch.tv/blegas78/clip/SmellyDepressedPancakeKappaPride-llz6ldXSKjSJLs9s)
+![Twitch Clip](https://github.com/blegas78/chaos/blob/main/docs/images/explain.jpg?raw=true)
+
 ## Supported Controllers
 I intend to grow this list over time as needed.
 
 1. Dualshock 4 Generation 2 - Has the lightbar in front - CUH-ZCT2U
 
 >Note: The first generation Dualshock 4 controller can only send control inputs over bluetooth, making it unusable for this project.
+
 
 ## Installation
 Currently this setup is only supported on a Raspberry Pi 4 with 32-bit headless Raspian, though other setups may work. Also, currently directories are hardcoded to look for /home/pi/chaos, so make sure to check out this project into your default account home directory.  This may change later depending on projec interest.
