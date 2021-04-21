@@ -18,7 +18,7 @@ Currently this is hard-coded for The Last Of Us Part 2.  Controller-based Chaos 
 ## What is Chaos?
 
 [Watch a minute long video brief explanation of how users can interract with a controller.](https://www.twitch.tv/blegas78/clip/SmellyDepressedPancakeKappaPride-llz6ldXSKjSJLs9s)
-![Twitch Clip](https://github.com/blegas78/chaos/blob/main/docs/images/explain.jpg?raw=true)
+![Twitch Clip](https://github.com/blegas78/chaos/blob/main/docs/images/explain.png?raw=true)
 
 ## Supported Controllers
 I intend to grow this list over time as needed.
