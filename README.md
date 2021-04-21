@@ -1,5 +1,8 @@
 # Twitch Controls Chaos (Controller Edition)
 
+![Chaos](https://raw.githubusercontent.com/blegas78/chaos/main/docs/images/chaos.jpg)
+
+
 This project was inspired after watching Twitch user DarkViperAU stream "Twich Controls Chaos" using  [ChaosModV](https://github.com/gta-chaos-mod/ChaosModV).  Here are a few differences between that and this version:
 
 - This directly intercepts controller inputs instead of being integrated with game mods
@@ -8,8 +11,12 @@ This project was inspired after watching Twitch user DarkViperAU stream "Twich C
 - Due to the hardware constraints, this has been written in C++ and Python for a linux environment
 
 
+>Note: This code is in desparate need of refactoring.  It is highly functional but also hacky.  I'm focusing on function in the meantime and will work on cleaning up things over time.
+
+Currently this is hard-coded for The Last Of Us Part 2.  Controller-based Chaos works very well for this game due to the massive amount of accessiility options, gamepaly modifiers, and render modes.  Eventually I will make this more portable for other games, storting with Uncharted 4/The Lost Legacy.
+
 ## Supported Controllers
-I intend to grow this list over time as needed
+I intend to grow this list over time as needed.
 
 1. Dualshock 4 Generation 2 - Has the lightbar in front - CUH-ZCT2U
 
@@ -20,7 +27,7 @@ Currently this setup is only supported on a Raspberry Pi 4 with 32-bit headless 
 
 
 To install:
-1. Set up your Raspberry Pi's network
+1. Set up your Raspberry Pi's network.  I *highly* recommend using ethernet for Chaos, though low-interferenced WiFi should be fine too. [WiFi Instructions here](https://www.raspberrypi.org/documentation/configuration/wireless/wireless-cli.md).
 
 2. Run the following:
 
@@ -38,11 +45,11 @@ Now that everything is installed, power up your Raspberry Pi and follow these st
 
 3. Click on the link labeled "BotSetup".  Here you can enter your bot account credentials and the your channel name.  You can also use your broadcaster account if you do not have a secondary custom bot account.
 
-4. Some of the other links next to "BotSetup" are overlays that can be added as a Browser Source in streaming applications like OBS.  Open these links to view what they are, or copy them to paste into your stream overlay.  I also prefer to have the browser sources set to refresh when not displayed so that I can refresh them easily.
+4. The other links next to "BotSetup" are overlays that can be added as a *browser* source in streaming applications like OBS.  Open these links to view what they are, or copy and paste into a browser source.  I prefer to have the browser sources in OBS set to refresh when not displayed so that I can refresh them easily.
 
 ## Running
 
-1. For each start, You must connect your USB controller to the lower left USB port on your Rasbperry Pi.  This is the USB 2.0 port furthest from the ethernet port and closest to circuit board.  Then, use another USB-C to USB-A cable to connect the Raspberry Pi's power to your console.
+1. For each start, You must connect your USB controller to the lower left USB port on your Rasbperry Pi.  This is the USB 2.0 port furthest from the ethernet port and closest to circuit board.  Then use another USB-C to USB-A cable to connect the Raspberry Pi's power to your console.
 
 2. Turn on your console.  On a Palystation, pressing the PS button will turn on the console, which will then power the Raspberry Pi.  During boot, bluetooth connection will let you navigate to your game.  At some point, you'll see a USB connectivity notification, meaning that chaos is active.
 
@@ -52,10 +59,13 @@ Now that everything is installed, power up your Raspberry Pi and follow these st
 
 ## Usage
 
-Outside of pausing/resuming, there's not much that needs to be done on the streamer's side.  With all systems up and running, your viewers should be able to vote and cause you all sorts of hell.
+Outside of pausing/resuming, there's not much that needs to be done on the streamer's side.  With all systems up and running, your viewers should be able to start voting and cause you all sorts of hell.
 
 #### Pausing
-Chaos initializes in a paused state.  This paused state prevents any modifier from running, passing through all controls as normal.  To resume chaos, press the Share button.  If you want to pause again, press Options.  Pausing chaos will let you navigate things like your console's system menu without wreaking true havoc.
+Chaos initializes in a paused state.  This paused state prevents any modifier from running, passing through all controls as normal.  Pausing chaos will let you navigate things like your console's system menu without wreaking true havoc.
+
+  - To resume Chaos, press the *Share* button.  
+  - To pause Chaos, press the *Option* button.
 
 >Note: This means that you will actively need to resume chaos whenever you enter your game's pause menu.
 
@@ -111,6 +121,7 @@ Example modifier for applying a control sequence once (Sequencing and Intercepti
 			sequence.addTimeDelay(2500);
 			sequence.addButtonHold(BUTTON_R2);
 			sequence.addTimeDelay(500);
+			sequence.addButtonRelease(BUTTON_R2);
 			sequence.send(dualshock);
 			busy = false;
 		}
