@@ -94,97 +94,100 @@ Some other included helper utlities for modifiers include sequencers for buildin
 
 Example modifier for applying inverted mode (Event Modification):
 
-	class Inverted : public Modifier {
-	public:
-		static void regist() { Modifier::factory["Inverted"] = [](){return new Inverted();}; };
-		bool tweak( DeviceEvent* event ) {
-			if ((event->id == AXIS_RY ) && event->type == TYPE_AXIS) {
-				event->value = -event->value;
-			}
-			return true;
+```c++
+class Inverted : public Modifier {
+public:
+	static void regist() { Modifier::factory["Inverted"] = [](){return new Inverted();}; };
+	bool tweak( DeviceEvent* event ) {
+		if ((event->id == AXIS_RY ) && event->type == TYPE_AXIS) {
+			event->value = -event->value;
 		}
-	};
-	
-Example modifier for applying a control sequence once (Sequencing and Interception):
+		return true;
+	}
+};
+```
 
-	class TossMolly : public Modifier {
-	public:
-		static void regist() { Modifier::factory["Toss A Molly"] = [](){return new TossMolly();}; };
-		bool busy;
+Example modifier for applying a control sequence once (Sequencing and Interception):
+```c++
+class TossMolly : public Modifier {
+public:
+	static void regist() { Modifier::factory["Toss A Molly"] = [](){return new TossMolly();}; };
+	bool busy;
 	
-		void begin() {
-			busy = true;
-			Sequence sequence;
-			sequence.disablejoysticks();
-			sequence.addAxisPress(AXIS_DY, 1);
-			sequence.addAxisPress(AXIS_DY, 1);
-			sequence.addTimeDelay(2500);
-			sequence.addButtonHold(BUTTON_R2);
-			sequence.addTimeDelay(500);
-			sequence.addButtonRelease(BUTTON_R2);
-			sequence.send(dualshock);
-			busy = false;
-		}
+	void begin() {
+		busy = true;
+		Sequence sequence;
+		sequence.disablejoysticks();
+		sequence.addAxisPress(AXIS_DY, 1);
+		sequence.addAxisPress(AXIS_DY, 1);
+		sequence.addTimeDelay(2500);
+		sequence.addButtonHold(BUTTON_R2);
+		sequence.addTimeDelay(500);
+		sequence.addButtonRelease(BUTTON_R2);
+		sequence.send(dualshock);
+		busy = false;
+	}
 	
-		bool tweak( DeviceEvent* event ) {
-			return !busy;
-		}
-	};
+	bool tweak( DeviceEvent* event ) {
+		return !busy;
+	}
+};
+```
 
 Example modifier for adding time-functions to a joystick based on a button press (Interception, Modification, Sampling, Injection):
 
-	class MegaScopeSway : public Modifier {
-	public:
-		static void regist() { Modifier::factory["Mega Scope Sway"] = [](){ return new MegaScopeSway();}; };
+```c++
+class MegaScopeSway : public Modifier {
+public:
+	static void regist() { Modifier::factory["Mega Scope Sway"] = [](){ return new MegaScopeSway();}; };
 	
-		std::map<int,int> axisToValue;
-		std::map<int,int> offsetValue;
+	std::map<int,int> axisToValue;
+	std::map<int,int> offsetValue;
 	
-		void begin() {
-			axisToValue[AXIS_RX] = dualshock->getState(AXIS_RX, TYPE_AXIS);
-			axisToValue[AXIS_RY] = dualshock->getState(AXIS_RY, TYPE_AXIS);
-			offsetValue[AXIS_RX] = 0;
-			offsetValue[AXIS_RY] = 0;
-		}
+	void begin() {
+		axisToValue[AXIS_RX] = dualshock->getState(AXIS_RX, TYPE_AXIS);
+		axisToValue[AXIS_RY] = dualshock->getState(AXIS_RY, TYPE_AXIS);
+		offsetValue[AXIS_RX] = 0;
+		offsetValue[AXIS_RY] = 0;
+	}
 	
-		void update() {
-			DeviceEvent event;	// Event to inject
-			event.type = TYPE_AXIS;
+	void update() {
+		DeviceEvent event;	// Event to inject
+		event.type = TYPE_AXIS;
 		
-			bool applySway = dualshock->getState( BUTTON_L2, TYPE_BUTTON) != 0;
+		bool applySway = dualshock->getState( BUTTON_L2, TYPE_BUTTON) != 0;
 		
-			double t = timer.runningTime()*3.0;
-			double i = 1.0;
+		double t = timer.runningTime()*3.0;
+		double i = 1.0;
 		
-			for (std::map<int, int>::iterator it = axisToValue.begin(); it != axisToValue.end(); it++) {
-				event.id = it->first;
-				if (applySway) {
-					offsetValue[event.id] = sin(((t+1.6)*i )*4.0) * JOYSTICK_MAX ;
-					event.value = joystickLimit( it->second + offsetValue[event.id] );
-					chaosEngine->fakePipelinedEvent(&event, this);
-					i += 1;
-				} else {
-					offsetValue[event.id]  = 0;
-				}
-			
+		for (std::map<int, int>::iterator it = axisToValue.begin(); it != axisToValue.end(); it++) {
+			event.id = it->first;
+			if (applySway) {
+				offsetValue[event.id] = sin(((t+1.6)*i )*4.0) * JOYSTICK_MAX ;
+				event.value = joystickLimit( it->second + offsetValue[event.id] );
+				chaosEngine->fakePipelinedEvent(&event, this);
+				i += 1;
+			} else {
+				offsetValue[event.id]  = 0;
 			}
-		
 		}
+	}
 	
-		void finish() {
-			DeviceEvent event = {0,(short)axisToValue[AXIS_RX],TYPE_AXIS,AXIS_RX};
-			chaosEngine->fakePipelinedEvent( &event, this);	
-			event = {0,(short)axisToValue[AXIS_RY],TYPE_AXIS,AXIS_RY};
-			chaosEngine->fakePipelinedEvent( &event, this);
-		}
+	void finish() {
+		DeviceEvent event = {0,(short)axisToValue[AXIS_RX],TYPE_AXIS,AXIS_RX};
+		chaosEngine->fakePipelinedEvent( &event, this);	
+		event = {0,(short)axisToValue[AXIS_RY],TYPE_AXIS,AXIS_RY};
+		chaosEngine->fakePipelinedEvent( &event, this);
+	}
 	
-		bool tweak( DeviceEvent* event ) {
-			if( event->type == TYPE_AXIS ) {
-				if ( axisToValue.count(event->id) > 0) {
-					axisToValue[event->id] = event->value;
-					event->value = joystickLimit( event->value + offsetValue[event->id] );
-				}
+	bool tweak( DeviceEvent* event ) {
+		if( event->type == TYPE_AXIS ) {
+			if ( axisToValue.count(event->id) > 0) {
+				axisToValue[event->id] = event->value;
+				event->value = joystickLimit( event->value + offsetValue[event->id] );
 			}
-			return true;
 		}
-	;
+		return true;
+	}
+};
+```
