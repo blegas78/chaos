@@ -43,7 +43,7 @@ void ChaosEngine::newCommand(const std::string& command) {
 }
 
 void ChaosEngine::doAction() {
-	usleep(1000);	// 200Hz
+	usleep(500);	// 200Hz
 	
 	// Update timers/states of modifiers
     if(pause) {
