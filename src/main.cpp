@@ -596,7 +596,7 @@ public:
 				case AXIS_ACCZ:
 					newEvent = *event;
 					newEvent.id = AXIS_RY;
-					newEvent.value = joystickLimit(-event->value/24);
+					newEvent.value = joystickLimit(event->value/24);	// This makes sense to be inverted
 					chaosEngine->fakePipelinedEvent(&newEvent, this);
 					break;
 				case AXIS_RX: return false;
