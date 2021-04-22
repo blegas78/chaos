@@ -11,13 +11,13 @@ This project was inspired after watching Twitch user DarkViperAU stream "Twich C
 - Due to the hardware constraints, this has been written in C++ and Python for a linux environment
 
 
->Note: This code is in desparate need of refactoring.  It is highly functional but also hacky.  I'm focusing on function in the meantime and will work on cleaning up things over time.
+>Note: This code is in desperate need of refactoring.  It is highly functional but also hacky.  I'm focusing on function in the meantime and will work on cleaning up things over time.
 
-Currently this is hard-coded for The Last Of Us Part 2.  Controller-based Chaos works very well for this game due to the massive amount of accessiility options, gamepaly modifiers, and render modes.  Eventually I will make this more portable for other games, storting with Uncharted 4/The Lost Legacy.
+Currently this is hard-coded for The Last Of Us Part 2.  Controller-based Chaos works very well for this game due to the massive amount of accessibility options, gameplay modifiers, and render modes.  Eventually I will make this more portable for other games, starting with Uncharted 4/The Lost Legacy.
 
 ## What is Chaos?
 
-[Watch a minute long video brief explanation of how users can interract with a controller.](https://www.twitch.tv/blegas78/clip/SmellyDepressedPancakeKappaPride-llz6ldXSKjSJLs9s)
+[Watch a minute long video brief explanation of how users can interact with a controller.](https://www.twitch.tv/blegas78/clip/SmellyDepressedPancakeKappaPride-llz6ldXSKjSJLs9s)
 ![Twitch Clip](https://github.com/blegas78/chaos/blob/main/docs/images/explain.png?raw=true)
 
 ## Supported Controllers
@@ -29,7 +29,7 @@ I intend to grow this list over time as needed.
 
 
 ## Installation
-Currently this setup is only supported on a Raspberry Pi 4 with 32-bit headless Raspian, though other setups may work. Also, currently directories are hardcoded to look for /home/pi/chaos, so make sure to check out this project into your default account home directory.  This may change later depending on projec interest.
+Currently this setup is only supported on a Raspberry Pi 4 with 32-bit headless Raspian, though other setups may work. Also, currently directories are hardcoded to look for /home/pi/chaos, so make sure to check out this project into your default account home directory.  This may change later depending on project interest.
 
 
 To install:
@@ -49,7 +49,7 @@ Now that everything is installed, power up your Raspberry Pi and follow these st
 
 2. On the same network as the Raspberry Pi, navigate your browser to raspberrypi.local (if you renamed your pi's hostname then navigate to <pi hostname>.local instead.).  If that doesn't work you may need to figure out your pi's IP from your router and enter that into your browser instead.
 
-3. Click on the link labeled "BotSetup".  Here you can enter your bot account credentials and the your channel name.  You can also use your broadcaster account if you do not have a secondary custom bot account.
+3. Click on the link labeled "BotSetup".  Here you can enter your bot account credentials and your channel name.  You can also use your broadcaster account if you do not have a secondary custom bot account.
 
 4. The other links next to "BotSetup" are overlays that can be added as a *browser* source in streaming applications like OBS.  Open these links to view what they are, or copy and paste into a browser source.  I prefer to have the browser sources in OBS set to refresh when not displayed so that I can refresh them easily.
 
@@ -57,7 +57,7 @@ Now that everything is installed, power up your Raspberry Pi and follow these st
 
 1. For each start, You must connect your USB controller to the lower left USB port on your Rasbperry Pi.  This is the USB 2.0 port furthest from the ethernet port and closest to circuit board.  Then use another USB-C to USB-A cable to connect the Raspberry Pi's power to your console.
 
-2. Turn on your console.  On a Palystation, pressing the PS button will turn on the console, which will then power the Raspberry Pi.  During boot, bluetooth connection will let you navigate to your game.  At some point, you'll see a USB connectivity notification, meaning that chaos is active.
+2. Turn on your console.  On a Playstation, pressing the PS button will turn on the console, which will then power the Raspberry Pi.  During boot, bluetooth connection will let you navigate to your game.  At some point, you'll see a USB connectivity notification, meaning that chaos is active.
 
 3. If OBS was already up, refresh your browser sources.  Overlays should be active.
 
@@ -90,7 +90,7 @@ ChaosEngine is designed to allow for flexibility in modifiers using the followin
 - Sniffing - Can read input being sent along the way
 - Interception - Can block pipelined commands
 - Modification - Replace message data inlcuding the type, id, and value
-- Injection - Can generate and send arbitray messages without any controller events
+- Injection - Can generate and send arbitrary messages without any controller events
 - State Sampling - See what is being applied versus what is trying to be sent
 - Direct Control - Can send commands directly to the output
 
