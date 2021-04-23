@@ -18,7 +18,8 @@ typedef enum ButtonID {
 	BUTTON_L3 = 11,
 	BUTTON_R3 = 12,
 	//BUTTON_TOUCHPAD = 200	// This is handled separately as a mouse event
-	BUTTON_TOUCHPAD = 13	// This is handled separately as a mouse event
+	BUTTON_TOUCHPAD = 13,	// This is handled separately as a mouse event
+	BUTTON_TOUCHPAD_ACTIVE = 14
 } ButtonID;
  
  typedef enum AxisID {

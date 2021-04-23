@@ -838,7 +838,7 @@ class Chatbot():
 					notice = qResponse.get()
 				
 					print("Sending response message: " + notice)
-					utility.chat(self.s, notice);
+					utility.chat(self.s, notice, self.channel_name);
 					time.sleep(1 / config.RATE)
 				
 					timeSinceLastResponse = 0

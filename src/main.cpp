@@ -215,7 +215,7 @@ public:
 			DeviceEvent event = {0,0,TYPE_BUTTON, BUTTON_CIRCLE};
 			dualshock->applyEvent(&event);
 			pressTime = 0;
-		} else if( pressTime > 0.8 && !dualshock->getState(BUTTON_CIRCLE, TYPE_BUTTON) ) {
+		} else if( pressTime > 0.7 && !dualshock->getState(BUTTON_CIRCLE, TYPE_BUTTON) ) {
 			DeviceEvent event = {0,1,TYPE_BUTTON, BUTTON_CIRCLE};
 			dualshock->applyEvent(&event);
 			pressTime = 0;
@@ -611,27 +611,115 @@ public:
 class TouchpadAiming : public Modifier {
 public:
 	static void regist() { Modifier::factory["Touchpad Aiming"] = [](){return new TouchpadAiming();}; };
+	
+	short priorX;
+	short priorY;
+	double timestampPriorX;
+	double timestampPriorY;
+	bool priorActiveX;
+	bool priorActiveY;
+	
+	bool activeTouch;
+	
+	void begin() {
+		priorActiveX = false;
+		priorActiveY = false;
+		activeTouch = false;
+	}
+	
+	double derivativeX(short currentX, double timestampX) {
+		double ret = 0;
+		if (priorActiveX) {
+			ret = ((double)(currentX - priorX))/(timestampX-timestampPriorX);
+		} else {
+			priorActiveX = true;
+		}
+		priorX = currentX;
+		timestampPriorX = timestampX;
+		return ret;
+	}
+	double derivativeY(short currentY, double timestampY) {
+		double ret = 0;
+		if (priorActiveY) {
+			ret = ((double)(currentY - priorY))/(timestampY-timestampPriorY);
+		} else {
+			priorActiveY = true;
+		}
+		priorY = currentY;
+		timestampPriorY = timestampY;
+		return ret;
+	}
+	
 	bool tweak( DeviceEvent* event ) {
-		if( event->type == TYPE_AXIS ) {
+		if ( event->type == TYPE_BUTTON && event->id == BUTTON_TOUCHPAD_ACTIVE) {
+			
+			//printf("Touchpad activity: %d\n", event->value);
+			if (activeTouch == false && event->value == false) {	// rising edge
+				priorActiveX = false;
+				priorActiveY = false;
+				//printf("Rising Edge TOuch\n");
+			} else if (activeTouch == true && event->value == true) {	// falling edge
+				DeviceEvent newEvent;
+				newEvent.id = AXIS_RX;
+				newEvent.type = TYPE_AXIS;
+				newEvent.value = 0;
+				chaosEngine->fakePipelinedEvent(&newEvent, this);
+				newEvent.id = AXIS_RY;
+				newEvent.type = TYPE_AXIS;
+				newEvent.value = 0;
+				chaosEngine->fakePipelinedEvent(&newEvent, this);
+			//	printf("Falling Edge TOuch\n");
+			}
+			
+			activeTouch = !event->value;
+		}
+		if(	activeTouch &&
+		   event->type == TYPE_AXIS ) {
 			DeviceEvent newEvent;
 			switch (event->id) {
 				case AXIS_TOUCHPAD_X:
-					newEvent = *event;
 					newEvent.id = AXIS_RX;
-					newEvent.value = joystickLimit(((double)event->value/1000 - 1) * JOYSTICK_MAX * 2 * 1.1 );
+					newEvent.type = TYPE_AXIS;
+					newEvent.value = joystickLimit( 0.07 * derivativeX(event->value, timer.runningTime()) );
 					chaosEngine->fakePipelinedEvent(&newEvent, this);
+					//printf("x derivative: %d\n", newEvent.value);
 					break;
 				case AXIS_TOUCHPAD_Y:
-					newEvent = *event;
+					DeviceEvent newEvent;
 					newEvent.id = AXIS_RY;
-					newEvent.value = joystickLimit(((double)event->value/500 - 1) * JOYSTICK_MAX * 1.1 );
+					newEvent.type = TYPE_AXIS;
+					newEvent.value = joystickLimit( 0.07 *  derivativeY(event->value, timer.runningTime()) );
 					chaosEngine->fakePipelinedEvent(&newEvent, this);
 					break;
-				case AXIS_RX: return false;
-				case AXIS_RY: return false;
+				case AXIS_RX:
+					return false;
+				case AXIS_RY:
+					return false;
 				default: break;
 			}
 		}
+		
+		// This is a positional method, not very good:
+		//		if( event->type == TYPE_AXIS ) {
+		//			DeviceEvent newEvent;
+		//			switch (event->id) {
+		//				case AXIS_TOUCHPAD_X:
+		//					newEvent = *event;
+		//					newEvent.id = AXIS_RX;
+		//					newEvent.value = joystickLimit(((double)event->value/1000 - 1) * JOYSTICK_MAX * 2 * 1.1 );
+		//					chaosEngine->fakePipelinedEvent(&newEvent, this);
+		//					break;
+		//				case AXIS_TOUCHPAD_Y:
+		//					newEvent = *event;
+		//					newEvent.id = AXIS_RY;
+		//					newEvent.value = joystickLimit(((double)event->value/500 - 1) * JOYSTICK_MAX * 1.1 );
+		//					chaosEngine->fakePipelinedEvent(&newEvent, this);
+		//					break;
+		//				case AXIS_RX: return false;
+		//				case AXIS_RY: return false;
+		//				default: break;
+		//			}
+		//		}
 		return true;
 	}
 };
@@ -2496,7 +2584,7 @@ int main(int argc, char** argv) {
 	
 	// Custom:
     Inverted::regist();
-	Moonwalk::regist(); 
+	Moonwalk::regist();
 	MeleeOnly::regist();
 	NoMelee::regist();
 	NoTriangle::regist();

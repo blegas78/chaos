@@ -121,6 +121,10 @@ void ControllerStateDualshock::getDeviceEvents(unsigned char* buffer, int length
 		}
 	}
 	
+	// Touchpad events:
+	if (currentState.TOUCH_EVENTS[0].finger1.active != ((inputReport01_t*)trueState)->TOUCH_EVENTS[0].finger1.active ) {
+		events.push_back({0, currentState.TOUCH_EVENTS[0].finger1.active, TYPE_BUTTON, BUTTON_TOUCHPAD_ACTIVE}); }
+	//printf("Touch finger1 active: %d\n", currentState.TOUCH_EVENTS[0].finger1.active);
 	//printf("Touch x = %d\ty=%d\n", currentState.TOUCH_EVENTS[0].finger1.x, currentState.TOUCH_EVENTS[0].finger1.y);
 	//printf("sizeof(inputReport01_t) = %d\n", (int)sizeof(inputReport01_t));
 	if (currentState.TOUCH_EVENTS[0].finger1.x != ((inputReport01_t*)trueState)->TOUCH_EVENTS[0].finger1.x) {
