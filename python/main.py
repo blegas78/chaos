@@ -8,7 +8,6 @@ import fcntl, os
 import errno
 import time
 #import re
-#import json
 #import requests
 
 import threading
@@ -23,18 +22,17 @@ from datetime import datetime
 import math
 
 import numpy as np
-
 import zmq
 
 import utility
-
 import irctwitch as irc
 
 from chatroom import relay as chatRelay
 from chatroom import ChatRoom
 
-from flexx import flx, ui
+import chaoscommunicator
 
+from flexx import flx, ui
 logging.basicConfig(level="INFO")
 
 
@@ -60,6 +58,7 @@ def saveConfig():
 	with open(chaosConfigFile, 'w') as outfile:
 		json.dump(chaosConfig, outfile)
 
+
 class ChaosModel():
 	def __init__(self, *args, **kwargs):
 		self.parser = argparse.ArgumentParser()
@@ -71,12 +70,21 @@ class ChaosModel():
 
 		#  Socket to talk to server
 		print("Connecting to chaos: c++ based server…")
-		self.socket = self.context.socket(zmq.REQ)
-		self.socket.connect("tcp://localhost:5555")
+		self.chaosCommunicator = chaoscommunicator.ChaosCommunicator()
+		self.chaosCommunicator.attach(self)
+		self.chaosCommunicator.start()
+		
+		
+#		self.socket = self.context.socket(zmq.REQ)
+#		self.socket.connect("tcp://localhost:5555")
 		
 		now = datetime.now()
 		currentTime = now.strftime("%Y-%m-%d_%H:%M:%S")
 		self.votingLog = open("/home/pi/chaosLogs/votes-" + currentTime + ".log","a", buffering=1)
+		
+		self.pause = True
+#		self.chaosListener = ChaosListener()
+#		self.chaosListener.start()
 
 	def process(self):
 		self.args = self.parser.parse_args()
@@ -91,22 +99,41 @@ class ChaosModel():
 
 		return True
 		
+	def updateCommand(self, message ) -> None:
+		#logging.info("Recieved message from C++: " + str(message))
+		y = json.loads(message)
+		#pp.pprint(y)
+		if "mods" in y:
+			logging.info("Got new mods!")
+			oldModLength = len(self.allMods)	# HACK
+			#self.allMods = y["mods"]
+			if not oldModLength == len(y["mods"]):
+				self.newAllMods = y["mods"]
+				self.gotNewMods = True
+				#self.resetSoftMax()
+#			relay.set_allMods(y["mods"])
+		
+#		if "voteTime" in y:
+#			logging.info("Got new voteTime: " + str(y["voteTime"]))
+#			self.timePerVote = y["voteTime"]
+			
+		if "pause" in y:
+			logging.info("Got a pause command of: " + str(y["pause"]))
+			self.pause = y["pause"]
+		
 	def applyNewMod(self, mod):
 		print("Winning mod: " + mod)
 		#self.socket.send(mod)
-		self.socket.send_string(mod)
-		    #  Get the reply.
-		message = self.socket.recv()
+		toSend = {}
+		toSend["winner"] = mod
+		toSend["timePerModifier"] = relay.timePerModifier
+#		message = self.chaosCommunicator.sendMessage(mod)
+		message = self.chaosCommunicator.sendMessage(json.dumps(toSend))
+#		self.socket.send_string(mod)
+#		    #  Get the reply.
+#		message = self.socket.recv()
 		#print(f"Received reply [ {message} ]")
 		#self.allMods = message.decode("utf-8").split(',')
-		y = json.loads(message.decode("utf-8"))
-		#pp.pprint(y)
-		oldModLength = len(self.allMods)	# HACK
-		self.allMods = y["mods"]
-		if not oldModLength == len(self.allMods):
-			self.resetSoftMax()
-		
-		self.timePerVote = y["voteTime"]
 	
 	def resetSoftMax(self):
 		self.winTracker = {}
@@ -132,8 +159,11 @@ class ChaosModel():
 		self.activeMods = ["", "", ""]
 		self.activeModTimes = [0.0, 0.0, 0.0]
 		
+		self.gotNewMods = False
+		
 		# allMods will be set by thte C program
-		self.allMods = ["1", "2", "3", "4", "5", "6"]
+		#self.allMods = ["1", "2", "3", "4", "5", "6"]
+		self.allMods = relay.allMods
 		self.resetSoftMax()
 		
 		#self.allMods = [ "No Run/Dodge", "Disable Crouch/Prone", "Drunk Control"]
@@ -154,6 +184,17 @@ class ChaosModel():
 			self.voteTime =  now - beginTime
 			dTime = now - priorTime
 			
+			if self.pause:
+				beginTime += dTime
+				continue
+			
+			if not self.timePerVote == (relay.timePerModifier/3.0 - 0.5):
+				self.timePerVote = relay.timePerModifier/3.0 - 0.5
+				saveConfig()
+				newVoteTime={}
+				newVoteTime["timePerModifier"] = relay.timePerModifier
+				self.chaosCommunicator.sendMessage(json.dumps(newVoteTime))
+			
 			for i in range(len(self.activeModTimes)):
 				self.activeModTimes[i] -= dTime/((self.timePerVote+0.25)*self.totalVoteOptions)
 			
@@ -163,6 +204,13 @@ class ChaosModel():
 				# Send winning choice:
 				newMod = self.currentMods[ self.votes.index(max(self.votes)) ]
 				self.applyNewMod( newMod )
+				if self.gotNewMods:
+					self.gotNewMods = False
+					self.allMods = self.newAllMods
+					relay.set_allMods(self.allMods)
+					self.resetSoftMax()
+#				self.allMods = relay.allMods
+#				pp.pprint(self.allMods)
 				
 				# update softmax
 				if newMod in self.winTracker:
@@ -198,7 +246,11 @@ class ChaosModel():
 					# build a list of contributor for this sleection:
 					votableTracker = {}
 					for mod in inactiveMods:
+#						try:
 						votableTracker[mod] = self.winTracker[mod]
+#						except Exception as e:
+#							logging.info(e)
+							
 					# Calculate the softmax probablities:
 					softMaxDivisor = 0
 					for mod in votableTracker:
@@ -286,6 +338,8 @@ class Relay(flx.Component):
 	votes = flx.ListProp([0,0,0], settable=True)
 	mods = flx.ListProp(["","",""], settable=True)
 	activeMods = flx.ListProp(["","",""], settable=True)
+	allMods = flx.ListProp(["1", "2", "3", "4", "5", "6"], settable=True)
+	timePerModifier = flx.FloatProp(chaosConfig["modifier_time"], settable=True)
 	
 	bot_name = flx.StringProp(chaosConfig["bot_name"], settable=True)
 	bot_oauth = flx.StringProp(chaosConfig["bot_oauth"], settable=True)
@@ -316,6 +370,18 @@ class Relay(flx.Component):
 		for ev in events:
 			self.updateActiveMods(ev.new_value)
 			
+	@flx.reaction('allMods')
+	def on_allMods(self, *events):
+		for ev in events:
+			chaosConfig["allMods"] = ev.new_value
+			logging.info("Relay set allMods")
+			
+	@flx.reaction('timePerModifier')
+	def on_timePerModifier(self, *events):
+		for ev in events:
+			chaosConfig["modifier_time"]  = ev.new_value
+#			self.updateTimePerModifier(ev.new_value)
+			
 	@flx.reaction('bot_name')
 	def on_bot_name(self, *events):
 		for ev in events:
@@ -333,17 +399,6 @@ class Relay(flx.Component):
 			
 	""" Global object to relay paint events to all participants.
 	"""
-	#@flx.emitter
-	#def newMods(self, mods, activeMods):
-	#	return dict(mods=mods,activeMods=activeMods)
-		
-	#@flx.emitter
-	#def newVotes(self, votes):
-	#	return dict(votes=votes)
-		
-	#@flx.emitter
-	#def newTime(self, voteTime=0, modTimes=[]):
-	#	return dict(voteTime=voteTime,modTimes=modTimes)
 		
 	@flx.emitter
 	def updateVoteTime(self, value):
@@ -373,19 +428,10 @@ class ActiveMods(flx.PyWidget):
 	def init(self):
 		self.chaosActiveView = ChaosActiveView(self)
 		
-	#@relay.reaction('newTime')
-	#def _newTime(self, *events):
-	#	for ev in events:
-	#		self.chaosActiveView.updateTime(ev.modTimes)
 	@relay.reaction('updateModTimes')
 	def _updateModTimes(self, *events):
 		for ev in events:
 			self.chaosActiveView.updateTime(ev.value)
-			
-	#@relay.reaction('newMods')
-	#def _newMods(self, *events):
-	#	for ev in events:
-	#		self.chaosActiveView.updateMods(ev.activeMods)
 			
 	@relay.reaction('updateActiveMods')
 	def _updateActiveMods(self, *events):
@@ -432,11 +478,6 @@ class ChaosActiveView(flx.PyWidget):
 class VoteTimer(flx.PyWidget):
 	def init(self):
 		self.voteTimerView = ChaosVoteTimerView(self)
-		
-	#@relay.reaction('newTime')
-	#def _newTime(self, *events):
-	#	for ev in events:
-	#		self.voteTimerView.updateTime(ev.voteTime)
 			
 	@relay.reaction('updateVoteTime')
 	def _updateVoteTime(self, *events):
@@ -459,20 +500,10 @@ class Votes(flx.PyWidget):
 	def init(self):
 		self.chaosVoteView = ChaosVoteView(self)
 		
-	#@relay.reaction('newMods')
-	#def _newMods(self, *events):
-	#	for ev in events:
-	#		self.chaosVoteView.updateMods(ev.mods)
-		
 	@relay.reaction('updateMods')
 	def _updateMods(self, *events):
 		for ev in events:
 			self.chaosVoteView.updateMods(ev.value)
-			
-	#@relay.reaction('newVotes')
-	#def _newVotes(self, *events):
-	#	for ev in events:
-	#		self.chaosVoteView.updateNumbers(ev.votes)
 			
 	@relay.reaction('updateVotes')
 	def _updateVotes(self, *events):
@@ -533,30 +564,15 @@ class ChaosViewController(flx.PyWidget):
 	def init(self):
 		self.chaosView = ChaosView(self)
 
-	#@relay.reaction('newMods')
-	#def _newMods(self, *events):
-	#	for ev in events:
-	#		self.chaosView.updateMods(ev.mods)
-
 	@relay.reaction('updateMods')
 	def _updateMods(self, *events):
 		for ev in events:
 			self.chaosView.updateMods(ev.value)
 			
-	#@relay.reaction('newVotes')
-	#def _newVotes(self, *events):
-	#	for ev in events:
-	#		self.chaosView.updateNumbers(ev.votes)
-			
 	@relay.reaction('updateVotes')
 	def _updateVotes(self, *events):
 		for ev in events:
 			self.chaosView.updateNumbers(ev.value)
-			
-	#@relay.reaction('newTime')
-	#def _newTime(self, *events):
-	#	for ev in events:
-	#		self.chaosView.updateTime(ev.voteTime)
 			
 	@relay.reaction('updateVoteTime')
 	def _updateVoteTime(self, *events):
@@ -683,7 +699,48 @@ class ConfigurationView(flx.PyWidget):
 		else:
 			self.successLabel.set_text('No Change')
 			
-        
+class Settings(flx.PyWidget):
+	def init(self):
+		self.settingsView = SettingsView(self)
+		
+class SettingsView(flx.PyWidget):
+	def init(self, model):
+		super().init()
+		
+		styleLabel = "text-align:right"
+		styleField = "background-color:#BBBBBB;text-align:center"
+		
+		with flx.VSplit(flex=1):
+			flx.Label(style="text-align:center", text="Settings" )
+			with flx.HBox():
+				with flx.VBox(flex=1):
+					flx.Widget(flex=1)
+				with flx.VBox():
+					flx.Label(style=styleLabel, text="Time Per Modifier:" )
+#					flx.Label(style=styleLabel, text="Twitch Bot Oauth:" )
+#					flx.Label(style=styleLabel, text="Your Channel Name:" )
+				with flx.VBox(flex=1):
+					self.timePerModifier = flx.LineEdit(style=styleField, text=str(relay.timePerModifier))
+#					self.bot_oauth = flx.LineEdit(style=styleField, placeholder_text=relay.bot_oauth)
+#					self.channel_name = flx.LineEdit(style=styleField, placeholder_text=relay.channel_name[1:])
+				with flx.VBox(flex=1):
+					flx.Widget(flex=1)
+			with flx.HBox():
+				flx.Widget(flex=1)
+				self.saveButton = flx.Button(flex=0,text="Save")
+				flx.Widget(flex=1)
+			with flx.HBox():
+				flx.Widget(flex=1)
+				self.successLabel = flx.Label(style="text-align:center", text="" )
+				flx.Widget(flex=1)
+				
+	@flx.reaction('saveButton.pointer_click')
+	def _button_clicked(self, *events):
+		ev = events[-1]
+		relay.set_timePerModifier(float(self.timePerModifier.text))
+		saveConfig()
+		self.successLabel.set_text('Saved!')
+		
 def startFlexx():
 	#interface = flx.App(flexxWidget)
 	#interface.serve()
@@ -694,6 +751,7 @@ def startFlexx():
 	flx.App(VoteTimer).serve()
 	flx.App(Votes).serve()
 	flx.App(BotSetup).serve()
+	flx.App(Settings).serve()
 	
 	flx.create_server(host='0.0.0.0',port=chaosConfig["ui-port"],loop=asyncio.new_event_loop())
 	flx.start()
@@ -729,18 +787,12 @@ class Chatbot():
 #					self.s.connect((config.HOST, config.PORT))
 					self.s.connect((chaosConfig["host"], chaosConfig["port"]))
 
-					#logging.info("PASS {}\r\n".format(config.PASS).encode("utf-8"))
 					self.s.send("PASS {}\r\n".format( self.bot_oauth ).encode("utf-8"))
-					#logging.info("NICK {}\r\n".format(config.NICK).encode("utf-8"))
 					self.s.send("NICK {}\r\n".format( self.bot_name ).encode("utf-8"))
-					#logging.info("JOIN {}\r\n".format(config.CHAN).encode("utf-8"))
 					self.s.send("JOIN {}\r\n".format( self.channel_name ).encode("utf-8"))
 
-					#logging.info("CAP REQ :twitch.tv/tags\r\n".encode("utf-8"))
 					self.s.send("CAP REQ :twitch.tv/tags\r\n".encode("utf-8"))
-					#logging.info("CAP REQ :twitch.tv/commands\r\n".encode("utf-8"))
 					self.s.send("CAP REQ :twitch.tv/commands\r\n".encode("utf-8"))
-					#logging.info("CAP REQ :twitch.tv/membership\r\n".encode("utf-8"))
 					self.s.send("CAP REQ :twitch.tv/membership\r\n".encode("utf-8"))
 
 					connected = True #Socket succefully connected
@@ -789,32 +841,33 @@ class Chatbot():
 					self.s.send("PONG :tmi.twitch.tv\r\n".encode("utf-8"))
 					logging.info("Pong")
 					heartbeatPingPong = 0.0
-				else:
-					if len(response) <= 0:
-						#logging.info("len(response) <= 0")
-						continue
-						
-					heartbeatPingPong = 0.0
+					continue
 					
-					try:
-						responses = response.split("\r\n")
-						notice = irc.responseToDictionary(response)
+				if len(response) <= 0:
+					#logging.info("len(response) <= 0")
+					continue
+						
+				heartbeatPingPong = 0.0
+					
+				try:
+					responses = response.split("\r\n")
+					notice = irc.responseToDictionary(response)
 
-					except Exception as e:
-						logging.info(str(e))
-						continue
+				except Exception as e:
+					logging.info(str(e))
+					continue
 
-					#giftMessage = irc.getRewardMessage(notice)
+				#giftMessage = irc.getRewardMessage(notice)
 
-					if "message" in notice.keys():
-						notice["message"] = notice["message"].split("\r\n",1)[0]
-						logging.info("Chat " + notice["user"] + ":" + notice["message"])
-						#q.put( (str(emoteId),img) )
-						#chatRelay.create_message(notice["user"], notice["message"])
+				if "message" in notice.keys():
+					notice["message"] = notice["message"].split("\r\n",1)[0]
+					logging.info("Chat " + notice["user"] + ":" + notice["message"])
+					#q.put( (str(emoteId),img) )
+					#chatRelay.create_message(notice["user"], notice["message"])
+			
+					chatRelay.create_message(notice["user"], notice["message"])
 				
-						chatRelay.create_message(notice["user"], notice["message"])
-				
-						q.put( notice )
+					q.put( notice )
 				
 				
 				
@@ -848,6 +901,9 @@ if __name__ == "__main__":
 	# for chat
 	chatbot = Chatbot()
 	chatbot.start()
+	
+#	chaosListener = ChaosListener()
+#	chaosListener.start()
 	
 	#startFlexx()
 	flexxThread = threading.Thread(target=startFlexx)

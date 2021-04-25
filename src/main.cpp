@@ -2732,13 +2732,14 @@ int main(int argc, char** argv) {
 	ChaosEngine chaosEngine(&dualshock);
 	chaosEngine.start();
 	
-	double timePerModifier = 180.0;
+	double timePerModifier = 30.0;
 	chaosEngine.setTimePerModifier(timePerModifier);
 	
-	chaosEngine.setInterfaceReply( Modifier::getModList(timePerModifier) );
+	
 
 	while(1) {
-		usleep(1000000);
+		chaosEngine.setInterfaceReply( Modifier::getModList(timePerModifier) );
+		usleep(10000000);
 	}
 
 	return 0;

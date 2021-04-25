@@ -20,6 +20,8 @@ include_directories( usb-sniffify/include )
 include_directories( include )
 
 add_library( chaos-engine src/interface.cpp
+						src/command-sender.cpp
+						src/command-listener.cpp
 						src/device.cpp
 						src/controller.cpp
 						src/controller-gpio.cpp
@@ -52,6 +54,10 @@ add_executable( hid-example src/hid-example.c )
 add_executable( gadget src/gadget.c )
 
 find_package (Threads REQUIRED)
+
+find_package (LibJsoncpp REQUIRED)
+include_directories(${LIBJSONCPP_INCLUDE_DIRS})
+set(LIBS ${LIBS} jsoncpp)
 
 #find_package (LibMogi REQUIRED)
 #include_directories(${LIBMOGI_INCLUDE_DIRS})

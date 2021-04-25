@@ -4,7 +4,7 @@ echo "--------------------------------------------------------"
 echo "Installing Chaos:"
 
 #build dependencies:
-declare -a depencencies=(build-essential libncurses5-dev libusb-1.0-0-dev cmake git libzmq3-dev raspberrypi-kernel-headers python3-dev libatlas-base-dev python3-pip)
+declare -a depencencies=(build-essential libncurses5-dev libusb-1.0-0-dev libjsoncpp-dev cmake git libzmq3-dev raspberrypi-kernel-headers python3-dev libatlas-base-dev python3-pip)
 toInstall=()
 echo "Dependencies:" ${depencencies[@]}
 for dependency in "${depencencies[@]}"

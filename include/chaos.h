@@ -291,7 +291,7 @@ public:
 
 class ChaosEngine : public CommandListenerObserver, public ControllerInjector, public Mogi::Thread {
 private:
-	CommandListener commandListener;
+	ChaosInterface chaosInterface;
 	Controller* dualshock;
 	
 	Mogi::Math::Time time;

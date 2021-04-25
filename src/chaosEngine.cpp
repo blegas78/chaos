@@ -5,15 +5,15 @@
 #include <unistd.h>
 #include <cmath>
 #include <algorithm>
-
+#include <json/json.h>
 
 ChaosEngine::ChaosEngine(Controller* dualshock)
 : dualshock(dualshock), timePerModifier(30.0), pause(true)
 {
 	dualshock->addInjector(this);
 	time.initialize();
-	commandListener.addObserver(this);
-	commandListener.start();
+	chaosInterface.addObserver(this);
+	//commandListener.start();
 	
 	//pthread_mutex_init(&chaosMutex, NULL);
 }
@@ -21,23 +21,44 @@ ChaosEngine::ChaosEngine(Controller* dualshock)
 void ChaosEngine::newCommand(const std::string& command) {
 	std::cout << "ChaosEngine::newCommand() received: " << command << std::endl;
 	
-	Modifier* mod = Modifier::build(command);
-	if (mod != NULL) {
-		//std::cout << "Adding Modifier: " << typeid(*mod).name() << std::endl;
+	Json::Value root;
+	Json::CharReaderBuilder builder;
+	Json::CharReader* reader = builder.newCharReader();
+	std::string errs;
+	bool parsingSuccessful = reader->parse(command.c_str(), command.c_str() + command.length(), &root, &errs);
+	
+	if (!parsingSuccessful) {
+		std::cerr << " - Unable to parse the above message!" << std::endl;
+	}
+	
+	if (root.isMember("winner")) {
+		//printf("No winner reported\n");
+		//return;
 		
-		mod->setDualshock(dualshock);
-		mod->setChaosEngine(this);
-		lock();
-		//pthread_mutex_lock(&chaosMutex);
+		Modifier* mod = Modifier::build(root["winner"].asString());
+		if (mod != NULL) {
+			//std::cout << "Adding Modifier: " << typeid(*mod).name() << std::endl;
+			
+			mod->setDualshock(dualshock);
+			mod->setChaosEngine(this);
+			lock();
+			//pthread_mutex_lock(&chaosMutex);
 			modifiers.push_back(mod);
 			modifiersThatNeedToStart.push(mod);
-//        if( !pause ){
-//			mod->begin();
-//        }
-		unlock();
-		//pthread_mutex_unlock(&chaosMutex);
-	} else {
-		std::cerr << "ERROR: Unable to build Modifier for key: " << command << std::endl;
+			//        if( !pause ){
+			//			mod->begin();
+			//        }
+			unlock();
+			//pthread_mutex_unlock(&chaosMutex);
+		} else {
+			std::cerr << "ERROR: Unable to build Modifier for key: " << command << std::endl;
+		}
+	}
+	
+	if (root.isMember("timePerModifier")) {
+		int newModifierTime = root["timePerModifier"].asFloat();
+		printf("New Modifier Time: %d\n", newModifierTime);
+		setTimePerModifier(newModifierTime);
 	}
 	
 }
@@ -115,6 +136,7 @@ bool ChaosEngine::sniffify(const DeviceEvent* input, DeviceEvent* output) {
 	if (input->type == TYPE_BUTTON && input->id == BUTTON_OPTIONS) {
 		if(input->value == 1 && pause == false)	{ // on rising edge
 			pause = true;
+			chaosInterface.sendMessage("{\"pause\":1}");
 			pausePrimer = false;
 			std::cout << "Paused" << std::endl;
 		}
@@ -130,6 +152,7 @@ bool ChaosEngine::sniffify(const DeviceEvent* input, DeviceEvent* output) {
 			pausePrimer = true;
 		} else if(input->value == 0 && pausePrimer == true) {	// falling edge
 			pause = false;
+			chaosInterface.sendMessage("{\"pause\":0}");
 			std::cout << "Resumed" << std::endl;
 		}
 		output->value = 0;
@@ -173,7 +196,8 @@ void ChaosEngine::fakePipelinedEvent(DeviceEvent* fakeEvent, Modifier* modifierT
 }
 
 void ChaosEngine::setInterfaceReply(const std::string& reply) {
-	commandListener.setReply(reply);
+//	commandListener.setReply(reply);
+	chaosInterface.sendMessage(reply);
 }
 
 void ChaosEngine::setTimePerModifier(double time) {
