@@ -80,6 +80,11 @@ Currently TLOU2 is hardcoded as the only supported game.  See TLOU2 specific ins
 
 [TLOU2 Usage](docs/TLOU2/README.md)
 
+#### OBS, Streamlabs
+I recommend using things like a Chat Box and Color corection filters to make chat more readable and change the colors to match your style:
+
+[Stream Setup](docs/streamSetup.md)
+
 
 ## Design
 The lowest level aspect of controller chaos is based on forwarding USB protocols using the Linux raw-gadget kernel module.  For every USB request, Chaos duplicates the request and passes it along.  However, in the case of messages corresponding to controller buttons/joysticks the data is passed to other processes that can meddle with the data.
