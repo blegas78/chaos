@@ -59,7 +59,7 @@ class ChaosCommunicator(ChaosSubject):
 		Trigger an update in each subscriber.
 		"""
 
-		print("Subject: Notifying observers...")
+		#print("Subject: Notifying observers...")
 		for observer in self._observers:
 			observer.updateCommand(message)
 	

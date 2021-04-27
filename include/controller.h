@@ -9,6 +9,7 @@
 #include "device.h"	// Joystick, Mouse
 #include "raw-gadget.hpp"
 #include "controller-state.h"
+#include "chaos-uhid.h"
 
 #define PWM_RANGE (11)
 
@@ -137,6 +138,9 @@ private:
 	ControllerState* mControllerState;
 	//unsigned char copiedBuffer[64];	// based on DS4 and Dualsense sizes
 	std::deque<std::array<unsigned char,64>> bufferQueue;
+	
+//	FILE* spooferFile = NULL;
+	ChaosUhid* chaosHid;
 	
 	bool applyHardware(const DeviceEvent* event);
 	

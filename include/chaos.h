@@ -268,7 +268,9 @@ protected:
 	Controller* dualshock;
 	ChaosEngine* chaosEngine;
 	
-	void _update();	// ChaosEngine call this, which then calls virtual update();
+	double pauseTimeAccumulator;
+	
+	void _update(bool isPaused);	// ChaosEngine call this, which then calls virtual update();
 	
 public:
 	
@@ -303,6 +305,7 @@ private:
 	
 	bool pause;
 	bool pausePrimer = false;
+	bool pausedPrior = false;
 	
 	//pthread_mutex_t chaosMutex;
 	

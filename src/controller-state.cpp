@@ -6,6 +6,10 @@ ControllerState::~ControllerState() {
 	
 }
 
+void* ControllerState::getHackedState() {
+	return hackedState;
+}
+
 ControllerState* ControllerState::factory(int vendor, int product) {
 	if (vendor == 0x054c && product == 0x09cc) {
 		return new ControllerStateDualshock;

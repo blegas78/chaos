@@ -66,8 +66,11 @@ public:
 	bool tweak( DeviceEvent* event ) {
 		if (event->type == TYPE_BUTTON &&
 			(event->id == BUTTON_SQUARE ||	// disable Melee
-			 (event->id == BUTTON_R2 && dualshock->getState(BUTTON_L2, TYPE_BUTTON) == 1) ) ) {	// Disable Shooting, but not reload
+			 event->id == BUTTON_R2) ) {	// Disable Shooting, blind fire
 			event->value = 0;
+		} else if(event->type == TYPE_AXIS &&
+				  event->id == AXIS_R2) {
+			event->value = JOYSTICK_MIN;
 		}
 		return true;
 	}
@@ -234,6 +237,7 @@ public:
 };
 
 class Disco : public Modifier {
+	// Rename/tuning from HeHathYought
 public:
 	static void regist() { Modifier::factory["Anthony Caliber"] = [](){return new Disco();}; };
 	double pressTime;
@@ -439,6 +443,48 @@ public:
 	}
 };
 
+class LeeroyJenkins : public Modifier {
+public:
+	static void regist() { Modifier::factory["Leeroy Jenkins"] = [](){return new LeeroyJenkins();}; };
+	double pressTime;
+	void begin() {
+		DeviceEvent event = {0,1,TYPE_BUTTON, BUTTON_L1};
+		dualshock->applyEvent(&event);
+		event = {0,JOYSTICK_MIN,TYPE_AXIS, AXIS_LY};
+		dualshock->applyEvent(&event);
+	}
+	void update() {
+		pressTime += timer.dTime();
+		DeviceEvent event = {0,JOYSTICK_MIN,TYPE_AXIS, AXIS_LY};
+		dualshock->applyEvent(&event);
+		if (pressTime > 4 && dualshock->getState(BUTTON_L1, TYPE_BUTTON)) {
+			event = {0,0,TYPE_BUTTON, BUTTON_L1};
+			dualshock->applyEvent(&event);
+			pressTime = 0;
+		} else if ( pressTime > 0.1 && !dualshock->getState(BUTTON_L1, TYPE_BUTTON)) {
+			event = {0,1,TYPE_BUTTON, BUTTON_L1};
+			dualshock->applyEvent(&event);
+			pressTime = 0;
+		}
+	}
+	void finish() {
+		DeviceEvent event = {0,0,TYPE_BUTTON, BUTTON_L1};
+		dualshock->applyEvent(&event);
+		event = {0,0,TYPE_AXIS, AXIS_LY};
+		dualshock->applyEvent(&event);
+	}
+	bool tweak( DeviceEvent* event ) {
+		if (event->id == BUTTON_L1 && event->type == TYPE_BUTTON) {
+			event->value = 1;
+		}
+		if (event->id == AXIS_LY && event->type == TYPE_AXIS) {
+//			event->value = JOYSTICK_MIN;
+			return false;
+		}
+		return true;
+	}
+};
+
 class ForceAim : public Modifier {
 	//Prototoxin187
 public:
@@ -453,9 +499,13 @@ public:
 		if (pressTime > 4 && dualshock->getState(BUTTON_L2, TYPE_BUTTON)) {
 			DeviceEvent event = {0,0,TYPE_BUTTON, BUTTON_L2};
 			dualshock->applyEvent(&event);
+			event = {0,JOYSTICK_MIN,TYPE_AXIS, AXIS_L2};
+			dualshock->applyEvent(&event);
 			pressTime = 0;
 		} else if ( pressTime > 0.1 && !dualshock->getState(BUTTON_L2, TYPE_BUTTON)) {
 			DeviceEvent event = {0,1,TYPE_BUTTON, BUTTON_L2};
+			dualshock->applyEvent(&event);
+			event = {0,JOYSTICK_MAX,TYPE_AXIS, AXIS_L2};
 			dualshock->applyEvent(&event);
 			pressTime = 0;
 		}
@@ -463,10 +513,14 @@ public:
 	void finish() {
 		DeviceEvent event = {0,0,TYPE_BUTTON, BUTTON_L2};
 		dualshock->applyEvent(&event);
+		event = {0,JOYSTICK_MIN,TYPE_AXIS, AXIS_L2};
+		dualshock->applyEvent(&event);
 	}
 	bool tweak( DeviceEvent* event ) {
 		if (event->id == BUTTON_L2 && event->type == TYPE_BUTTON) {
 			event->value = 1;
+		} else if (event->id == AXIS_L2 && event->type == TYPE_AXIS) {
+			event->value = JOYSTICK_MAX;
 		}
 		return true;
 	}
@@ -524,6 +578,7 @@ public:
 };
 
 class SwapStickDpad : public Modifier {
+	//JustForSaft, joshuatimes7
 public:
 	static void regist() { Modifier::factory["Swap D-Pad/Left Joystick"] = [](){return new SwapStickDpad();}; };
 	void begin() {
@@ -562,13 +617,13 @@ public:
 				case AXIS_ACCX:
 					newEvent = *event;
 					newEvent.id = AXIS_LX;
-					newEvent.value = joystickLimit(-event->value/24);
+					newEvent.value = joystickLimit(-event->value/20);
 					chaosEngine->fakePipelinedEvent(&newEvent, this);
 					break;
 				case AXIS_ACCZ:
 					newEvent = *event;
 					newEvent.id = AXIS_LY;
-					newEvent.value = joystickLimit(-event->value/24);
+					newEvent.value = joystickLimit(-event->value/20);
 					chaosEngine->fakePipelinedEvent(&newEvent, this);
 					break;
 				case AXIS_LX: return false;
@@ -612,10 +667,10 @@ class TouchpadAiming : public Modifier {
 public:
 	static void regist() { Modifier::factory["Touchpad Aiming"] = [](){return new TouchpadAiming();}; };
 	
-	short priorX;
-	short priorY;
-	double timestampPriorX;
-	double timestampPriorY;
+	short priorX[5];
+	short priorY[5];
+	double timestampPriorX[5];
+	double timestampPriorY[5];
 	bool priorActiveX;
 	bool priorActiveY;
 	
@@ -630,23 +685,47 @@ public:
 	double derivativeX(short currentX, double timestampX) {
 		double ret = 0;
 		if (priorActiveX) {
-			ret = ((double)(currentX - priorX))/(timestampX-timestampPriorX);
+			if(timestampX != timestampPriorX[0]) {
+				ret = ((double)(currentX - priorX[0]))/(timestampX-timestampPriorX[0]);
+			}
 		} else {
 			priorActiveX = true;
+			priorX[1] = priorX[2] = priorX[3] = priorX[4] = currentX;
+			timestampPriorX[1] = timestampPriorX[2] =  timestampPriorX[3] =  timestampPriorX[4] = timestampX;
 		}
-		priorX = currentX;
-		timestampPriorX = timestampX;
+		priorX[0] = priorX[1];
+		priorX[1] = priorX[2];
+		priorX[2] = priorX[3];
+		priorX[3] = priorX[4];
+		priorX[4] = currentX;
+		timestampPriorX[0] = timestampPriorX[1];
+		timestampPriorX[1] = timestampPriorX[2];
+		timestampPriorX[2] = timestampPriorX[3];
+		timestampPriorX[3] = timestampPriorX[4];
+		timestampPriorX[4] = timestampX;
 		return ret;
 	}
 	double derivativeY(short currentY, double timestampY) {
 		double ret = 0;
 		if (priorActiveY) {
-			ret = ((double)(currentY - priorY))/(timestampY-timestampPriorY);
+			if(timestampY != timestampPriorY[0]) {
+				ret = ((double)(currentY - priorY[0]))/(timestampY-timestampPriorY[0]);
+			}
 		} else {
 			priorActiveY = true;
+			priorY[1] = priorY[2] = priorY[3] = priorY[4] = currentY;
+			timestampPriorY[1] = timestampPriorY[2] = timestampPriorY[3] = timestampPriorY[4] = timestampY;
 		}
-		priorY = currentY;
-		timestampPriorY = timestampY;
+		priorY[0] = priorY[1];
+		priorY[1] = priorY[2];
+		priorY[2] = priorY[3];
+		priorY[3] = priorY[4];
+		priorY[4] = currentY;
+		timestampPriorY[0] = timestampPriorY[1];
+		timestampPriorY[1] = timestampPriorY[2];
+		timestampPriorY[2] = timestampPriorY[3];
+		timestampPriorY[3] = timestampPriorY[4];
+		timestampPriorY[4] = timestampY;
 		return ret;
 	}
 	
@@ -668,28 +747,45 @@ public:
 				newEvent.type = TYPE_AXIS;
 				newEvent.value = 0;
 				chaosEngine->fakePipelinedEvent(&newEvent, this);
-			//	printf("Falling Edge TOuch\n");
+				//	printf("Falling Edge TOuch\n");
 			}
 			
 			activeTouch = !event->value;
 		}
-		if(	activeTouch &&
-		   event->type == TYPE_AXIS ) {
+		if( event->type == TYPE_AXIS ) {
 			DeviceEvent newEvent;
+			double derivativeValue;
 			switch (event->id) {
 				case AXIS_TOUCHPAD_X:
-					newEvent.id = AXIS_RX;
-					newEvent.type = TYPE_AXIS;
-					newEvent.value = joystickLimit( 0.07 * derivativeX(event->value, timer.runningTime()) );
-					chaosEngine->fakePipelinedEvent(&newEvent, this);
+					if(activeTouch ) {
+						newEvent.id = AXIS_RX;
+						newEvent.type = TYPE_AXIS;
+						derivativeValue = (dualshock->getState(BUTTON_L2, TYPE_BUTTON) ? 0.04 : 0.12) * derivativeX(event->value, timer.runningTime());
+						if (derivativeValue > 0) {
+							newEvent.value = joystickLimit(derivativeValue + 30);
+						} else if(derivativeValue < 0) {
+							newEvent.value = joystickLimit(derivativeValue - 30);
+						} else  {
+							newEvent.value = 0;
+						}
+						chaosEngine->fakePipelinedEvent(&newEvent, this);
+					}
 					//printf("x derivative: %d\n", newEvent.value);
 					break;
 				case AXIS_TOUCHPAD_Y:
-					DeviceEvent newEvent;
-					newEvent.id = AXIS_RY;
-					newEvent.type = TYPE_AXIS;
-					newEvent.value = joystickLimit( 0.07 *  derivativeY(event->value, timer.runningTime()) );
-					chaosEngine->fakePipelinedEvent(&newEvent, this);
+					if(activeTouch ) {
+						newEvent.id = AXIS_RY;
+						newEvent.type = TYPE_AXIS;
+						derivativeValue = (dualshock->getState(BUTTON_L2, TYPE_BUTTON) ? 0.04 : 0.12) * derivativeY(event->value, timer.runningTime());
+						if (derivativeValue > 0) {
+							newEvent.value = joystickLimit(derivativeValue + 30);
+						} else if(derivativeValue < 0 ) {
+							newEvent.value = joystickLimit(derivativeValue - 30);
+						} else  {
+							newEvent.value = 0;
+						}
+						chaosEngine->fakePipelinedEvent(&newEvent, this);
+					}
 					break;
 				case AXIS_RX:
 					return false;
@@ -777,13 +873,13 @@ public:
 			}
 			i += 4;
 			
-//			dualshock->applyEvent(&event);
+			//			dualshock->applyEvent(&event);
 			chaosEngine->fakePipelinedEvent(&event, this);
 			
 		}
 		if (timer.runningTime()-buttonPressTime > 1.0) {
 			DeviceEvent fallDown = {0,0,TYPE_BUTTON,BUTTON_CIRCLE};
-			   dualshock->applyEvent(&fallDown);
+			dualshock->applyEvent(&fallDown);
 			buttonPressTime += 10000;
 		}
 	}
@@ -811,6 +907,7 @@ public:
 };
 
 class SpeedrunGlitch : public Modifier {
+	// HeHathYought
 public:
 	static void regist() { Modifier::factory["TLOU1 Run Glitch"] = [](){return new SpeedrunGlitch();}; };
 	
@@ -908,7 +1005,7 @@ class ProneDive : public Modifier {
 public:
 	static void regist() { Modifier::factory["Only Prone Diving"] = [](){ return new ProneDive();}; };
 	
-	std::map<int,int> axisToValue;
+	//	std::map<int,int> axisToValue;
 	//std::map<int,int> offsetValue;
 	double sequenceTime;
 	bool inSequence;
@@ -917,8 +1014,8 @@ public:
 	double activeThreshold;
 	
 	void begin() {
-		axisToValue[AXIS_LX] = dualshock->getState(AXIS_LX, TYPE_AXIS);
-		axisToValue[AXIS_LY] = dualshock->getState(AXIS_LY, TYPE_AXIS);
+		//		axisToValue[AXIS_LX] = dualshock->getState(AXIS_LX, TYPE_AXIS);
+		//		axisToValue[AXIS_LY] = dualshock->getState(AXIS_LY, TYPE_AXIS);
 		
 		sequenceTime = 0;
 		inSequence = false;
@@ -986,17 +1083,17 @@ public:
 		dualshock->applyEvent(&event);
 		event = {0,0,TYPE_BUTTON,BUTTON_L1};
 		dualshock->applyEvent(&event);
-//		chaosEngine->fakePipelinedEvent( &event, this);
-//		event = {0,(short)axisToValue[AXIS_RY],TYPE_AXIS,AXIS_RY};
-//		chaosEngine->fakePipelinedEvent( &event, this);
+		//		chaosEngine->fakePipelinedEvent( &event, this);
+		//		event = {0,(short)axisToValue[AXIS_RY],TYPE_AXIS,AXIS_RY};
+		//		chaosEngine->fakePipelinedEvent( &event, this);
 	}
 	
 	bool tweak( DeviceEvent* event ) {
-//		if( event->type == TYPE_AXIS ) {
-//			if ( axisToValue.count(event->id) > 0) {
-//				axisToValue[event->id] = event->value;	// We only sample the left stick
-//			}
-//		}
+		//		if( event->type == TYPE_AXIS ) {
+		//			if ( axisToValue.count(event->id) > 0) {
+		//				axisToValue[event->id] = event->value;	// We only sample the left stick
+		//			}
+		//		}
 		
 		if ( event->type == TYPE_BUTTON) {
 			if (inSequence) {
@@ -1007,6 +1104,110 @@ public:
 			}
 			if (event->id == BUTTON_CIRCLE &&
 				magnitudeSquared > activeThreshold) {
+				return false;
+			}
+		}
+		
+		return true;
+	}
+};
+
+class Rubbernecking : public Modifier {
+public:
+	static void regist() { Modifier::factory["Rubbernecking"] = [](){ return new Rubbernecking();}; };
+	
+	//	std::map<int,int> axisToValue;
+	//std::map<int,int> offsetValue;
+	double sequenceTime;
+	bool inSequence;
+	double magnitudeSquared;
+	
+	//	double activeThreshold;
+	
+	void begin() {
+		//		axisToValue[AXIS_LX] = dualshock->getState(AXIS_LX, TYPE_AXIS);
+		//		axisToValue[AXIS_LY] = dualshock->getState(AXIS_LY, TYPE_AXIS);
+		
+		sequenceTime = 0;
+		inSequence = false;
+		
+		//		activeThreshold = pow( JOYSTICK_MAX*0.2, 2);
+	}
+	
+	void update() {
+		DeviceEvent event;	// Event to inject
+		//event.type = TYPE_AXIS;
+		sequenceTime += timer.dTime();
+		if (!inSequence) {
+			if (sequenceTime > 6) {	// magnitude of 9 & max 127
+				inSequence = true;
+			}
+		}
+		
+		if (inSequence) {
+			if (sequenceTime >= 6  &&
+				sequenceTime <= 6.1 ) {
+				event.id = BUTTON_X;
+				event.type = TYPE_BUTTON;
+				event.value = 0;
+				dualshock->applyEvent(&event);
+				event.id = BUTTON_L2;	// stop aiming
+				dualshock->applyEvent(&event);
+				event.id = AXIS_LY;
+				event.type = TYPE_AXIS;
+				event.value = JOYSTICK_MAX;
+				dualshock->applyEvent(&event);
+				event.id = AXIS_LX;
+				event.value = 0;
+				dualshock->applyEvent(&event);
+				event.id = AXIS_L2;
+				event.value = JOYSTICK_MIN;
+				dualshock->applyEvent(&event);
+			} else if (sequenceTime > 6.1 &&
+					   sequenceTime <= 6.2 ) {
+				event.id = BUTTON_X;
+				event.type = TYPE_BUTTON;
+				event.value = 1;
+				dualshock->applyEvent(&event);
+				//printf("Dive!\n");
+			} else if (sequenceTime > 6.2) {
+				event.id = BUTTON_X;
+				event.type = TYPE_BUTTON;
+				event.value = 0;
+				dualshock->applyEvent(&event);
+				inSequence = false;
+				sequenceTime = 0;
+				//printf("Release!\n");
+			}
+		}
+	}
+	
+	void finish() {
+		if (inSequence) {
+			DeviceEvent event = {0,0,TYPE_BUTTON,BUTTON_X};
+			dualshock->applyEvent(&event);
+			event = {0,0,TYPE_BUTTON,BUTTON_L2};
+			dualshock->applyEvent(&event);
+			event = {0,0,TYPE_AXIS,AXIS_LY};
+			dualshock->applyEvent(&event);
+		}
+		//		chaosEngine->fakePipelinedEvent( &event, this);
+		//		event = {0,(short)axisToValue[AXIS_RY],TYPE_AXIS,AXIS_RY};
+		//		chaosEngine->fakePipelinedEvent( &event, this);
+	}
+	
+	bool tweak( DeviceEvent* event ) {
+		
+		if (inSequence) {
+			if ( event->type == TYPE_BUTTON &&
+				(event->id == BUTTON_X ||
+				 event->id == BUTTON_L2) ){
+				return false;
+			}
+			if ( event->type == TYPE_AXIS &&
+				(event->id == AXIS_LY ||
+				 event->id == AXIS_LX ||
+				 event->id == AXIS_L2) ){
 				return false;
 			}
 		}
@@ -1059,120 +1260,176 @@ public:
 };
 
 class MaxSensitivity : public Modifier {
-    // gabemusic
+	// gabemusic
 public:
-    static void regist() { Modifier::factory["Max Sensitivity"] = [](){return new MaxSensitivity();}; };
-    
-    bool tweak( DeviceEvent* event ) {
-        if (event->type == TYPE_AXIS) {
-            switch (event->id) {
-                case AXIS_LX:
-                case AXIS_LY:
-                case AXIS_RX:
-                case AXIS_RY:
-                    event->value = joystickLimit( (int)event->value * 5 );
-                    
-                default:
-                    break;
-            }
-        }
-        return true;
-    }
+	static void regist() { Modifier::factory["Max Sensitivity"] = [](){return new MaxSensitivity();}; };
+	
+	bool tweak( DeviceEvent* event ) {
+		if (event->type == TYPE_AXIS) {
+			switch (event->id) {
+				case AXIS_LX:
+				case AXIS_LY:
+				case AXIS_RX:
+				case AXIS_RY:
+					event->value = joystickLimit( (int)event->value * 5 );
+					
+				default:
+					break;
+			}
+		}
+		return true;
+	}
 };
 
 class ControllerMirror : public Modifier {
-    // Princess, cliverfieldmel, DJ_Squall_808
+	// PrincessDiodes, cloverfieldmel, DJ_Squall_808
 public:
-    static void regist() { Modifier::factory["Controller Mirror"] = [](){return new ControllerMirror();}; };
-    
-    bool tweak( DeviceEvent* event ) {
-        if(event->type == TYPE_AXIS) {
-            switch (event->id) {
-                case AXIS_LX: event->id = AXIS_RX; break;
-                case AXIS_LY: event->id = AXIS_RY; break;
-                case AXIS_RX: event->id = AXIS_LX; break;
-                case AXIS_RY: event->id = AXIS_LY; break;
+	static void regist() { Modifier::factory["Controller Mirror"] = [](){return new ControllerMirror();}; };
+	
+	bool tweak( DeviceEvent* event ) {
+		if(event->type == TYPE_AXIS) {
+			switch (event->id) {
+				case AXIS_LX: event->id = AXIS_RX; break;
+				case AXIS_LY: event->id = AXIS_RY; break;
+				case AXIS_RX: event->id = AXIS_LX; break;
+				case AXIS_RY: event->id = AXIS_LY; break;
 				case AXIS_L2: event->id = AXIS_R2; break;
 				case AXIS_R2: event->id = AXIS_L2; break;
-                case AXIS_DX:
-                    event->type = TYPE_BUTTON;
-                    if (event->value > 0) {
-                        event->id = BUTTON_SQUARE;
-                        event->value = 1;
-                    } else if(event->value < 0) {
-                        event->id = BUTTON_CIRCLE;
-                        event->value = 1;
-                    } else {
-                        event->id = BUTTON_CIRCLE;
-                        event->value = 0;
-                        
-                        
-                        DeviceEvent event2;
-                        event2.id = BUTTON_SQUARE;
-                        event2.value = 0;
-                        event2.type = TYPE_BUTTON;
-                        dualshock->applyEvent(&event2);
-                    }
-                    break;
-                case AXIS_DY:
-                    event->type = TYPE_BUTTON;
-                    if (event->value > 0) {
-                        event->id = BUTTON_X;
-                        event->value = 1;
-                    } else if(event->value < 0) {
-                        event->id = BUTTON_TRIANGLE;
-                        event->value = 1;
-                    } else {
-                        event->id = BUTTON_TRIANGLE;
-                        event->value = 0;
-                        
-                        
-                        DeviceEvent event2;
-                        event2.id = BUTTON_X;
-                        event2.value = 0;
-                        event2.type = TYPE_BUTTON;
-                        dualshock->applyEvent(&event2);
-                    }
-                    break;
-                default:
-                    break;
-            }
-            return true;
-        }
-        if(event->type == TYPE_BUTTON) {
-            switch (event->id) {
-                case BUTTON_R1: event->id = BUTTON_L1; break;
-                case BUTTON_L1: event->id = BUTTON_R1; break;
-                case BUTTON_R2: event->id = BUTTON_L2; break;
-                case BUTTON_L2: event->id = BUTTON_R2; break;
-                
-                case BUTTON_TRIANGLE:
-                    event->type = TYPE_AXIS;
-                    event->value *= -1;
-                    event->id = AXIS_DY;
-                    break;
-                case BUTTON_X:
-                    event->type = TYPE_AXIS;
-                    event->value *= 1;
-                    event->id = AXIS_DY;
-                    break;
-                case BUTTON_SQUARE:
-                    event->type = TYPE_AXIS;
-                    event->value *= 1;
-                    event->id = AXIS_DX;
-                    break;
-                case BUTTON_CIRCLE:
-                    event->type = TYPE_AXIS;
-                    event->value *= -1;
-                    event->id = AXIS_DX;
-                    break;
-            default:
-                break;
-            }
-        }
-        
-        return true;
-    }
+				case AXIS_DX:
+					event->type = TYPE_BUTTON;
+					if (event->value > 0) {
+						event->id = BUTTON_SQUARE;
+						event->value = 1;
+					} else if(event->value < 0) {
+						event->id = BUTTON_CIRCLE;
+						event->value = 1;
+					} else {
+						event->id = BUTTON_CIRCLE;
+						event->value = 0;
+						
+						
+						DeviceEvent event2;
+						event2.id = BUTTON_SQUARE;
+						event2.value = 0;
+						event2.type = TYPE_BUTTON;
+						dualshock->applyEvent(&event2);
+					}
+					break;
+				case AXIS_DY:
+					event->type = TYPE_BUTTON;
+					if (event->value > 0) {
+						event->id = BUTTON_X;
+						event->value = 1;
+					} else if(event->value < 0) {
+						event->id = BUTTON_TRIANGLE;
+						event->value = 1;
+					} else {
+						event->id = BUTTON_TRIANGLE;
+						event->value = 0;
+						
+						
+						DeviceEvent event2;
+						event2.id = BUTTON_X;
+						event2.value = 0;
+						event2.type = TYPE_BUTTON;
+						dualshock->applyEvent(&event2);
+					}
+					break;
+				default:
+					break;
+			}
+			return true;
+		}
+		if(event->type == TYPE_BUTTON) {
+			switch (event->id) {
+				case BUTTON_R1: event->id = BUTTON_L1; break;
+				case BUTTON_L1: event->id = BUTTON_R1; break;
+				case BUTTON_R2: event->id = BUTTON_L2; break;
+				case BUTTON_L2: event->id = BUTTON_R2; break;
+					
+				case BUTTON_TRIANGLE:
+					event->type = TYPE_AXIS;
+					event->value *= -1;
+					event->id = AXIS_DY;
+					break;
+				case BUTTON_X:
+					event->type = TYPE_AXIS;
+					event->value *= 1;
+					event->id = AXIS_DY;
+					break;
+				case BUTTON_SQUARE:
+					event->type = TYPE_AXIS;
+					event->value *= 1;
+					event->id = AXIS_DX;
+					break;
+				case BUTTON_CIRCLE:
+					event->type = TYPE_AXIS;
+					event->value *= -1;
+					event->id = AXIS_DX;
+					break;
+				default:
+					break;
+			}
+		}
+		
+		return true;
+	}
+};
+
+class ControllerFlip : public Modifier {
+	// Hipsterobot
+public:
+	static void regist() { Modifier::factory["Controller Flip"] = [](){return new ControllerFlip();}; };
+	
+	bool tweak( DeviceEvent* event ) {
+		DeviceEvent newEvent;
+		if(event->type == TYPE_AXIS) {
+			switch (event->id) {
+				case AXIS_DY:
+				case AXIS_LY:
+				case AXIS_RY:
+					event->value = joystickLimit(-event->value);
+					break;
+				case AXIS_L2:
+				case AXIS_R2:
+					return false;
+				default:
+					break;
+			}
+			return true;
+		}
+		if(event->type == TYPE_BUTTON) {
+			switch (event->id) {
+				case BUTTON_R1:
+					event->id = BUTTON_R2;
+					newEvent.id	= AXIS_R2;
+					newEvent.type = TYPE_AXIS;
+					newEvent.value = event->value ? JOYSTICK_MAX : JOYSTICK_MIN;
+					chaosEngine->fakePipelinedEvent(&newEvent, this);
+					break;
+				case BUTTON_L1:
+					event->id = BUTTON_L2;
+					newEvent.id	= AXIS_L2;
+					newEvent.type = TYPE_AXIS;
+					newEvent.value = event->value ? JOYSTICK_MAX : JOYSTICK_MIN;
+					chaosEngine->fakePipelinedEvent(&newEvent, this);
+					break;
+				case BUTTON_R2: event->id = BUTTON_R1; break;
+				case BUTTON_L2: event->id = BUTTON_L1; break;
+					
+				case BUTTON_TRIANGLE:
+					event->id = BUTTON_X;
+					break;
+				case BUTTON_X:
+					event->id = BUTTON_TRIANGLE;
+					break;
+				default:
+					break;
+			}
+		}
+		
+		return true;
+	}
 };
 
 /*
@@ -1181,7 +1438,7 @@ public:
 class RestartCheckpoint : public Modifier {
 public:
 	static void regist() { Modifier::factory["Restart Checkpoint"] = [](){return new RestartCheckpoint();}; };
-
+	
 	bool busy;
 	
 	void begin() {
@@ -1212,7 +1469,7 @@ public:
 class NoReticle : public Modifier {
 public:
 	static void regist() { Modifier::factory["No Reticle"] = [](){return new NoReticle();}; };
-
+	
 	bool busy;
 	
 	void begin() {
@@ -1233,185 +1490,185 @@ public:
 };
 
 /*
-Render Modes:
+ Render Modes:
  */
 class Graphic : public Modifier {
-    bool busy;
+	bool busy;
 public:
-    static void regist() { Modifier::factory["Graphic"] = [](){return new Graphic();}; };
-    
-    void begin() {
-        busy = true;
-        Menuing::getInstance()->selectRenderMode(RENDER_GRAPHIC, dualshock);
-        busy = false;
-    }
-    void finish() {
-        busy = true;
-        Menuing::getInstance()->teardownRenderMode(dualshock);
-        busy = false;
-    }
-    bool tweak( DeviceEvent* event ) {
-        return !busy;
-    }
+	static void regist() { Modifier::factory["Graphic"] = [](){return new Graphic();}; };
+	
+	void begin() {
+		busy = true;
+		Menuing::getInstance()->selectRenderMode(RENDER_GRAPHIC, dualshock);
+		busy = false;
+	}
+	void finish() {
+		busy = true;
+		Menuing::getInstance()->teardownRenderMode(dualshock);
+		busy = false;
+	}
+	bool tweak( DeviceEvent* event ) {
+		return !busy;
+	}
 };
 class Headache : public Modifier {
-    bool busy;
+	bool busy;
 public:
-    static void regist() { Modifier::factory["Headache"] = [](){return new Headache();}; };
-    
-    void begin() {
-        busy = true;
-        Menuing::getInstance()->selectRenderMode(RENDER_HEADHACHE, dualshock);
-        busy = false;
-    }
-    void finish() {
-        busy = true;
-        Menuing::getInstance()->teardownRenderMode(dualshock);
-        busy = false;
-    }
-    bool tweak( DeviceEvent* event ) {
-        return !busy;
-    }
+	static void regist() { Modifier::factory["Headache"] = [](){return new Headache();}; };
+	
+	void begin() {
+		busy = true;
+		Menuing::getInstance()->selectRenderMode(RENDER_HEADHACHE, dualshock);
+		busy = false;
+	}
+	void finish() {
+		busy = true;
+		Menuing::getInstance()->teardownRenderMode(dualshock);
+		busy = false;
+	}
+	bool tweak( DeviceEvent* event ) {
+		return !busy;
+	}
 };
 
 class Afterlife : public Modifier {
-    bool busy;
+	bool busy;
 public:
-    static void regist() { Modifier::factory["Afterlife"] = [](){return new Afterlife();}; };
-    
-    void begin() {
-        busy = true;
-        Menuing::getInstance()->selectRenderMode(RENDER_AFTERLIFE, dualshock);
-        busy = false;
-    }
-    void finish() {
-        busy = true;
-        Menuing::getInstance()->teardownRenderMode(dualshock);
-        busy = false;
-    }
-    bool tweak( DeviceEvent* event ) {
-        return !busy;
-    }
+	static void regist() { Modifier::factory["Afterlife"] = [](){return new Afterlife();}; };
+	
+	void begin() {
+		busy = true;
+		Menuing::getInstance()->selectRenderMode(RENDER_AFTERLIFE, dualshock);
+		busy = false;
+	}
+	void finish() {
+		busy = true;
+		Menuing::getInstance()->teardownRenderMode(dualshock);
+		busy = false;
+	}
+	bool tweak( DeviceEvent* event ) {
+		return !busy;
+	}
 };
 
 class EightBit : public Modifier {
-    bool busy;
+	bool busy;
 public:
-    static void regist() { Modifier::factory["8-Bit"] = [](){return new EightBit();}; };
-    
-    void begin() {
-        busy = true;
-        Menuing::getInstance()->selectRenderMode(RENDER_EIGHTBIT, dualshock);
-        busy = false;
-    }
-    void finish() {
-        busy = true;
-        Menuing::getInstance()->teardownRenderMode(dualshock);
-        busy = false;
-    }
-    bool tweak( DeviceEvent* event ) {
-        return !busy;
-    }
+	static void regist() { Modifier::factory["8-Bit"] = [](){return new EightBit();}; };
+	
+	void begin() {
+		busy = true;
+		Menuing::getInstance()->selectRenderMode(RENDER_EIGHTBIT, dualshock);
+		busy = false;
+	}
+	void finish() {
+		busy = true;
+		Menuing::getInstance()->teardownRenderMode(dualshock);
+		busy = false;
+	}
+	bool tweak( DeviceEvent* event ) {
+		return !busy;
+	}
 };
 
 class WaterColor : public Modifier {
-    bool busy;
+	bool busy;
 public:
-    static void regist() { Modifier::factory["Water Color"] = [](){return new WaterColor();}; };
-    
-    void begin() {
-        busy = true;
-        Menuing::getInstance()->selectRenderMode(RENDER_WATERCOLOR, dualshock);
-        busy = false;
-    }
-    void finish() {
-        busy = true;
-        Menuing::getInstance()->teardownRenderMode(dualshock);
-        busy = false;
-    }
-    bool tweak( DeviceEvent* event ) {
-        return !busy;
-    }
+	static void regist() { Modifier::factory["Water Color"] = [](){return new WaterColor();}; };
+	
+	void begin() {
+		busy = true;
+		Menuing::getInstance()->selectRenderMode(RENDER_WATERCOLOR, dualshock);
+		busy = false;
+	}
+	void finish() {
+		busy = true;
+		Menuing::getInstance()->teardownRenderMode(dualshock);
+		busy = false;
+	}
+	bool tweak( DeviceEvent* event ) {
+		return !busy;
+	}
 };
 
 class Dungeon : public Modifier {
-    bool busy;
+	bool busy;
 public:
-    static void regist() { Modifier::factory["Dungeon"] = [](){return new Dungeon();}; };
-    
-    void begin() {
-        busy = true;
-        Menuing::getInstance()->selectRenderMode(RENDER_DUNGEON, dualshock);
-        busy = false;
-    }
-    void finish() {
-        busy = true;
-        Menuing::getInstance()->teardownRenderMode(dualshock);
-        busy = false;
-    }
-    bool tweak( DeviceEvent* event ) {
-        return !busy;
-    }
+	static void regist() { Modifier::factory["Dungeon"] = [](){return new Dungeon();}; };
+	
+	void begin() {
+		busy = true;
+		Menuing::getInstance()->selectRenderMode(RENDER_DUNGEON, dualshock);
+		busy = false;
+	}
+	void finish() {
+		busy = true;
+		Menuing::getInstance()->teardownRenderMode(dualshock);
+		busy = false;
+	}
+	bool tweak( DeviceEvent* event ) {
+		return !busy;
+	}
 };
 
 class Void : public Modifier {
-    bool busy;
+	bool busy;
 public:
-    static void regist() { Modifier::factory["Void"] = [](){return new Void();}; };
-    
-    void begin() {
-        busy = true;
-        Menuing::getInstance()->selectRenderMode(RENDER_VOID, dualshock);
-        busy = false;
-    }
-    void finish() {
-        busy = true;
-        Menuing::getInstance()->teardownRenderMode(dualshock);
-        busy = false;
-    }
-    bool tweak( DeviceEvent* event ) {
-        return !busy;
-    }
+	static void regist() { Modifier::factory["Void"] = [](){return new Void();}; };
+	
+	void begin() {
+		busy = true;
+		Menuing::getInstance()->selectRenderMode(RENDER_VOID, dualshock);
+		busy = false;
+	}
+	void finish() {
+		busy = true;
+		Menuing::getInstance()->teardownRenderMode(dualshock);
+		busy = false;
+	}
+	bool tweak( DeviceEvent* event ) {
+		return !busy;
+	}
 };
 
 class PopPoster : public Modifier {
-    bool busy;
+	bool busy;
 public:
-    static void regist() { Modifier::factory["Pop Poster"] = [](){return new PopPoster();}; };
-    
-    void begin() {
-        busy = true;
-        Menuing::getInstance()->selectRenderMode(RENDER_POPPOSTER, dualshock);
-        busy = false;
-    }
-    void finish() {
-        busy = true;
-        Menuing::getInstance()->teardownRenderMode(dualshock);
-        busy = false;
-    }
-    bool tweak( DeviceEvent* event ) {
-        return !busy;
-    }
+	static void regist() { Modifier::factory["Pop Poster"] = [](){return new PopPoster();}; };
+	
+	void begin() {
+		busy = true;
+		Menuing::getInstance()->selectRenderMode(RENDER_POPPOSTER, dualshock);
+		busy = false;
+	}
+	void finish() {
+		busy = true;
+		Menuing::getInstance()->teardownRenderMode(dualshock);
+		busy = false;
+	}
+	bool tweak( DeviceEvent* event ) {
+		return !busy;
+	}
 };
 
 class NineteenSixty : public Modifier {
-    bool busy;
+	bool busy;
 public:
-    static void regist() { Modifier::factory["1960"] = [](){return new NineteenSixty();}; };
-    
-    void begin() {
-        busy = true;
-        Menuing::getInstance()->selectRenderMode(RENDER_NINETEENSIXTY, dualshock);
-        busy = false;
-    }
-    void finish() {
-        busy = true;
-        Menuing::getInstance()->teardownRenderMode(dualshock);
-        busy = false;
-    }
-    bool tweak( DeviceEvent* event ) {
-        return !busy;
-    }
+	static void regist() { Modifier::factory["1960"] = [](){return new NineteenSixty();}; };
+	
+	void begin() {
+		busy = true;
+		Menuing::getInstance()->selectRenderMode(RENDER_NINETEENSIXTY, dualshock);
+		busy = false;
+	}
+	void finish() {
+		busy = true;
+		Menuing::getInstance()->teardownRenderMode(dualshock);
+		busy = false;
+	}
+	bool tweak( DeviceEvent* event ) {
+		return !busy;
+	}
 };
 
 class Cool : public Modifier {
@@ -1816,21 +2073,21 @@ public:
  Gameplay Modes:
  */
 class Mirror : public Modifier {
-    bool busy;
+	bool busy;
 public:
-    static void regist() { Modifier::factory["Mirror World"] = [](){return new Mirror();}; };
-    
-    void begin() {
-        busy = true;
-        Menuing::getInstance()->selectGameplayMode(GAMEPLAY_MIRROR, dualshock);
-        busy = false;
-    }
-    void finish() {
-        begin();
-    }
-    bool tweak( DeviceEvent* event ) {
-        return !busy;
-    }
+	static void regist() { Modifier::factory["Mirror World"] = [](){return new Mirror();}; };
+	
+	void begin() {
+		busy = true;
+		Menuing::getInstance()->selectGameplayMode(GAMEPLAY_MIRROR, dualshock);
+		busy = false;
+	}
+	void finish() {
+		begin();
+	}
+	bool tweak( DeviceEvent* event ) {
+		return !busy;
+	}
 };
 
 class MirrorOnDeath : public Modifier {
@@ -1889,39 +2146,39 @@ public:
 };
 
 class InfiniteAmmo : public Modifier {
-    bool busy;
+	bool busy;
 public:
-    static void regist() { Modifier::factory["Infinite Ammo"] = [](){return new InfiniteAmmo();}; };
-    
-    void begin() {
-        busy = true;
-        Menuing::getInstance()->selectGameplayMode(GAMEPLAY_INFINITE_AMMO, dualshock);
-        busy = false;
-    }
-    void finish() {
-        begin();
-    }
-    bool tweak( DeviceEvent* event ) {
-        return !busy;
-    }
+	static void regist() { Modifier::factory["Infinite Ammo"] = [](){return new InfiniteAmmo();}; };
+	
+	void begin() {
+		busy = true;
+		Menuing::getInstance()->selectGameplayMode(GAMEPLAY_INFINITE_AMMO, dualshock);
+		busy = false;
+	}
+	void finish() {
+		begin();
+	}
+	bool tweak( DeviceEvent* event ) {
+		return !busy;
+	}
 };
 
 class InfiniteCrafting : public Modifier {
-    bool busy;
+	bool busy;
 public:
-    static void regist() { Modifier::factory["Infinite Crafting"] = [](){return new InfiniteCrafting();}; };
-    
-    void begin() {
-        busy = true;
-        Menuing::getInstance()->selectGameplayMode(GAMEPLAY_INFINITE_CRAFT, dualshock);
-        busy = false;
-    }
-    void finish() {
-        begin();
-    }
-    bool tweak( DeviceEvent* event ) {
-        return !busy;
-    }
+	static void regist() { Modifier::factory["Infinite Crafting"] = [](){return new InfiniteCrafting();}; };
+	
+	void begin() {
+		busy = true;
+		Menuing::getInstance()->selectGameplayMode(GAMEPLAY_INFINITE_CRAFT, dualshock);
+		busy = false;
+	}
+	void finish() {
+		begin();
+	}
+	bool tweak( DeviceEvent* event ) {
+		return !busy;
+	}
 };
 
 class InfiniteMeleeDurability : public Modifier {
@@ -2079,7 +2336,7 @@ public:
 class DeskPop : public Modifier {
 public:
 	static void regist() { Modifier::factory["Desk Pop"] = [](){return new DeskPop();}; };
-
+	
 	bool busy;
 	
 	void begin() {
@@ -2092,9 +2349,11 @@ public:
 		sequence.addButtonHold(BUTTON_L2);
 		sequence.addTimeDelay(1000);
 		sequence.addButtonHold(BUTTON_R2);
+		sequence.addAxisHold(AXIS_R2, JOYSTICK_MAX);
 		sequence.addTimeDelay(200);
 		sequence.addButtonRelease(BUTTON_L2);
 		sequence.addButtonRelease(BUTTON_R2);
+		sequence.addAxisHold(AXIS_R2, JOYSTICK_MIN);
 		
 		sequence.send(dualshock);
 		
@@ -2109,7 +2368,7 @@ public:
 class TossMolly : public Modifier {
 public:
 	static void regist() { Modifier::factory["Toss A Molly"] = [](){return new TossMolly();}; };
-
+	
 	bool busy;
 	
 	void begin() {
@@ -2120,12 +2379,12 @@ public:
 		sequence.disablejoysticks();
 		sequence.addAxisPress(AXIS_DY, 1);
 		sequence.addAxisPress(AXIS_DY, 1);
-//		sequence.addTimeDelay(1000);
-//		sequence.addButtonHold(BUTTON_L2);
+		//		sequence.addTimeDelay(1000);
+		//		sequence.addButtonHold(BUTTON_L2);
 		sequence.addTimeDelay(2500);
 		sequence.addButtonHold(BUTTON_R2);
 		sequence.addTimeDelay(500);
-//		sequence.addButtonRelease(BUTTON_L2);
+		//		sequence.addButtonRelease(BUTTON_L2);
 		sequence.addButtonRelease(BUTTON_R2);
 		
 		sequence.send(dualshock);
@@ -2141,7 +2400,7 @@ public:
 class CtgStrat : public Modifier {
 public:
 	static void regist() { Modifier::factory["CTG Strat"] = [](){return new CtgStrat();}; };
-
+	
 	bool busy;
 	
 	void begin() {
@@ -2154,12 +2413,12 @@ public:
 		sequence.addAxisHold(AXIS_RX, 0);
 		sequence.addAxisPress(AXIS_DY, 1);
 		sequence.addAxisPress(AXIS_DY, 1);
-//		sequence.addTimeDelay(1000);
-//		sequence.addButtonHold(BUTTON_L2);
+		//		sequence.addTimeDelay(1000);
+		//		sequence.addButtonHold(BUTTON_L2);
 		sequence.addTimeDelay(2500);
 		sequence.addButtonHold(BUTTON_R2);
 		sequence.addTimeDelay(500);
-//		sequence.addButtonRelease(BUTTON_L2);
+		//		sequence.addButtonRelease(BUTTON_L2);
 		sequence.addButtonRelease(BUTTON_R2);
 		
 		sequence.addAxisHold(AXIS_RY, 0);
@@ -2178,7 +2437,7 @@ public:
 class PdubIt : public Modifier {
 public:
 	static void regist() { Modifier::factory["Pdub It"] = [](){return new PdubIt();}; };
-
+	
 	bool busy;
 	
 	void begin() {
@@ -2189,11 +2448,11 @@ public:
 		sequence.disablejoysticks();
 		sequence.addAxisPress(AXIS_DY, 1);
 		sequence.addTimeDelay(2500);
-//		sequence.addButtonHold(BUTTON_L2);
-//		sequence.addTimeDelay(1000);
+		//		sequence.addButtonHold(BUTTON_L2);
+		//		sequence.addTimeDelay(1000);
 		sequence.addButtonHold(BUTTON_R2);
 		sequence.addTimeDelay(200);
-//		sequence.addButtonRelease(BUTTON_L2);
+		//		sequence.addButtonRelease(BUTTON_L2);
 		sequence.addButtonRelease(BUTTON_R2);
 		
 		sequence.send(dualshock);
@@ -2209,7 +2468,7 @@ public:
 class ChuckStun : public Modifier {
 public:
 	static void regist() { Modifier::factory["Chuck Smoke Bomb"] = [](){return new ChuckStun();}; };
-
+	
 	bool busy;
 	
 	void begin() {
@@ -2221,11 +2480,11 @@ public:
 		sequence.addAxisPress(AXIS_DY, -1);
 		sequence.addAxisPress(AXIS_DY, -1);
 		sequence.addTimeDelay(2000);
-//		sequence.addButtonHold(BUTTON_L2);
-//		sequence.addTimeDelay(1000);
+		//		sequence.addButtonHold(BUTTON_L2);
+		//		sequence.addTimeDelay(1000);
 		sequence.addButtonHold(BUTTON_R2);
 		sequence.addTimeDelay(200);
-//		sequence.addButtonRelease(BUTTON_L2);
+		//		sequence.addButtonRelease(BUTTON_L2);
 		sequence.addButtonRelease(BUTTON_R2);
 		
 		sequence.send(dualshock);
@@ -2242,7 +2501,7 @@ public:
 class HostagesDontEscape : public Modifier {
 	bool busy;
 public:
-	static void regist() { Modifier::factory["Hostage Don\'t Escape"] = [](){return new HostagesDontEscape();}; };
+	static void regist() { Modifier::factory["Hostages Don\'t Escape"] = [](){return new HostagesDontEscape();}; };
 	
 	void begin() {
 		busy = true;
@@ -2574,52 +2833,51 @@ public:
 int main(int argc, char** argv) {
 	std::cout << "Welcome to Chaos" << std::endl;
 	
-	//ControllerGpio dualshock;
-	//dualshock.initialize( "/dev/input/js0" );
-	
-
 	ControllerRaw dualshock;
 	dualshock.initialize();
 	dualshock.start();
 	
 	// Custom:
-    Inverted::regist();
+	Inverted::regist();
 	Moonwalk::regist();
 	MeleeOnly::regist();
 	NoMelee::regist();
+	Pacifist::regist();
 	NoTriangle::regist();
 	NoClimbJump::regist();
 	NoAiming::regist();
 	NoScoping::regist();
 	NoShoulderSwap::regist();
 	NoReloading::regist();
-    DisableCircle::regist();
-    ForceProne::regist();
+	DisableCircle::regist();
+	ForceProne::regist();
 	FactionsPro::regist();
 	Disco::regist();
 	KeepJumping::regist();
 	RachyFlail::regist();
 	KeepDodging::regist();
-	
+
 	PeriodicListenMode::regist();
-    NoRun::regist();
-    ForceRun::regist();
-    DisableJoystick::regist();
-    SwapSticks::regist();
+	NoRun::regist();
+	ForceRun::regist();
+	DisableJoystick::regist();
+	SwapSticks::regist();
 	SwapStickDpad::regist();
 	MotionControls::regist();
 	MotionControlAiming::regist();
 	TouchpadAiming::regist();
 	
-    Nascar::regist();
-    Drunk::regist();
+	Nascar::regist();
+	Drunk::regist();
 	MegaScopeSway::regist();
 	ProneDive::regist();
+	Rubbernecking::regist();
 	
-    NoGuns::regist();
-    NoThrows::regist();
-    MaxSensitivity::regist();
-    ControllerMirror::regist();
+	NoGuns::regist();
+	NoThrows::regist();
+	MaxSensitivity::regist();
+	ControllerMirror::regist();
+	ControllerFlip::regist();
 
 	DeskPop::regist();
 	TossMolly::regist();
@@ -2635,14 +2893,14 @@ int main(int argc, char** argv) {
 	NoReticle::regist();
 
 	// Render modes:
-    Graphic::regist();
-    Headache::regist();
-    Afterlife::regist();
-    EightBit::regist();
-    WaterColor::regist();
-    Dungeon::regist();
-    Void::regist();
-    PopPoster::regist();
+	Graphic::regist();
+	Headache::regist();
+	Afterlife::regist();
+	EightBit::regist();
+	WaterColor::regist();
+	Dungeon::regist();
+	Void::regist();
+	PopPoster::regist();
 	NineteenSixty::regist();
 	Cool::regist();
 	Warm::regist();
@@ -2666,12 +2924,12 @@ int main(int argc, char** argv) {
 	Moonlight::regist();
 
 	// Gameplay Modes:
-    Mirror::regist();		// Render mode
+	Mirror::regist();		// Render mode
 	MirrorOnDeath::regist();
 	SlowMotion::regist();
 	BulletSpeed::regist();
 	InfiniteAmmo::regist();
-    InfiniteCrafting::regist();
+	InfiniteCrafting::regist();
 	InfiniteMeleeDurability::regist();
 	InfiniteListenRange::regist();
 	OneShot::regist();
@@ -2707,9 +2965,10 @@ int main(int argc, char** argv) {
 	ReducedEnemyAccuracy::regist();
 	EnhancedDodge::regist();
 	InvisibleWhileProne::regist();
-	
+//
 	StrafeOnly::regist();
 	NoStrafe::regist();
+	LeeroyJenkins::regist();
 	ForceAim::regist();
 	SpeedrunGlitch::regist();
 	
@@ -2727,20 +2986,17 @@ int main(int argc, char** argv) {
 		printf("%3d: %s\n", i++, it.first.c_str());
 	}
 	
-	
-	
 	ChaosEngine chaosEngine(&dualshock);
 	chaosEngine.start();
 	
 	double timePerModifier = 30.0;
 	chaosEngine.setTimePerModifier(timePerModifier);
 	
-	
 
 	while(1) {
 		chaosEngine.setInterfaceReply( Modifier::getModList(timePerModifier) );
 		usleep(10000000);
 	}
-
+	
 	return 0;
 }

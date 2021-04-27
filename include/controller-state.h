@@ -35,6 +35,7 @@ public:
 	
 	virtual ~ControllerState() = 0;
 	
+	void* getHackedState();
 protected:
 	int stateLength;
 	

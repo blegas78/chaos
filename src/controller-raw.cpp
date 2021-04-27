@@ -4,7 +4,14 @@
 
 bool ControllerRaw::applyHardware(const DeviceEvent* event) {
 	//	State will already be stored, nothing to be done for raw
-	
+//	if (spooferFile) {
+//		if (event->type == TYPE_AXIS &&
+//			event->id > AXIS_DY) {
+//			return true;
+//		}
+//		fwrite(event, sizeof(DeviceEvent), 1, spooferFile);
+	//chaosHid.sendUpdate( mControllerState->getHackedState() );
+//	}
 	return true;
 }
 
@@ -117,10 +124,12 @@ void ControllerRaw::initialize( ) {
 	}
 	
 	mControllerState = ControllerState::factory(mRawGadgetPassthrough.getVendor(), mRawGadgetPassthrough.getProduct());
+	chaosHid = new ChaosUhid(mControllerState);
+	chaosHid->start();
 	
 	if (mControllerState == NULL) {
 		fprintf(stderr, "ERROR!  Could not build a ControllerState for vendor=0x%04x product=0x%04x\n", mRawGadgetPassthrough.getVendor(), mRawGadgetPassthrough.getProduct());
 		exit(EXIT_FAILURE);
 	}
-	
+
 }

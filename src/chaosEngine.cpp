@@ -69,6 +69,7 @@ void ChaosEngine::doAction() {
 	// Update timers/states of modifiers
     if(pause) {
         //std::cout << "Paused" << std::endl;
+		pausedPrior = true;
         return;
         
     }
@@ -85,8 +86,9 @@ void ChaosEngine::doAction() {
 	lock();
 	//pthread_mutex_lock(&chaosMutex);
 	for (std::list<Modifier*>::iterator it = modifiers.begin(); it != modifiers.end(); it++) {
-		(*it)->_update();
+		(*it)->_update(pausedPrior);
 	}
+	pausedPrior = false;
 	unlock();
 	//pthread_mutex_unlock(&chaosMutex);
 	

@@ -10,3 +10,6 @@
 [submodule "raw-gadget-timeout"]
 	path = raw-gadget-timeout
 	url = https://github.com/xairy/raw-gadget.git
+[submodule "python/flexx_gamepad"]
+	path = python/flexx_gamepad
+	url = https://github.com/ash3rz/flexx_gamepad.git

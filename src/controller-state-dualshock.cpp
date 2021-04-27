@@ -47,6 +47,8 @@ void ControllerStateDualshock::applyHackedState(unsigned char* buffer, short* ch
 	
 	report->GD_GamePadHatSwitch = packDpad(chaosState[((int)TYPE_AXIS<<8) + (int)AXIS_DX],
 										   chaosState[((int)TYPE_AXIS<<8) + (int)AXIS_DY]);
+	
+	*(inputReport01_t*)hackedState = *report;
 }
 
 void ControllerStateDualshock::getDeviceEvents(unsigned char* buffer, int length, std::vector<DeviceEvent>& events)  {

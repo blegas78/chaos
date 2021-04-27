@@ -31,6 +31,10 @@ from chatroom import relay as chatRelay
 from chatroom import ChatRoom
 
 import chaoscommunicator
+#import sys
+#sys.path.append("flexx_gamepad/")
+#
+#from server import GamepadServer
 
 from flexx import flx, ui
 logging.basicConfig(level="INFO")
@@ -104,7 +108,7 @@ class ChaosModel():
 		y = json.loads(message)
 		#pp.pprint(y)
 		if "mods" in y:
-			logging.info("Got new mods!")
+			#logging.info("Got new mods!")
 			oldModLength = len(self.allMods)	# HACK
 			#self.allMods = y["mods"]
 			if not oldModLength == len(y["mods"]):
@@ -752,6 +756,7 @@ def startFlexx():
 	flx.App(Votes).serve()
 	flx.App(BotSetup).serve()
 	flx.App(Settings).serve()
+#	flx.App(GamepadServer).serve()
 	
 	flx.create_server(host='0.0.0.0',port=chaosConfig["ui-port"],loop=asyncio.new_event_loop())
 	flx.start()
@@ -892,7 +897,7 @@ class Chatbot():
 				
 					print("Sending response message: " + notice)
 					utility.chat(self.s, notice, self.channel_name);
-					time.sleep(1 / config.RATE)
+					time.sleep(1 / chaosConfig["chat-rate"])
 				
 					timeSinceLastResponse = 0
 					

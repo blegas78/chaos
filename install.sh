@@ -42,7 +42,7 @@ cd ..
 sudo -s eval "grep -qxF 'dtoverlay=dwc2' /boot/config.txt  || echo 'dtoverlay=dwc2' >> /boot/config.txt "
 
 
-sudo -s eval "pip3 install flexx pyzmq numpy --system"
+sudo -s eval "pip3 install flexx pyzmq numpy pygame --system"
 
 if [ ! -f "/home/pi/chaosConfig.json" ];
 then

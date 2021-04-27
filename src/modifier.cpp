@@ -7,6 +7,7 @@
 
 Modifier::Modifier() {
 	this->timer.initialize();
+	pauseTimeAccumulator = 0;
 }
 
 void Modifier::setDualshock(Controller* dualshock) {
@@ -17,8 +18,11 @@ void Modifier::setChaosEngine(ChaosEngine* chaosEngine) {
 	this->chaosEngine = chaosEngine;
 }
 
-void Modifier::_update() {
+void Modifier::_update(bool isPaused) {
 	timer.update();
+	if (isPaused) {
+		pauseTimeAccumulator += timer.dTime();
+	}
 	this->update();
 }
  
@@ -61,7 +65,7 @@ std::string Modifier::getModList(double timePerModifier) {
 }
 
 double Modifier::lifetime() {
-	return timer.runningTime();
+	return timer.runningTime() - pauseTimeAccumulator;
 }
 
 bool Modifier::tweak( DeviceEvent* event ) {

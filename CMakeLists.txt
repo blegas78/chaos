@@ -35,6 +35,7 @@ add_library( chaos-engine src/interface.cpp
 						src/modifier.cpp
 						src/sequence.cpp
 						src/menuing.cpp
+						src/chaos-uhid.cpp
 						include/interface.h
 						include/device.h
 						include/controller.h
@@ -43,6 +44,7 @@ add_library( chaos-engine src/interface.cpp
 						include/ps5-generated.h
 						include/magicpro-generated.h
 						include/deviceTypes.h
+						include/chaos-uhid.h
 						include/chaos.h )
 
 set(LIBS ${LIBS} chaos-engine sniffify)
