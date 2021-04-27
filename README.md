@@ -75,6 +75,11 @@ Chaos initializes in a paused state.  This paused state prevents any modifier fr
 
 >Note: This means that you will actively need to resume chaos whenever you enter your game's pause menu.
 
+#### Game-Specific Usage
+Currently TLOU2 is hardcoded as the only supported game.  See TLOU2 specific instrucitons here:
+
+[TLOU2 Usage](docs/TLOU2/README.md)
+
 
 ## Design
 The lowest level aspect of controller chaos is based on forwarding USB protocols using the Linux raw-gadget kernel module.  For every USB request, Chaos duplicates the request and passes it along.  However, in the case of messages corresponding to controller buttons/joysticks the data is passed to other processes that can meddle with the data.
