@@ -52,7 +52,13 @@ git clone https://github.com/blegas78/chaos.git
 cd chaos
 ./install
 ```
-    
+
+4. A reboot is required to enable the USB communication to hosts:
+
+```bash
+sudo reboot
+```
+
 ## First Time Setup
 Now that everything is installed, power up your Raspberry Pi and follow these steps:
 
