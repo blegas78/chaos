@@ -29,18 +29,29 @@ I intend to grow this list over time as needed.
 
 
 ## Installation
-Currently this setup is only supported on a Raspberry Pi 4 with 32-bit headless Raspian, though other setups may work. Also, currently directories are hardcoded to look for /home/pi/chaos, so make sure to check out this project into your default account home directory.  This may change later depending on project interest.
+Currently this setup is only supported on a Raspberry Pi 4 with 32-bit Raspian Lite, though other setups may work. Also, currently directories are hardcoded to look for /home/pi/chaos, so make sure to check out this project into your default account home directory.  This may change later depending on project interest.
 
+I like to use this tool to build your SD card: [Raspberry Pi Imager](https://www.raspberrypi.org/software/)
+
+>Note: The default username for Raspbian is "pi", the default password is "raspberry"
 
 To install:
 1. Set up your Raspberry Pi's network.  I *highly* recommend using ethernet for Chaos, though low-interferenced WiFi should be fine too. [WiFi Instructions here](https://www.raspberrypi.org/documentation/configuration/wireless/wireless-cli.md).
 
-2. Run the following:
+2. If you have not already installed git (like on fresh installations of Raspbian Lite), run:
 
-		cd ~
-		git clone https://github.com/blegas78/chaos.git
-		cd chaos
-		./install
+```bash
+sudo apt update && sudo apt install git -y
+```
+
+3. Run the following:
+
+```bash
+cd ~
+git clone https://github.com/blegas78/chaos.git
+cd chaos
+./install
+```
     
 ## First Time Setup
 Now that everything is installed, power up your Raspberry Pi and follow these steps:
