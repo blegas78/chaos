@@ -168,6 +168,7 @@ class ChaosModel():
 		# allMods will be set by thte C program
 		#self.allMods = ["1", "2", "3", "4", "5", "6"]
 		self.allMods = relay.allMods
+		self.allModsDb = [{"name":"1","desc":""},{"name":"2","desc":""},{"name":"3","desc":""},{"name":"4","desc":""},{"name":"5","desc":""},{"name":"6","desc":""}]
 		self.resetSoftMax()
 		
 		#self.allMods = [ "No Run/Dodge", "Disable Crouch/Prone", "Drunk Control"]
@@ -210,7 +211,8 @@ class ChaosModel():
 				self.applyNewMod( newMod )
 				if self.gotNewMods:
 					self.gotNewMods = False
-					self.allMods = self.newAllMods
+					self.allModsDb = self.newAllMods
+					self.allMods = [x["name"] for x in self.allModsDb]
 					relay.set_allMods(self.allMods)
 					self.resetSoftMax()
 #				self.allMods = relay.allMods
@@ -315,8 +317,10 @@ class ChaosModel():
 						if messageAsInt >= 0 and messageAsInt < self.totalVoteOptions and not notice["user"] in self.votedUsers:
 							self.votedUsers.append(notice["user"])
 							self.votes[messageAsInt] += 1
+							continue
 								
-					firstWord = message.split(" ",1)[0]
+					command = message.split(" ",1)
+					firstWord = command[0]
 					if firstWord == "!mods":
 						response = str(str(self.allMods) + " @" + notice["user"]).replace('\'', '').replace('[','').replace(']','')
 						splitMessage = [response[i:i+484] for i in range(0, len(response), 484)]
@@ -326,6 +330,23 @@ class ChaosModel():
 							#response =	"!mods: " + message
 							
 							qResponse.put( "!mods: " + message );
+						continue
+							
+					if firstWord == "!mod":
+						if len(command) == 1:
+							message = "Usage: !mod <mod name>"
+							qResponse.put( message );
+							continue
+						argument = command[1]
+						message = "Unrecognized mod :("
+						for x in self.allModsDb:
+							if x["name"].lower() == argument.lower():
+								if x["desc"] == "":
+									message = x["name"] + ": No Description :("
+								else:
+									message = x["name"] + ": " + x["desc"]
+								break
+						qResponse.put( message );
 						
 				#relay.newVotes(self.votes)
 				try:
@@ -878,16 +899,17 @@ class Chatbot():
 				
 	def chatResponseLoop(self):
 		thread = threading.currentThread()
-		timeSinceLastResponse = 60
+		cooldownInSeconds = 5
+		timeSinceLastResponse = cooldownInSeconds
 
 		while not getattr(thread, "kill", False):
 			time.sleep(1 / chaosConfig["chat-rate"])
 			timeSinceLastResponse += (1.0 / chaosConfig["chat-rate"])
-			if timeSinceLastResponse < 60:
+			if timeSinceLastResponse < cooldownInSeconds:
 				if qResponse.qsize() > 0:
 					while qResponse.qsize() > 0:
 						qResponse.get()
-					utility.chat(self.s, "!mods Cooldown at " + str(int(60.0 - timeSinceLastResponse)) + " seconds", self.channel_name);
+					utility.chat(self.s, "!mods Cooldown at " + str(int(cooldownInSeconds - timeSinceLastResponse)) + " seconds", self.channel_name);
 				continue
 				
 			else:

@@ -15,6 +15,8 @@ inline short joystickLimit( int input ) {
 class Inverted : public Modifier {
 public:
 	static void regist() { Modifier::factory["Inverted"] = [](){return new Inverted();}; };
+	const char* description() { return "Inverts the Y-axis on the right joystick (aim inversion)"; };
+	
 	bool tweak( DeviceEvent* event ) {
 		if ((event->id == AXIS_RY ) && event->type == TYPE_AXIS) {
 			event->value = -((int)event->value+1) ;
@@ -27,6 +29,8 @@ public:
 class Moonwalk : public Modifier {
 public:
 	static void regist() { Modifier::factory["Moonwalk"] = [](){return new Moonwalk();}; };
+	const char* description() { return "Be like Michael Jackson!  Trying to walk forward will actually make you go backward"; };
+	
 	bool tweak( DeviceEvent* event ) {
 		if ((event->id == AXIS_LY ) && event->type == TYPE_AXIS) {
 			event->value = -((int)event->value+1) ;
@@ -38,6 +42,8 @@ public:
 class MeleeOnly : public Modifier {
 public:
 	static void regist() { Modifier::factory["Melee Only"] = [](){return new MeleeOnly();}; };
+	const char* description() { return "No shooting and no throwables"; };
+	
 	bool tweak( DeviceEvent* event ) {
 		if (event->id == BUTTON_R2 && event->type == TYPE_BUTTON) {
 			event->value = 0;
@@ -52,6 +58,8 @@ public:
 class NoMelee : public Modifier {
 public:
 	static void regist() { Modifier::factory["No Melee"] = [](){return new NoMelee();}; };
+	const char* description() { return "Square presses are feeble"; };
+	
 	bool tweak( DeviceEvent* event ) {
 		if (event->id == BUTTON_SQUARE && event->type == TYPE_BUTTON) {
 			event->value = 0;
@@ -63,6 +71,7 @@ public:
 class Pacifist: public Modifier {
 public:
 	static void regist() { Modifier::factory["Pacifist%"] = [](){return new Pacifist();}; };
+	const char* description() { return "No shooting, throwing, nor melee. Good luck NPC friends!"; };
 	bool tweak( DeviceEvent* event ) {
 		if (event->type == TYPE_BUTTON &&
 			(event->id == BUTTON_SQUARE ||	// disable Melee
@@ -79,6 +88,7 @@ public:
 class NoTriangle : public Modifier {
 public:
 	static void regist() { Modifier::factory["No Triangle"] = [](){return new NoTriangle();}; };
+	const char* description() { return "No looting, stealth grabbing, opening doors. Say goodbye to the everything button"; };
 	bool tweak( DeviceEvent* event ) {
 		if (event->id == BUTTON_TRIANGLE && event->type == TYPE_BUTTON) {
 			event->value = 0;
@@ -90,6 +100,7 @@ public:
 class NoClimbJump : public Modifier {
 public:
 	static void regist() { Modifier::factory["No Climbing/Jumping"] = [](){return new NoClimbJump();}; };
+	const char* description() { return "No X presses"; };
 	bool tweak( DeviceEvent* event ) {
 		if (event->id == BUTTON_X && event->type == TYPE_BUTTON) {
 			event->value = 0;
@@ -101,6 +112,7 @@ public:
 class NoAiming : public Modifier {
 public:
 	static void regist() { Modifier::factory["No Aiming"] = [](){return new NoAiming();}; };
+	const char* description() { return "At least reloading is still possible, along with throwables and melee"; };
 	bool tweak( DeviceEvent* event ) {
 		if (event->id == BUTTON_L2 && event->type == TYPE_BUTTON) {
 			event->value = 0;
@@ -112,6 +124,7 @@ public:
 class NoScoping : public Modifier {
 public:
 	static void regist() { Modifier::factory["No Scoping"] = [](){return new NoScoping();}; };
+	const char* description() { return "No scopes! Aiming is still allowed"; };
 	bool tweak( DeviceEvent* event ) {
 		if (event->id == BUTTON_X && event->type == TYPE_BUTTON) {
 			if (dualshock->getState(BUTTON_L2, TYPE_BUTTON)) {	// only disable X when aiming
@@ -125,6 +138,7 @@ public:
 class NoShoulderSwap : public Modifier {
 public:
 	static void regist() { Modifier::factory["No Shoulder Swap"] = [](){return new NoShoulderSwap();}; };
+	const char* description() { return "While aiming, Square is disabled"; };
 	bool tweak( DeviceEvent* event ) {
 		if (event->id == BUTTON_SQUARE && event->type == TYPE_BUTTON) {
 			if (dualshock->getState(BUTTON_L2, TYPE_BUTTON)) {	// only disable X when aiming
@@ -140,6 +154,7 @@ class NoReloading : public Modifier {
 	bool aimHeld = false;
 public:
 	static void regist() { Modifier::factory["No Reloading"] = [](){return new NoReloading();}; };
+	const char* description() { return "If guns were last selected, R2 is disabled without L2"; };
 	bool tweak( DeviceEvent* event ) {
 		if (event->id == AXIS_DX && event->type == TYPE_AXIS && event->id != 0) {
 			dxLastPessed = true;
@@ -157,6 +172,7 @@ public:
 class DisableCircle : public Modifier {
 public:
 	static void regist() { Modifier::factory["No Crouch/Prone"] = [](){return new DisableCircle();}; };
+	const char* description() { return "Circle is disabled"; };
 	void begin() {
 		DeviceEvent event = {0,0,TYPE_BUTTON, BUTTON_CIRCLE};
 		dualshock->applyEvent(&event);
@@ -173,6 +189,7 @@ public:
 class ForceProne : public Modifier {
 public:
 	static void regist() { Modifier::factory["Keep Proning"] = [](){return new ForceProne();}; };
+	const char* description() { return "Proning at inconvenient times"; };
 	double pressTime;
 	void begin() {
 		DeviceEvent event = {0,1,TYPE_BUTTON, BUTTON_CIRCLE};
@@ -206,6 +223,7 @@ public:
 class FactionsPro : public Modifier {
 public:
 	static void regist() { Modifier::factory["Factions Pro"] = [](){return new FactionsPro();}; };
+	const char* description() { return "Keeping things toxic with teabagging"; };
 	double pressTime;
 	void begin() {
 		DeviceEvent event = {0,1,TYPE_BUTTON, BUTTON_CIRCLE};
@@ -240,6 +258,7 @@ class Disco : public Modifier {
 	// Rename/tuning from HeHathYought
 public:
 	static void regist() { Modifier::factory["Anthony Caliber"] = [](){return new Disco();}; };
+	const char* description() { return "Flashlight flickering"; };
 	double pressTime;
 	int toggleCount;
 	void begin() {
@@ -278,6 +297,7 @@ public:
 class KeepJumping : public Modifier {
 public:
 	static void regist() { Modifier::factory["Keep Jumping"] = [](){return new KeepJumping();}; };
+	const char* description() { return "Repeated presses of X"; };
 	double pressTime;
 	void begin() {
 		DeviceEvent event = {0,1,TYPE_BUTTON, BUTTON_X};
@@ -308,6 +328,7 @@ public:
 class RachyFlail : public Modifier {
 public:
 	static void regist() { Modifier::factory["Rachy Flail"] = [](){return new RachyFlail();}; };
+	const char* description() { return "The only way to melee is to follow the master techniques of RachyMonster"; };
 	double pressTime;
 	void begin() {
 		DeviceEvent event = {0,1,TYPE_BUTTON, BUTTON_SQUARE};
@@ -338,6 +359,7 @@ public:
 class KeepDodging : public Modifier {
 public:
 	static void regist() { Modifier::factory["Keep Dodging"] = [](){return new KeepDodging();}; };
+	const char* description() { return "Repeated presses of Circle"; };
 	double pressTime;
 	void begin() {
 		DeviceEvent event = {0,1,TYPE_BUTTON, BUTTON_L1};
@@ -368,6 +390,7 @@ public:
 class PeriodicListenMode : public Modifier {
 public:
 	static void regist() { Modifier::factory["Periodic Listen Mode"] = [](){return new PeriodicListenMode();}; };
+	const char* description() { return "Repeated holds of R1"; };
 	double pressTime;
 	void begin() {
 		DeviceEvent event = {0,1,TYPE_BUTTON, BUTTON_R1};
@@ -398,6 +421,7 @@ public:
 class NoRun : public Modifier {
 public:
 	static void regist() { Modifier::factory["No Run/Dodge"] = [](){return new NoRun();}; };
+	const char* description() { return "L1 is disabled"; };
 	void begin() {
 		DeviceEvent event = {0,0,TYPE_BUTTON, BUTTON_L1};
 		dualshock->applyEvent(&event);
@@ -414,6 +438,7 @@ public:
 class ForceRun : public Modifier {
 public:
 	static void regist() { Modifier::factory["Force Running"] = [](){return new ForceRun();}; };
+	const char* description() { return "L1 is held down (mostly)"; };
 	double pressTime;
 	void begin() {
 		DeviceEvent event = {0,1,TYPE_BUTTON, BUTTON_L1};
@@ -446,6 +471,7 @@ public:
 class LeeroyJenkins : public Modifier {
 public:
 	static void regist() { Modifier::factory["Leeroy Jenkins"] = [](){return new LeeroyJenkins();}; };
+	const char* description() { return "Alright let's do this! LEEEEROOOOOY NNNJEEEENNKIINNS!!!"; };
 	double pressTime;
 	void begin() {
 		DeviceEvent event = {0,1,TYPE_BUTTON, BUTTON_L1};
@@ -489,6 +515,7 @@ class ForceAim : public Modifier {
 	//Prototoxin187
 public:
 	static void regist() { Modifier::factory["Force Aiming"] = [](){return new ForceAim();}; };
+	const char* description() { return "L2 is held"; };
 	double pressTime;
 	void begin() {
 		DeviceEvent event = {0,1,TYPE_BUTTON, BUTTON_L2};
@@ -529,6 +556,7 @@ public:
 class DisableJoystick : public Modifier {
 public:
 	static void regist() { Modifier::factory["Disable Right Joystick"] = [](){return new DisableJoystick();}; };
+	const char* description() { return "Good luck with aiming and looking around!"; };
 	bool tweak( DeviceEvent* event ) {
 		if ( (event->id == AXIS_RX || event->id == AXIS_RY) && event->type == TYPE_AXIS) {
 			event->value = 0;
@@ -541,6 +569,7 @@ class StrafeOnly : public Modifier {
 	//Prototoxin187
 public:
 	static void regist() { Modifier::factory["Only Strafe Movement"] = [](){return new StrafeOnly();}; };
+	const char* description() { return "X-axis on the left joystick is disabled.  Only forward/back motion is allowed."; };
 	bool tweak( DeviceEvent* event ) {
 		if ( event->id == AXIS_LY && event->type == TYPE_AXIS) {
 			event->value = 0;
@@ -552,6 +581,7 @@ public:
 class NoStrafe : public Modifier {
 public:
 	static void regist() { Modifier::factory["No Strafing"] = [](){return new NoStrafe();}; };
+	const char* description() { return "Y-axis on the left joystick is disabled.  Only left/right motion is allowed."; };
 	bool tweak( DeviceEvent* event ) {
 		if ( event->id == AXIS_LX && event->type == TYPE_AXIS) {
 			event->value = 0;
@@ -563,6 +593,7 @@ public:
 class SwapSticks : public Modifier {
 public:
 	static void regist() { Modifier::factory["Swap Joysticks"] = [](){return new SwapSticks();}; };
+	const char* description() { return "You may want to cross your thumbs to work with your muscle memory"; };
 	bool tweak( DeviceEvent* event ) {
 		if( event->type == TYPE_AXIS ) {
 			switch (event->id) {
@@ -581,6 +612,7 @@ class SwapStickDpad : public Modifier {
 	//JustForSaft, joshuatimes7
 public:
 	static void regist() { Modifier::factory["Swap D-Pad/Left Joystick"] = [](){return new SwapStickDpad();}; };
+	const char* description() { return "Retro style motion, and an odd analog inventory selector"; };
 	void begin() {
 		DeviceEvent event = {0,0,TYPE_AXIS, AXIS_LY};
 		dualshock->applyEvent(&event);
@@ -610,6 +642,7 @@ public:
 class MotionControls : public Modifier {
 public:
 	static void regist() { Modifier::factory["Motion Control Movement"] = [](){return new MotionControls();}; };
+	const char* description() { return "No more left joystick, tilt the controller to move instead"; };
 	bool tweak( DeviceEvent* event ) {
 		if( event->type == TYPE_AXIS ) {
 			DeviceEvent newEvent;
@@ -638,6 +671,7 @@ public:
 class MotionControlAiming : public Modifier {
 public:
 	static void regist() { Modifier::factory["Motion Control Aiming"] = [](){return new MotionControlAiming();}; };
+	const char* description() { return "No more right joystick, tilt the controller to aim/look instead"; };
 	bool tweak( DeviceEvent* event ) {
 		if( event->type == TYPE_AXIS ) {
 			DeviceEvent newEvent;
@@ -666,6 +700,7 @@ public:
 class TouchpadAiming : public Modifier {
 public:
 	static void regist() { Modifier::factory["Touchpad Aiming"] = [](){return new TouchpadAiming();}; };
+	const char* description() { return "No more right joystick, finally making use of the touchpad!"; };
 	
 	short priorX[5];
 	short priorY[5];
@@ -823,6 +858,7 @@ public:
 class Nascar : public Modifier {
 public:
 	static void regist() { Modifier::factory["Nascar"] = [](){return new Nascar();}; };
+	const char* description() { return "There is no going right in Nascar"; };
 	bool tweak( DeviceEvent* event ) {
 		if( event->type == TYPE_AXIS ) {
 			if (event->id == AXIS_RX || event->id == AXIS_LX) {
@@ -836,6 +872,7 @@ public:
 class Drunk : public Modifier {
 public:
 	static void regist() { Modifier::factory["Drunk"] = [](){return new Drunk();}; };
+	const char* description() { return "Random joystick motion.  Also don't push things too far, you may stumble"; };
 	
 	std::map<int,int> axisToValue;
 	std::map<int,int> offsetValue;
@@ -910,6 +947,7 @@ class SpeedrunGlitch : public Modifier {
 	// HeHathYought
 public:
 	static void regist() { Modifier::factory["TLOU1 Run Glitch"] = [](){return new SpeedrunGlitch();}; };
+	const char* description() { return "Is this an Any% speedrun of TLOU1?"; };
 	
 	void update() {
 		DeviceEvent event;	// Event to inject
@@ -948,6 +986,7 @@ public:
 class MegaScopeSway : public Modifier {
 public:
 	static void regist() { Modifier::factory["Mega Scope Sway"] = [](){ return new MegaScopeSway();}; };
+	const char* description() { return "Good luck landing shots"; };
 	
 	std::map<int,int> axisToValue;
 	std::map<int,int> offsetValue;
@@ -1004,6 +1043,7 @@ public:
 class ProneDive : public Modifier {
 public:
 	static void regist() { Modifier::factory["Only Prone Diving"] = [](){ return new ProneDive();}; };
+	const char* description() { return "RIP elbows and knees"; }
 	
 	//	std::map<int,int> axisToValue;
 	//std::map<int,int> offsetValue;
@@ -1115,6 +1155,7 @@ public:
 class Rubbernecking : public Modifier {
 public:
 	static void regist() { Modifier::factory["Rubbernecking"] = [](){ return new Rubbernecking();}; };
+	const char* description() { return "Woah!  What's behind you?"; }
 	
 	//	std::map<int,int> axisToValue;
 	//std::map<int,int> offsetValue;
@@ -1219,6 +1260,7 @@ public:
 class NoGuns : public Modifier {
 public:
 	static void regist() { Modifier::factory["No Guns"] = [](){ return new NoGuns();}; };
+	const char* description() { return "D-Pad Left/Right Disabled"; };
 	
 	void begin() {
 		DeviceEvent event = {0,0,TYPE_AXIS, AXIS_DX};
@@ -1240,6 +1282,7 @@ public:
 class NoThrows : public Modifier {
 public:
 	static void regist() { Modifier::factory["No Throwables"] = [](){return new NoThrows();}; };
+	const char* description() { return "D-Pad Up/Down Disabled"; };
 	
 	void begin() {
 		DeviceEvent event = {0,0,TYPE_AXIS, AXIS_DY};
@@ -1263,6 +1306,7 @@ class MaxSensitivity : public Modifier {
 	// gabemusic
 public:
 	static void regist() { Modifier::factory["Max Sensitivity"] = [](){return new MaxSensitivity();}; };
+	const char* description() { return "Goodbye precision aiming"; };
 	
 	bool tweak( DeviceEvent* event ) {
 		if (event->type == TYPE_AXIS) {
@@ -1285,6 +1329,7 @@ class ControllerMirror : public Modifier {
 	// PrincessDiodes, cloverfieldmel, DJ_Squall_808
 public:
 	static void regist() { Modifier::factory["Controller Mirror"] = [](){return new ControllerMirror();}; };
+	const char* description() { return "Left Joystick swapped with Right Joystick, R2 is now L2. Circle is D-Pad Left, etc."; };
 	
 	bool tweak( DeviceEvent* event ) {
 		if(event->type == TYPE_AXIS) {
@@ -1380,6 +1425,7 @@ class ControllerFlip : public Modifier {
 	// Hipsterobot
 public:
 	static void regist() { Modifier::factory["Controller Flip"] = [](){return new ControllerFlip();}; };
+	const char* description() { return "Double joystick inverted, L1 swapped with L2, Triangle swapped with X, etc."; };
 	
 	bool tweak( DeviceEvent* event ) {
 		DeviceEvent newEvent;
@@ -1438,6 +1484,7 @@ public:
 class RestartCheckpoint : public Modifier {
 public:
 	static void regist() { Modifier::factory["Restart Checkpoint"] = [](){return new RestartCheckpoint();}; };
+	const char* description() { return "Best served near the end of a long encounter"; };
 	
 	bool busy;
 	
@@ -1469,6 +1516,7 @@ public:
 class NoReticle : public Modifier {
 public:
 	static void regist() { Modifier::factory["No Reticle"] = [](){return new NoReticle();}; };
+	const char* description() { return "Headshots just got trickier"; };
 	
 	bool busy;
 	
@@ -1496,6 +1544,7 @@ class Graphic : public Modifier {
 	bool busy;
 public:
 	static void regist() { Modifier::factory["Graphic"] = [](){return new Graphic();}; };
+	const char* description() { return "Render Mode"; };
 	
 	void begin() {
 		busy = true;
@@ -1515,6 +1564,7 @@ class Headache : public Modifier {
 	bool busy;
 public:
 	static void regist() { Modifier::factory["Headache"] = [](){return new Headache();}; };
+	const char* description() { return "Render Mode"; };
 	
 	void begin() {
 		busy = true;
@@ -1535,6 +1585,7 @@ class Afterlife : public Modifier {
 	bool busy;
 public:
 	static void regist() { Modifier::factory["Afterlife"] = [](){return new Afterlife();}; };
+	const char* description() { return "Render Mode"; };
 	
 	void begin() {
 		busy = true;
@@ -1555,6 +1606,7 @@ class EightBit : public Modifier {
 	bool busy;
 public:
 	static void regist() { Modifier::factory["8-Bit"] = [](){return new EightBit();}; };
+	const char* description() { return "Render Mode"; };
 	
 	void begin() {
 		busy = true;
@@ -1575,6 +1627,7 @@ class WaterColor : public Modifier {
 	bool busy;
 public:
 	static void regist() { Modifier::factory["Water Color"] = [](){return new WaterColor();}; };
+	const char* description() { return "Render Mode"; };
 	
 	void begin() {
 		busy = true;
@@ -1595,6 +1648,7 @@ class Dungeon : public Modifier {
 	bool busy;
 public:
 	static void regist() { Modifier::factory["Dungeon"] = [](){return new Dungeon();}; };
+	const char* description() { return "Render Mode"; };
 	
 	void begin() {
 		busy = true;
@@ -1615,6 +1669,7 @@ class Void : public Modifier {
 	bool busy;
 public:
 	static void regist() { Modifier::factory["Void"] = [](){return new Void();}; };
+	const char* description() { return "Render Mode"; };
 	
 	void begin() {
 		busy = true;
@@ -1635,6 +1690,7 @@ class PopPoster : public Modifier {
 	bool busy;
 public:
 	static void regist() { Modifier::factory["Pop Poster"] = [](){return new PopPoster();}; };
+	const char* description() { return "Stream Destroyer.  This kills the bitrate"; };
 	
 	void begin() {
 		busy = true;
@@ -1655,6 +1711,7 @@ class NineteenSixty : public Modifier {
 	bool busy;
 public:
 	static void regist() { Modifier::factory["1960"] = [](){return new NineteenSixty();}; };
+	const char* description() { return "Render Mode"; };
 	
 	void begin() {
 		busy = true;
@@ -1675,6 +1732,7 @@ class Cool : public Modifier {
 	bool busy;
 public:
 	static void regist() { Modifier::factory["Cool"] = [](){return new Cool();}; };
+	const char* description() { return "Render Mode"; };
 	
 	void begin() {
 		busy = true;
@@ -1695,6 +1753,7 @@ class Warm : public Modifier {
 	bool busy;
 public:
 	static void regist() { Modifier::factory["Warm"] = [](){return new Warm();}; };
+	const char* description() { return "Render Mode"; };
 	
 	void begin() {
 		busy = true;
@@ -1715,6 +1774,7 @@ class Vibrant : public Modifier {
 	bool busy;
 public:
 	static void regist() { Modifier::factory["Vibrant"] = [](){return new Vibrant();}; };
+	const char* description() { return "Render Mode"; };
 	
 	void begin() {
 		busy = true;
@@ -1735,6 +1795,7 @@ class Noir : public Modifier {
 	bool busy;
 public:
 	static void regist() { Modifier::factory["Noir"] = [](){return new Noir();}; };
+	const char* description() { return "Render Mode"; };
 	
 	void begin() {
 		busy = true;
@@ -1755,6 +1816,7 @@ class Blorange : public Modifier {
 	bool busy;
 public:
 	static void regist() { Modifier::factory["Blorange"] = [](){return new Blorange();}; };
+	const char* description() { return "Render Mode"; };
 	
 	void begin() {
 		busy = true;
@@ -1775,6 +1837,7 @@ class Sepia : public Modifier {
 	bool busy;
 public:
 	static void regist() { Modifier::factory["Sepia"] = [](){return new Sepia();}; };
+	const char* description() { return "Render Mode"; };
 	
 	void begin() {
 		busy = true;
@@ -1795,6 +1858,7 @@ class Vintage : public Modifier {
 	bool busy;
 public:
 	static void regist() { Modifier::factory["Vintage"] = [](){return new Vintage();}; };
+	const char* description() { return "Render Mode"; };
 	
 	void begin() {
 		busy = true;
@@ -1815,6 +1879,7 @@ class Beasts : public Modifier {
 	bool busy;
 public:
 	static void regist() { Modifier::factory["Beasts"] = [](){return new Beasts();}; };
+	const char* description() { return "Render Mode"; };
 	
 	void begin() {
 		busy = true;
@@ -1835,6 +1900,7 @@ class Terminated : public Modifier {
 	bool busy;
 public:
 	static void regist() { Modifier::factory["Terminated"] = [](){return new Terminated();}; };
+	const char* description() { return "Render Mode"; };
 	
 	void begin() {
 		busy = true;
@@ -1854,6 +1920,7 @@ class GridLocked : public Modifier {
 	bool busy;
 public:
 	static void regist() { Modifier::factory["Gridlocked"] = [](){return new GridLocked();}; };
+	const char* description() { return "Render Mode"; };
 	
 	void begin() {
 		busy = true;
@@ -1874,6 +1941,7 @@ class Blacklight : public Modifier {
 	bool busy;
 public:
 	static void regist() { Modifier::factory["Blacklight"] = [](){return new Blacklight();}; };
+	const char* description() { return "Render Mode"; };
 	
 	void begin() {
 		busy = true;
@@ -1894,6 +1962,7 @@ class DesertFog : public Modifier {
 	bool busy;
 public:
 	static void regist() { Modifier::factory["Desert Fog"] = [](){return new DesertFog();}; };
+	const char* description() { return "Render Mode"; };
 	
 	void begin() {
 		busy = true;
@@ -1914,6 +1983,7 @@ class Blood : public Modifier {
 	bool busy;
 public:
 	static void regist() { Modifier::factory["Blood"] = [](){return new Blood();}; };
+	const char* description() { return "Render Mode"; };
 	
 	void begin() {
 		busy = true;
@@ -1934,6 +2004,7 @@ class Inferno : public Modifier {	// Working
 	bool busy;
 public:
 	static void regist() { Modifier::factory["Inferno"] = [](){return new Inferno();}; };
+	const char* description() { return "Render Mode"; };
 	
 	void begin() {
 		busy = true;
@@ -1954,6 +2025,7 @@ class Fire : public Modifier {
 	bool busy;
 public:
 	static void regist() { Modifier::factory["Fire"] = [](){return new Fire();}; };
+	const char* description() { return "Render Mode"; };
 	
 	void begin() {
 		busy = true;
@@ -1974,6 +2046,7 @@ class Trinity : public Modifier {
 	bool busy;
 public:
 	static void regist() { Modifier::factory["Trinity"] = [](){return new Trinity();}; };
+	const char* description() { return "Render Mode"; };
 	
 	void begin() {
 		busy = true;
@@ -1994,6 +2067,7 @@ class Pusher : public Modifier {
 	bool busy;
 public:
 	static void regist() { Modifier::factory["Pusher"] = [](){return new Pusher();}; };
+	const char* description() { return "Render Mode"; };
 	
 	void begin() {
 		busy = true;
@@ -2014,6 +2088,7 @@ class Demons : public Modifier {
 	bool busy;
 public:
 	static void regist() { Modifier::factory["Demons"] = [](){return new Demons();}; };
+	const char* description() { return "Render Mode"; };
 	
 	void begin() {
 		busy = true;
@@ -2034,6 +2109,7 @@ class DrugZone : public Modifier {
 	bool busy;
 public:
 	static void regist() { Modifier::factory["Drug Zone"] = [](){return new DrugZone();}; };
+	const char* description() { return "Render Mode"; };
 	
 	void begin() {
 		busy = true;
@@ -2053,6 +2129,7 @@ class Moonlight : public Modifier {
 	bool busy;
 public:
 	static void regist() { Modifier::factory["Moonlight"] = [](){return new Moonlight();}; };
+	const char* description() { return "Render Mode"; };
 	
 	void begin() {
 		busy = true;
@@ -2076,6 +2153,7 @@ class Mirror : public Modifier {
 	bool busy;
 public:
 	static void regist() { Modifier::factory["Mirror World"] = [](){return new Mirror();}; };
+	const char* description() { return "Wait, where do we go?"; };
 	
 	void begin() {
 		busy = true;
@@ -2094,6 +2172,7 @@ class MirrorOnDeath : public Modifier {
 	bool busy;
 public:
 	static void regist() { Modifier::factory["Mirror On Death"] = [](){return new MirrorOnDeath();}; };
+	const char* description() { return "Mirror World on Death.  Can result in permanent Mirror World."; };
 	
 	void begin() {
 		busy = true;
@@ -2113,6 +2192,7 @@ class SlowMotion : public Modifier {
 	bool busy;
 public:
 	static void regist() { Modifier::factory["Slow Motion"] = [](){return new SlowMotion();}; };
+	const char* description() { return "The speed run killer"; };
 	
 	void begin() {
 		busy = true;
@@ -2131,6 +2211,7 @@ class BulletSpeed : public Modifier {
 	bool busy;
 public:
 	static void regist() { Modifier::factory["Bullet Speed"] = [](){return new BulletSpeed();}; };
+	const char* description() { return "Slow motion when aiming"; };
 	
 	void begin() {
 		busy = true;
@@ -2149,6 +2230,7 @@ class InfiniteAmmo : public Modifier {
 	bool busy;
 public:
 	static void regist() { Modifier::factory["Infinite Ammo"] = [](){return new InfiniteAmmo();}; };
+	const char* description() { return "The strimmer responds with <3"; };
 	
 	void begin() {
 		busy = true;
@@ -2167,6 +2249,7 @@ class InfiniteCrafting : public Modifier {
 	bool busy;
 public:
 	static void regist() { Modifier::factory["Infinite Crafting"] = [](){return new InfiniteCrafting();}; };
+	const char* description() { return "Molotovs for everyone!"; };
 	
 	void begin() {
 		busy = true;
@@ -2185,6 +2268,7 @@ class InfiniteMeleeDurability : public Modifier {
 	bool busy;
 public:
 	static void regist() { Modifier::factory["Infinite Melee Durability"] = [](){return new InfiniteMeleeDurability();}; };
+	const char* description() { return "Finally realistic durability"; };
 	
 	void begin() {
 		busy = true;
@@ -2203,6 +2287,7 @@ class InfiniteListenRange : public Modifier {	// working
 	bool busy;
 public:
 	static void regist() { Modifier::factory["Infinite Listen Range"] = [](){return new InfiniteListenRange();}; };
+	const char* description() { return "There used to be a limit?"; };
 	
 	void begin() {
 		busy = true;
@@ -2221,6 +2306,7 @@ class OneShot : public Modifier {
 	bool busy;
 public:
 	static void regist() { Modifier::factory["One Shot"] = [](){return new OneShot();}; };
+	const char* description() { return "Golden guns activated"; };
 	
 	void begin() {
 		busy = true;
@@ -2239,6 +2325,7 @@ class TouchOfDeath : public Modifier {
 	bool busy;
 public:
 	static void regist() { Modifier::factory["Touch Of Death"] = [](){return new TouchOfDeath();}; };
+	const char* description() { return "Golden fists activated"; };
 	
 	void begin() {
 		busy = true;
@@ -2257,6 +2344,7 @@ class EightBitAudio : public Modifier {
 	bool busy;
 public:
 	static void regist() { Modifier::factory["8-Bit Audio"] = [](){return new EightBitAudio();}; };
+	const char* description() { return "Audio mode.  Incompatible with 4-bit"; };
 	
 	void begin() {
 		busy = true;
@@ -2277,6 +2365,7 @@ class FourBitAudio : public Modifier {
 	bool busy;
 public:
 	static void regist() { Modifier::factory["4-Bit Audio"] = [](){return new FourBitAudio();}; };
+	const char* description() { return "Audio mode.  Incompatible with 8-bit"; };
 	
 	void begin() {
 		busy = true;
@@ -2297,6 +2386,7 @@ class HeliumAudio : public Modifier {
 	bool busy;
 public:
 	static void regist() { Modifier::factory["Helium Audio"] = [](){return new HeliumAudio();}; };
+	const char* description() { return "Audio mode.  Incompatible with Xenon"; };
 	
 	void begin() {
 		busy = true;
@@ -2317,6 +2407,7 @@ class XenonAudio : public Modifier {	// Working!
 	bool busy;
 public:
 	static void regist() { Modifier::factory["Xenon Audio"] = [](){return new XenonAudio();}; };
+	const char* description() { return "Audio mode.  Incompatible with Helium"; };
 	
 	void begin() {
 		busy = true;
@@ -2336,6 +2427,7 @@ public:
 class DeskPop : public Modifier {
 public:
 	static void regist() { Modifier::factory["Desk Pop"] = [](){return new DeskPop();}; };
+	const char* description() { return "We honor the flag, and you crap on it when you don't shoot your gun https://www.youtube.com/watch?v=wWZTTtE5_zQ"; };
 	
 	bool busy;
 	
@@ -2368,6 +2460,7 @@ public:
 class TossMolly : public Modifier {
 public:
 	static void regist() { Modifier::factory["Toss A Molly"] = [](){return new TossMolly();}; };
+	const char* description() { return "Time to riot"; };
 	
 	bool busy;
 	
@@ -2400,6 +2493,7 @@ public:
 class CtgStrat : public Modifier {
 public:
 	static void regist() { Modifier::factory["CTG Strat"] = [](){return new CtgStrat();}; };
+	const char* description() { return "Self immolation resulting in death, at least 7/11 times"; };
 	
 	bool busy;
 	
@@ -2437,6 +2531,7 @@ public:
 class PdubIt : public Modifier {
 public:
 	static void regist() { Modifier::factory["Pdub It"] = [](){return new PdubIt();}; };
+	const char* description() { return "RIP bricks and bottles"; };
 	
 	bool busy;
 	
@@ -2468,6 +2563,7 @@ public:
 class ChuckStun : public Modifier {
 public:
 	static void regist() { Modifier::factory["Chuck Smoke Bomb"] = [](){return new ChuckStun();}; };
+	const char* description() { return "It was taking up space anyway"; };
 	
 	bool busy;
 	
@@ -2501,7 +2597,8 @@ public:
 class HostagesDontEscape : public Modifier {
 	bool busy;
 public:
-	static void regist() { Modifier::factory["Hostages Don\'t Escape"] = [](){return new HostagesDontEscape();}; };
+	static void regist() { Modifier::factory["Hostages Do Not Escape"] = [](){return new HostagesDontEscape();}; };
+	const char* description() { return "Hugging enemies from behind forever <3"; };
 	
 	void begin() {
 		busy = true;
@@ -2521,7 +2618,8 @@ public:
 class EnemiesDontFlank : public Modifier {
 	bool busy;
 public:
-	static void regist() { Modifier::factory["Enemies Don\'t Flank"] = [](){return new EnemiesDontFlank();}; };
+	static void regist() { Modifier::factory["Enemies Do Not Flank"] = [](){return new EnemiesDontFlank();}; };
+	const char* description() { return "Very effective on infected"; };
 	
 	void begin() {
 		busy = true;
@@ -2542,6 +2640,7 @@ class ReducedEnemyPerception : public Modifier {
 	bool busy;
 public:
 	static void regist() { Modifier::factory["Reduced Enemy Perception"] = [](){return new ReducedEnemyPerception();}; };
+	const char* description() { return "Finally clickers are truly blind"; };
 	
 	void begin() {
 		busy = true;
@@ -2562,6 +2661,7 @@ class ReducedEnemyAccuracy : public Modifier {
 	bool busy;
 public:
 	static void regist() { Modifier::factory["Reduced Enemy Accuracy"] = [](){return new ReducedEnemyAccuracy();}; };
+	const char* description() { return "Does not work on melee"; };
 	
 	void begin() {
 		busy = true;
@@ -2582,6 +2682,7 @@ class EnhancedDodge : public Modifier {
 	bool busy;
 public:
 	static void regist() { Modifier::factory["Enhanced Dodge"] = [](){return new EnhancedDodge();}; };
+	const char* description() { return "I wish I knew what this does (built-in)"; };
 	
 	void begin() {
 		busy = true;
@@ -2602,6 +2703,7 @@ class InvisibleWhileProne : public Modifier {
 	bool busy;
 public:
 	static void regist() { Modifier::factory["Invisible While Prone"] = [](){return new InvisibleWhileProne();}; };
+	const char* description() { return "Proning is now even more OP"; };
 	
 	void begin() {
 		busy = true;
@@ -2622,6 +2724,7 @@ class LockOnAim : public Modifier {
 	bool busy;
 public:
 	static void regist() { Modifier::factory["Lock On Aim"] = [](){return new LockOnAim();}; };
+	const char* description() { return "Aimbot... but like a detuned aimbot"; };
 	
 	void begin() {
 		busy = true;
@@ -2641,6 +2744,7 @@ class AutoPickUp : public Modifier {
 	bool busy;
 public:
 	static void regist() { Modifier::factory["Auto Pick-Up"] = [](){return new AutoPickUp();}; };
+	const char* description() { return "Picking up items at inconvenient times"; };
 	
 	void begin() {
 		busy = true;
@@ -2661,6 +2765,7 @@ class LargeHud : public Modifier {
 	bool busy;
 public:
 	static void regist() { Modifier::factory["Large HUD"] = [](){return new LargeHud();}; };
+	const char* description() { return "HUD like in a game from the 1990s"; };
 	
 	void begin() {
 		busy = true;
@@ -2681,6 +2786,7 @@ class HighContrastDisplay : public Modifier {
 	bool busy;
 public:
 	static void regist() { Modifier::factory["High Contrast Display"] = [](){return new HighContrastDisplay();}; };
+	const char* description() { return "Render mode, but overrides any other render mode"; };
 	
 	void begin() {
 		busy = true;
@@ -2701,6 +2807,7 @@ class TraversalAudioCues : public Modifier {
 	bool busy;
 public:
 	static void regist() { Modifier::factory["Traversal Audio Cues"] = [](){return new TraversalAudioCues();}; };
+	const char* description() { return "Add some music to climbable objects"; };
 	
 	void begin() {
 		busy = true;
@@ -2721,6 +2828,7 @@ class CombatAudioCues : public Modifier {
 	bool busy;
 public:
 	static void regist() { Modifier::factory["Combat Audio Cues"] = [](){return new CombatAudioCues();}; };
+	const char* description() { return "Add some music to combat prompts"; };
 	
 	void begin() {
 		busy = true;
@@ -2741,6 +2849,7 @@ class TraversalAssistance : public Modifier {
 	bool busy;
 public:
 	static void regist() { Modifier::factory["Traversal Assistance"] = [](){return new TraversalAssistance();}; };
+	const char* description() { return "Climb when you really do not want to"; };
 	
 	void begin() {
 		busy = true;
@@ -2761,6 +2870,7 @@ class EnhancedListenMode : public Modifier {
 	bool busy;
 public:
 	static void regist() { Modifier::factory["Enhanced Listen Mode"] = [](){return new EnhancedListenMode();}; };
+	const char* description() { return "Press some buttons while in listen mode to find loot"; };
 	
 	void begin() {
 		busy = true;
@@ -2781,6 +2891,7 @@ class InfiniteBreath : public Modifier {
 	bool busy;
 public:
 	static void regist() { Modifier::factory["Infinite Breath"] = [](){return new InfiniteBreath();}; };
+	const char* description() { return "Yup, very useful and the most OP perk..."; };
 	
 	void begin() {
 		busy = true;
@@ -2826,6 +2937,7 @@ public:
 		};
 		
 	};
+	const char* description() { return "Applys any randomly chosen modifier"; };
 };
 
 
@@ -2974,7 +3086,7 @@ int main(int argc, char** argv) {
 	
 	Mystery::regist();
 	
-	// Custom: 44
+	// Custom: 48
 	// Audio: 6
 	// Render: 31
 	// Gameplay: 23
@@ -2992,9 +3104,9 @@ int main(int argc, char** argv) {
 	double timePerModifier = 30.0;
 	chaosEngine.setTimePerModifier(timePerModifier);
 	
-
+	std::string reply = Modifier::getModList(timePerModifier);
 	while(1) {
-		chaosEngine.setInterfaceReply( Modifier::getModList(timePerModifier) );
+		chaosEngine.setInterfaceReply( reply );
 		usleep(10000000);
 	}
 	

@@ -284,6 +284,7 @@ public:
 	virtual void begin();	// called when first instantiated
 	virtual void update();	// called regularly
 	virtual void finish();	// called just
+	virtual const char* description(); // A short description of this mod, for Twitch bot response
 	
 	double lifetime();
 	
