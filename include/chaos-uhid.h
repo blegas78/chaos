@@ -17,6 +17,10 @@
 #include "deviceTypes.h"
 // This follows: https://github.com/torvalds/linux/blob/master/samples/uhid/uhid-example.c
 
+namespace Chaos {
+
+
+
 class ChaosUhid : public Mogi::Thread {
 private:
 	int fd;
@@ -34,6 +38,8 @@ public:
 	~ChaosUhid();
 	
 	void sendUpdate(void* data);
+};
+
 };
 
 #endif

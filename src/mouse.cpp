@@ -1,6 +1,8 @@
 
 #include "device.h"
 
+using namespace Chaos;
+
 void Mouse::open(const char* filename) {
 	init(filename, 3);
 }

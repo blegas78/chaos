@@ -2,6 +2,8 @@
 
 #include <unistd.h>
 
+using namespace Chaos;
+
 bool ControllerRaw::applyHardware(const DeviceEvent* event) {
 	//	State will already be stored, nothing to be done for raw
 //	if (spooferFile) {

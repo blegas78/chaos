@@ -9,6 +9,10 @@
 
 // Classes
 
+namespace Chaos {
+
+
+
 class DeviceObserver {
 public:
 	virtual void newDeviceEvent( const DeviceEvent* event ) = 0;
@@ -66,6 +70,8 @@ private:
 public:
 	~Mouse() {};
 	void open(const char* filename);
+};
+
 };
 
 #endif

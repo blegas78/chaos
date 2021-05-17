@@ -137,6 +137,8 @@ Implemented:
  - - Controller Flip
  - [gabemusic](https://www.twitch.tv/gabemusic)
 - - Max Sensitivity
+ -[carnalgasyeah](https://www.twitch.tv/carnalgasyeah)
+- - Zoolander
 
 
 TBD:

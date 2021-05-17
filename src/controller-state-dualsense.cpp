@@ -2,14 +2,16 @@
 
 #include "ps5-generated.h"
 
-short int unpackJoystick(uint8_t& input) {
+using namespace Chaos;
+
+short int Chaos::unpackJoystick(uint8_t& input) {
 	return ((short int)input)-128;
 }
-uint8_t packJoystick(short int& input) {
+uint8_t Chaos::packJoystick(short int& input) {
 	return input+128;
 }
 
-short int fixShort(short int input) {
+short int Chaos::fixShort(short int input) {
 	return input;
 //	return ((input & 0x00ff) << 8) | ((input & 0xff00) >> 8);
 }
@@ -18,7 +20,7 @@ short int fixShort(short int input) {
 //}
 
 
-short int positionDY( const uint8_t& input ) {
+short int Chaos::positionDY( const uint8_t& input ) {
 	if (input == 0x08) {
 		return 0;
 	} if (input <= 1 || input == 7) {
@@ -28,7 +30,7 @@ short int positionDY( const uint8_t& input ) {
 	}
 	return 0;
 }
-short int positionDX( const uint8_t& input ) {
+short int Chaos::positionDX( const uint8_t& input ) {
 	if (input == 0x08) {
 		return 0;
 	} if (input >= 1 && input <= 3) {
@@ -39,7 +41,7 @@ short int positionDX( const uint8_t& input ) {
 	return 0;
 }
 
-uint8_t packDpad( const short int& dx, const short int& dy ) {
+uint8_t Chaos::packDpad( const short int& dx, const short int& dy ) {
 	switch (dx) {
 		case -1:
 			return 6-dy;

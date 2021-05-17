@@ -6,6 +6,7 @@
 #include <string>
 #include <json/json.h>
 
+using namespace Chaos;
 
 CommandListener::CommandListener() {
 	const std::string endpoint = "tcp://*:5555";

@@ -4,6 +4,8 @@
 #include <iostream>
 #include <cstring>
 
+using namespace Chaos;
+
 void Device::init(const char* filename, int bytesPerFrame) {
 	file = fopen( filename, "r" );
 

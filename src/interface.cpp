@@ -6,6 +6,7 @@
 #include <string>
 #include <json/json.h>
 
+using namespace Chaos;
 
 ChaosInterface::ChaosInterface() {
 	listener.start();

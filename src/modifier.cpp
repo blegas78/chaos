@@ -1,10 +1,12 @@
 
-#include "chaos.h"
+#include "modifier.h"
 
 #include <iostream>
 #include <unistd.h>
 #include <sstream>
 #include <json/json.h>
+
+using namespace Chaos;
 
 Modifier::Modifier() {
 	this->timer.initialize();
@@ -15,7 +17,7 @@ void Modifier::setDualshock(Controller* dualshock) {
 	this->dualshock = dualshock;
 }
 
-void Modifier::setChaosEngine(ChaosEngine* chaosEngine) {
+void Modifier::setChaosEngine(Engine* chaosEngine) {
 	this->chaosEngine = chaosEngine;
 }
 

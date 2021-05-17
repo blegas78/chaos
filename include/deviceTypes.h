@@ -2,6 +2,10 @@
 #define DEVICETYPES_H
 
 
+namespace Chaos {
+
+
+
  // This is for the PS4:
 typedef enum ButtonID {
 	BUTTON_X = 0,
@@ -112,5 +116,6 @@ typedef struct DeviceEvent {
 	}
 } DeviceEvent;
 
+};
 
 #endif

@@ -13,6 +13,10 @@
 
 #define PWM_RANGE (11)
 
+namespace Chaos {
+
+
+
 #ifdef __APPLE__
 	// Dummy functions just so I can compile crap on a non-pi
 	void wiringPiSetup() {}
@@ -156,7 +160,7 @@ public:
 	
 };
 
-
+};
 
 
 #endif

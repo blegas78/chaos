@@ -3,6 +3,8 @@
 
 #include <cstring>	// for memcpy
 
+using namespace Chaos;
+
 void Joystick::open(const char* filename) {
 	init(filename, 8);
 }

@@ -6,6 +6,8 @@
 //#include <sstream>
 //#include <json/json.h>
 
+using namespace Chaos;
+
 CommandSender::CommandSender() {
 //	printf("Constructing CommandSender()\n");
 	const std::string endpoint = "tcp://localhost:5556";

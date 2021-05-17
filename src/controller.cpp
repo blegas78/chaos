@@ -3,6 +3,8 @@
 
 #include <cstring>
 
+using namespace Chaos;
+
 Controller::Controller() {
 	memset(controllerState, 0, sizeof(controllerState));
 }

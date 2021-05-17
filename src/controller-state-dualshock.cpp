@@ -2,6 +2,7 @@
 
 #include "ps4-generated.h"
 
+using namespace Chaos;
 
 ControllerStateDualshock::ControllerStateDualshock() {
 	stateLength = sizeof(inputReport01_t);

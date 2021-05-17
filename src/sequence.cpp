@@ -1,6 +1,8 @@
 
-#include "chaos.h"
+#include "sequence.h"
 #include <unistd.h>
+
+using namespace Chaos;
 
 Sequence::Sequence() {
 }

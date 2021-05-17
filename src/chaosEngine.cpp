@@ -7,7 +7,9 @@
 #include <algorithm>
 #include <json/json.h>
 
-ChaosEngine::ChaosEngine(Controller* dualshock)
+using namespace Chaos;
+
+Engine::Engine(Controller* dualshock)
 : dualshock(dualshock), timePerModifier(30.0), pause(true)
 {
 	dualshock->addInjector(this);
@@ -18,8 +20,8 @@ ChaosEngine::ChaosEngine(Controller* dualshock)
 	//pthread_mutex_init(&chaosMutex, NULL);
 }
 
-void ChaosEngine::newCommand(const std::string& command) {
-	std::cout << "ChaosEngine::newCommand() received: " << command << std::endl;
+void Engine::newCommand(const std::string& command) {
+	std::cout << "Chaos::Engine::newCommand() received: " << command << std::endl;
 	
 	Json::Value root;
 	Json::CharReaderBuilder builder;
@@ -63,7 +65,7 @@ void ChaosEngine::newCommand(const std::string& command) {
 	
 }
 
-void ChaosEngine::doAction() {
+void Engine::doAction() {
 	usleep(500);	// 200Hz
 	
 	// Update timers/states of modifiers
@@ -110,7 +112,7 @@ void ChaosEngine::doAction() {
 
 }
 
-bool ChaosEngine::sniffify(const DeviceEvent* input, DeviceEvent* output) {
+bool Engine::sniffify(const DeviceEvent* input, DeviceEvent* output) {
 	*output = *input;
 	
 	bool valid = true;
@@ -177,7 +179,7 @@ bool ChaosEngine::sniffify(const DeviceEvent* input, DeviceEvent* output) {
 	return valid;
 }
 
-void ChaosEngine::fakePipelinedEvent(DeviceEvent* fakeEvent, Modifier* modifierThatSentTheFakeEvent) {
+void Engine::fakePipelinedEvent(DeviceEvent* fakeEvent, Modifier* modifierThatSentTheFakeEvent) {
 	bool valid = true;
 	
 	if (!pause) {
@@ -197,11 +199,11 @@ void ChaosEngine::fakePipelinedEvent(DeviceEvent* fakeEvent, Modifier* modifierT
 	}
 }
 
-void ChaosEngine::setInterfaceReply(const std::string& reply) {
+void Engine::setInterfaceReply(const std::string& reply) {
 //	commandListener.setReply(reply);
 	chaosInterface.sendMessage(reply);
 }
 
-void ChaosEngine::setTimePerModifier(double time) {
+void Engine::setTimePerModifier(double time) {
 	timePerModifier = time;
 }

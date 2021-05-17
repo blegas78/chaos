@@ -33,8 +33,10 @@ add_library( chaos-engine src/interface.cpp
 						src/joystick.cpp
 						src/chaosEngine.cpp
 						src/modifier.cpp
+						include/modifier.h
 						src/sequence.cpp
-						src/menuing.cpp
+						include/sequence.h
+#						src/menuing.cpp
 						src/chaos-uhid.cpp
 						include/interface.h
 						include/device.h
@@ -49,7 +51,7 @@ add_library( chaos-engine src/interface.cpp
 
 set(LIBS ${LIBS} chaos-engine sniffify)
 
-add_executable( chaos	src/main.cpp )
+#add_executable( chaos	src/main.cpp )
 add_executable( passthrough-hid	src/passthroughHID.cpp )
 
 add_executable( hid-example src/hid-example.c )
@@ -77,7 +79,7 @@ if( NOT APPLE )
 	set(LIBS ${LIBS} crypt rt )
 endif()
 
-target_link_libraries( chaos ${LIBS} zmqpp zmq )
+#target_link_libraries( chaos ${LIBS} zmqpp zmq )
 target_link_libraries( passthrough-hid ${LIBS} zmqpp zmq )
 						
 #add_executable( zmq_client src/zmq_client.cpp )
@@ -85,3 +87,4 @@ target_link_libraries( passthrough-hid ${LIBS} zmqpp zmq )
 #target_link_libraries( zmq_client zmqpp zmq )
 #target_link_libraries( zmq_server zmqpp zmq )
 
+add_subdirectory(examples)

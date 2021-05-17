@@ -7,15 +7,17 @@
 
 #include <fcntl.h>
 
-void functionAxis(int* pins, int value, double calibration) {
+using namespace Chaos;
+
+void Chaos::functionAxis(int* pins, int value, double calibration) {
 	//softPwmWrite (pins[0], PWM_RANGE * (calibration*(double)value/65535.0 + 0.5) ); // deprecated
 }
 
-void functionButton(int* pins, int value, double calibration) {
+void Chaos::functionButton(int* pins, int value, double calibration) {
 	//digitalWrite( pins[0], calibration > 0 ? value : !value ); // deprecated
 }
 
-void functionDpad(int* pins, int value, double calibration) {
+void Chaos::functionDpad(int* pins, int value, double calibration) {
 	value *= calibration;
 	
 	/*	// deprecated

@@ -5,6 +5,8 @@
 #include <mogi/thread.h>
 #include <zmqpp/zmqpp.hpp>
 
+namespace Chaos {
+
 
 class CommandListenerObserver {
 public:
@@ -64,6 +66,8 @@ public:
 	
 	bool sendMessage(std::string message);
 	void addObserver( CommandListenerObserver* observer );
+};
+
 };
 
 #endif

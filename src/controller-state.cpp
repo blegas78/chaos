@@ -2,6 +2,8 @@
 
 #include <cstddef>
 
+using namespace Chaos;
+
 ControllerState::~ControllerState() {
 	
 }

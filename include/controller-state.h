@@ -6,6 +6,10 @@
 
 #include "deviceTypes.h"
 
+namespace Chaos {
+
+
+
 // Helper functions for raw interpretation:
 short int unpackJoystick(uint8_t& input);
 uint8_t packJoystick(short int& input);
@@ -74,6 +78,8 @@ public:
 	void applyHackedState(unsigned char* buffer, short* chaosState);
 	
 	~ControllerStateDualshock();
+};
+
 };
 
 #endif

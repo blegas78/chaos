@@ -1,6 +1,8 @@
 
 #include "chaos-uhid.h"
 
+using namespace Chaos;
+
 static __u8 rdesc[] = {
 	0x05, 0x01,        // Usage Page (Generic Desktop Ctrls)
 	0x09, 0x05,        // Usage (Game Pad)
