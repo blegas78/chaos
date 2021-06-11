@@ -1375,7 +1375,7 @@ public:
 class MinSensitivity : public Chaos::Modifier {
 	// prototoxin
 public:
-	static void regist() { Chaos::Modifier::factory["Min Sensitivity"] = [](){return new MaxSensitivity();}; };
+	static void regist() { Chaos::Modifier::factory["Min Sensitivity"] = [](){return new MinSensitivity();}; };
 	const char* description() { return "It is like slomo, but not for the enemies"; };
 	
 	bool tweak( DeviceEvent* event ) {
