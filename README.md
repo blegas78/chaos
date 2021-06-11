@@ -126,6 +126,7 @@ Implemented:
  - - Moonwalk
  - - Force Aim
  - - Mystery
+ - - Min Sensitivity
  - [joshuatimes7](https://www.twitch.tv/joshuatimes7), [JustForSaft](https://www.twitch.tv/JustForSaft)
  - - Swap Dpad/Left Joystick
  - [HeHathYought](https://www.twitch.tv/HeHathYought)
@@ -139,13 +140,16 @@ Implemented:
 - - Max Sensitivity
  -[carnalgasyeah](https://www.twitch.tv/carnalgasyeah)
 - - Zoolander
+- [inabox44](https://www.twitch.tv/inabox44)
+- - Mute certain game volumes
+-[crescenterra](https://www.twitch.tv/crescenterra)
+- - 30fps
 
 
 TBD:
- - [inabox44](https://www.twitch.tv/inabox44)
- - - Mute certain game volumes
  - [KillstreekDaGeek](https://www.twitch.tv/killstreekdageek) AKA Prototoxin187
  - - Button remap randomizer
+ - - Pirouette/Dizzy
  - [AeathOne](https://www.twitch.tv/aeathone)
  - - Button remap randomizer
  - - Press R1 to switch weapons

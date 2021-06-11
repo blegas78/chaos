@@ -1372,6 +1372,29 @@ public:
 	}
 };
 
+class MinSensitivity : public Chaos::Modifier {
+	// prototoxin
+public:
+	static void regist() { Chaos::Modifier::factory["Min Sensitivity"] = [](){return new MaxSensitivity();}; };
+	const char* description() { return "It is like slomo, but not for the enemies"; };
+	
+	bool tweak( DeviceEvent* event ) {
+		if (event->type == TYPE_AXIS) {
+			switch (event->id) {
+				case AXIS_LX:
+				case AXIS_LY:
+				case AXIS_RX:
+				case AXIS_RY:
+					event->value = joystickLimit( (int)event->value / 5.0 );
+					
+				default:
+					break;
+			}
+		}
+		return true;
+	}
+};
+
 class ControllerMirror : public Chaos::Modifier {
 	// PrincessDiodes, cloverfieldmel, DJ_Squall_808
 public:
@@ -2767,6 +2790,28 @@ public:
 	}
 };
 
+class SetThirtyFps : public Chaos::Modifier {
+	// crescenterra
+	bool busy;
+public:
+	static void regist() { Chaos::Modifier::factory["30 fps"] = [](){return new SetThirtyFps();}; };
+	const char* description() { return "Converting a PS5 to play like PS4"; };
+	
+	void begin() {
+		busy = true;
+		Menuing::getInstance()->setDisplayMode(DISPLAY_FRAMERATE, 0, dualshock);
+		busy = false;
+	}
+	void finish() {
+		busy = true;
+		Menuing::getInstance()->setDisplayMode(DISPLAY_FRAMERATE, 1, dualshock);
+		busy = false;
+	}
+	bool tweak( DeviceEvent* event ) {
+		return !busy;
+	}
+};
+
 class LockOnAim : public Chaos::Modifier {
 	bool busy;
 public:
@@ -2787,6 +2832,7 @@ public:
 		return !busy;
 	}
 };
+
 class AutoPickUp : public Chaos::Modifier {
 	bool busy;
 public:
@@ -2988,6 +3034,90 @@ public:
 };
 
 
+class MuteAudioEffects : public Chaos::Modifier {
+	bool busy;
+public:
+	static void regist() { Chaos::Modifier::factory["Mute Sound Effects"] = [](){return new MuteAudioEffects();}; };
+	const char* description() { return "Gunshots hurt our ears :("; };
+	
+	void begin() {
+		busy = true;
+		Menuing::getInstance()->setVolumeMode(AUDIO_EFFECTS, -20, dualshock);
+		busy = false;
+	}
+	void finish() {
+		busy = true;
+		Menuing::getInstance()->setVolumeMode(AUDIO_EFFECTS, 20, dualshock);
+		busy = false;
+	}
+	bool tweak( DeviceEvent* event ) {
+		return !busy;
+	}
+};
+
+class MuteAudioMusic : public Chaos::Modifier {
+	bool busy;
+public:
+	static void regist() { Chaos::Modifier::factory["Mute Music"] = [](){return new MuteAudioMusic();}; };
+	const char* description() { return "The music is too intense, let's turn it off!"; };
+	
+	void begin() {
+		busy = true;
+		Menuing::getInstance()->setVolumeMode(AUDIO_MUSIC, -20, dualshock);
+		busy = false;
+	}
+	void finish() {
+		busy = true;
+		Menuing::getInstance()->setVolumeMode(AUDIO_MUSIC, 20, dualshock);
+		busy = false;
+	}
+	bool tweak( DeviceEvent* event ) {
+		return !busy;
+	}
+};
+
+class MuteAudioDialogue : public Chaos::Modifier {
+	bool busy;
+public:
+	static void regist() { Chaos::Modifier::factory["Mute Dialogue"] = [](){return new MuteAudioDialogue();}; };
+	const char* description() { return "Characters just need to STFU"; };
+	
+	void begin() {
+		busy = true;
+		Menuing::getInstance()->setVolumeMode(AUDIO_DIALOGUE, -20, dualshock);
+		busy = false;
+	}
+	void finish() {
+		busy = true;
+		Menuing::getInstance()->setVolumeMode(AUDIO_DIALOGUE, 20, dualshock);
+		busy = false;
+	}
+	bool tweak( DeviceEvent* event ) {
+		return !busy;
+	}
+};
+
+class MonoAudio : public Chaos::Modifier {
+	bool busy;
+public:
+	static void regist() { Chaos::Modifier::factory["Mono Audio"] = [](){return new MonoAudio();}; };
+	const char* description() { return "No more Stereo.  Where did that gunshot come from?"; };
+	
+	void begin() {
+		busy = true;
+		Menuing::getInstance()->setVolumeMode(AUDIO_MONO, 1, dualshock);
+		busy = false;
+	}
+	void finish() {
+		busy = true;
+		Menuing::getInstance()->setVolumeMode(AUDIO_MONO, -1, dualshock);
+		busy = false;
+	}
+	bool tweak( DeviceEvent* event ) {
+		return !busy;
+	}
+};
+
 
 int main(int argc, char** argv) {
 	std::cout << "Welcome to Chaos" << std::endl;
@@ -3025,7 +3155,7 @@ int main(int argc, char** argv) {
 	MotionControls::regist();
 	MotionControlAiming::regist();
 	TouchpadAiming::regist();
-	
+
 	Nascar::regist();
 	Zoolander::regist();
 	NoBackward::regist();
@@ -3034,10 +3164,11 @@ int main(int argc, char** argv) {
 	MegaScopeSway::regist();
 	ProneDive::regist();
 	Rubbernecking::regist();
-	
+
 	NoGuns::regist();
 	NoThrows::regist();
 	MaxSensitivity::regist();
+	MinSensitivity::regist();
 	ControllerMirror::regist();
 	ControllerFlip::regist();
 
@@ -3106,6 +3237,9 @@ int main(int argc, char** argv) {
 	// Alternative Controls:
 	LockOnAim::regist();
 	AutoPickUp::regist();
+	
+	// Framerate (PS5 only)
+	SetThirtyFps::regist();
 
 	// Magnification:
 	LargeHud::regist();
@@ -3127,7 +3261,7 @@ int main(int argc, char** argv) {
 	ReducedEnemyAccuracy::regist();
 	EnhancedDodge::regist();
 	InvisibleWhileProne::regist();
-//
+
 	StrafeOnly::regist();
 	NoStrafe::regist();
 	LeeroyJenkins::regist();
@@ -3136,9 +3270,14 @@ int main(int argc, char** argv) {
 	
 	Mystery::regist();
 	
+	MuteAudioMusic::regist();
+	MuteAudioEffects::regist();
+	MuteAudioDialogue::regist();
+	MonoAudio::regist();
+	
 	// Custom: 48
-	// Audio: 6
-	// Render: 31
+	// Audio: 10
+	// Render/Display: 32
 	// Gameplay: 23
 	
 	int i = 1;

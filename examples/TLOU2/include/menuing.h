@@ -19,12 +19,30 @@ enum OptionsOptions {
 	OPTIONS_DIFFICULTY = 0,
 	OPTIONS_CONTROLS = 1,
 	OPTIONS_HUD = 2,
+	OPTIONS_SUBTITLES = 3,
+	OPTIONS_DISPLAY = 4,
+	OPTIONS_AUDIO = -3,
+	OPTIONS_LANGUAGE = -2,
 	OPTIONS_ACCESSIBILITY = -1,
 };
 
 enum OptionsHUD {
 	HUD_RETICLE = 0,
 	HUD_WEAPON_CROSS_DISABLE = 1
+};
+
+enum OptionsDisplay {
+	DISPLAY_BRIGHTNESS = 0,
+	DISPLAY_FRAMERATE = 2
+};
+
+enum OptionsAudio {
+	AUDIO_EFFECTS = 0,
+	AUDIO_DIALOGUE = 1,
+	AUDIO_MUSIC = 2,
+	AUDIO_CINEMATICS = 3,
+	AUDIO_ACCESSIBITY_CUES = 4,
+	AUDIO_MONO = -2
 };
 
 enum OptionsExtras {
@@ -152,6 +170,8 @@ private:
     int gameplay;
     int options;
     int hud;
+	int display;
+	int audio;
 	
 	int accessibility = ACCESSIBILITY_ALTERNATE_CONTROLS;
 	int alternateControls = ALTERNATE_CUSTOMIZE_CONTROLS;
@@ -187,10 +207,16 @@ private:
 			//void selectRenderMode( int selection );
 			//void selectGameplayMode( int selection );
     
-		void selectOptionItem( int selection );	// HUD, ACCESSIBILITIES
+		void selectOptionItem( int selection );	// HUD, ACCESSIBILITIES, DISPLAY, AUDIO
 		void deselectOption();
 			void selectHudItem( int selection );
 			void deselectHud();
+	
+			void selectDisplayItem( int selection );
+			void deselectDisplay();
+	
+			void selectAudioItem( int selection );
+			void deselectAudio();
 	
 			void selectAccessibilityItem( int item );
 			void deselectAccessibility();
@@ -204,6 +230,10 @@ public:
 	void teardownAudio( int whatToTeardown, Chaos::Controller* dualshock );
     void selectGameplayMode( int gameplayMode, Chaos::Controller* dualshock );
     void selectHudMode( int hudOption, int option, Chaos::Controller* dualshock );
+	
+	void setDisplayMode( int displayOption, bool enable, Chaos::Controller* dualshock );
+	
+	void setVolumeMode( int volumeOption, int amount, Chaos::Controller* dualshock );
 	
 	
 	void setAlternateControls( int item, bool enable, Chaos::Controller* dualshock );

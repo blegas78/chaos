@@ -11,6 +11,9 @@ Menuing::Menuing() {
     renderModesApplied = 0;
 	audioCrappifier = AUDIO_DEFAULT;
 	audioPitch = AUDIO_DEFAULT;
+	hud = 0;
+	display = 0;
+	audio = 0;
 }
 
 
@@ -149,6 +152,35 @@ void Menuing::selectHudMode( int hudOption, int option, Controller* dualshock ) 
 	sendSequence( dualshock );
 }
 
+void Menuing::setDisplayMode( int displayOption, bool turnOn, Chaos::Controller* dualshock ) {
+	selectDisplayItem( displayOption );
+	
+	if (turnOn) {
+		sequence.addAxisPress( AXIS_DX, 1);
+	} else {
+		sequence.addAxisPress( AXIS_DX, -1);
+	}
+	
+	deselectDisplay();
+	
+	sendSequence( dualshock );
+}
+
+void Menuing::setVolumeMode( int volumeOption, int amount, Chaos::Controller* dualshock ) {
+	selectAudioItem( volumeOption );
+	
+	for (int i = 0; i < amount; i++) {
+		sequence.addAxisPress( AXIS_DX, 1);
+	}
+	for (int i = 0; i > amount; i--) {
+		sequence.addAxisPress( AXIS_DX, -1);
+	}
+	
+	deselectAudio();
+	
+	sendSequence( dualshock );
+}
+
 void Menuing::moveToMenuItem( int difference ) {
 	for (int i = 0; i < difference; i++) {
 		sequence.addAxisPress( AXIS_DY, 1);
@@ -234,6 +266,26 @@ void Menuing::selectHudItem( int selection ) {
     
     hud = selection;
     
+}
+
+void Menuing::selectDisplayItem( int selection ) {
+	selectOptionItem( OPTIONS_DISPLAY );
+	
+	int difference = selection - display;
+	moveToMenuItem( difference );
+//    sequence.addButtonPress( BUTTON_X );
+	
+	display = selection;
+}
+
+void Menuing::selectAudioItem( int selection ) {
+	selectOptionItem( OPTIONS_AUDIO );
+	
+	int difference = selection - audio;
+	moveToMenuItem( difference );
+//    sequence.addButtonPress( BUTTON_X );
+	
+	audio = selection;
 }
 
 
@@ -420,9 +472,26 @@ void Menuing::deselectHud() {
 	deselectOption();
 	
 //    sequence.addButtonPress( BUTTON_X );
+}
+
+void Menuing::deselectDisplay() {
+	int selection = 0;
+	moveToMenuItem( selection - display );
+	display = selection;
 	
+	deselectOption();
 	
+//    sequence.addButtonPress( BUTTON_X );
+}
+
+void Menuing::deselectAudio() {
+	int selection = 0;
+	moveToMenuItem( selection - audio );
+	audio = selection;
 	
+	deselectOption();
+	
+//    sequence.addButtonPress( BUTTON_X );
 }
 
 void Menuing::deselectAccessibility() {
