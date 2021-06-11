@@ -474,7 +474,7 @@ public:
 class LeeroyJenkins : public Chaos::Modifier {
 public:
 	static void regist() { Chaos::Modifier::factory["Leeroy Jenkins"] = [](){return new LeeroyJenkins();}; };
-	const char* description() { return "Alright let's do this! LEEEEROOOOOY NNNJEEEENNKIINNS!!!"; };
+	const char* description() { return "Alright let's do this! LEEEEROOOOOY NNNJEEEENNKIINNS!!! (Holds forward and sprint)"; };
 	double pressTime;
 	void begin() {
 		DeviceEvent event = {0,1,TYPE_BUTTON, BUTTON_L1};
@@ -1385,7 +1385,7 @@ public:
 				case AXIS_LY:
 				case AXIS_RX:
 				case AXIS_RY:
-					event->value = joystickLimit( (int)event->value / 5.0 );
+					event->value = joystickLimit( ((double)event->value) / 2.5 );
 					
 				default:
 					break;
