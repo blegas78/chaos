@@ -2,7 +2,7 @@
 
 ### Streamlabs Chat Box
 
-With large numebrs of votes chat becomes difficult to read as things scroll by quickly.  To make chat readable for everyone, use an overlay like Streamlabs Chat Box, which has the capability to prune messages.  HEre you can see my settings for the Chat Box to automatically remove messages with a 1, 2, or 3.  To ignore "1" add "regex:1" as a Custom Bad Word.  Also I have it set to automatically remove "!" commands and any response from my bot (See_Bot).
+With large numebrs of votes chat becomes difficult to read as things scroll by quickly.  To make chat readable for everyone, use an overlay like Streamlabs Chat Box, which has the capability to prune messages.  Here you can see my settings for the Chat Box to automatically remove messages with a 1, 2, or 3.  To ignore "1" add "regex:1" as a Custom Bad Word.  Also I have it set to automatically remove "!" commands and any response from my bot (See_Bot).
 
 ![Chat Box](https://github.com/blegas78/chaos/blob/main/docs/images/streamlabs.png?raw=true)
 
@@ -12,6 +12,6 @@ I also recommend that you pull up this chat for you to read while streaming.
 
 
 ### OBS Overlay Colors
-The defualt colors are boring web-default blue/white colors.  You can make use of OBS filters to change the appearance.  Unfortunately you cannot pick specific colors, but you can at least match your stream branding.  Here is an example of a Color Corection filter to change the color scheme to more of a Twitch-purple.
+The defualt colors are boring web-default blue/white colors.  You can make use of OBS filters to change the appearance.  Unfortunately you cannot pick specific colors, but you can at least match your stream branding.  Here is an example of a Color Correction filter to change the color scheme to more of a Twitch-purple.
 
 ![OBS Filter](https://github.com/blegas78/chaos/blob/main/docs/images/obs.png?raw=true)

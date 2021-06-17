@@ -207,3 +207,7 @@ void Engine::setInterfaceReply(const std::string& reply) {
 void Engine::setTimePerModifier(double time) {
 	timePerModifier = time;
 }
+
+bool Engine::isPaused() {
+	return pause;
+}

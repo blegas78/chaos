@@ -3,6 +3,8 @@
 #include <unistd.h>
 #include <cmath>
 
+#include <queue>
+
 #include "chaos.h"
 #include "menuing.h"
 
@@ -239,7 +241,7 @@ public:
 			DeviceEvent event = {0,0,TYPE_BUTTON, BUTTON_CIRCLE};
 			dualshock->applyEvent(&event);
 			pressTime = 0;
-		} else if( pressTime > 0.7 && !dualshock->getState(BUTTON_CIRCLE, TYPE_BUTTON) ) {
+		} else if( pressTime > 0.6 && !dualshock->getState(BUTTON_CIRCLE, TYPE_BUTTON) ) {
 			DeviceEvent event = {0,1,TYPE_BUTTON, BUTTON_CIRCLE};
 			dualshock->applyEvent(&event);
 			pressTime = 0;
@@ -568,6 +570,31 @@ public:
 	}
 };
 
+class DisableDpad : public Chaos::Modifier {
+	// JustSaft
+public:
+	static void regist() { Chaos::Modifier::factory["Disable D-pad"] = [](){return new DisableDpad();}; };
+	const char* description() { return "Inventory selection is disabled"; };
+	bool tweak( DeviceEvent* event ) {
+		if ( (event->id == AXIS_DX || event->id == AXIS_DY) && event->type == TYPE_AXIS) {
+			event->value = 0;
+		}
+		return true;
+	}
+};
+
+class Moose : public Chaos::Modifier {
+public:
+	static void regist() { Chaos::Modifier::factory["Moose"] = [](){return new Moose();}; };
+	const char* description() { return "The moose is dead.  The moose does not move.  (Disables Left Joystick)"; };
+	bool tweak( DeviceEvent* event ) {
+		if ( (event->id == AXIS_LX || event->id == AXIS_LY) && event->type == TYPE_AXIS) {
+			event->value = 0;
+		}
+		return true;
+	}
+};
+
 class StrafeOnly : public Chaos::Modifier {
 	//Prototoxin187
 public:
@@ -642,6 +669,91 @@ public:
 	}
 };
 
+class SwapStickShapes : public Chaos::Modifier {
+public:
+	DeviceEvent fakeEvent;
+	static void regist() { Chaos::Modifier::factory["Swap Shape Buttons/Right Joystick"] = [](){return new SwapStickShapes();}; };
+	const char* description() { return "Analog actions, and digital camera movement"; };
+	void begin() {
+		DeviceEvent event = {0,0,TYPE_AXIS, AXIS_RY};
+		dualshock->applyEvent(&event);
+		event = {0,0,TYPE_AXIS, AXIS_RX};
+		dualshock->applyEvent(&event);
+	}
+	bool tweak( DeviceEvent* event ) {
+		if( event->type == TYPE_AXIS ) {
+			switch (event->id) {
+//				case AXIS_DX: event->id = AXIS_LX; event->value = joystickLimit(JOYSTICK_MAX*event->value); break;
+//				case AXIS_DY: event->id = AXIS_LY; event->value = joystickLimit(JOYSTICK_MAX*event->value); break;
+				case AXIS_RX:
+					event->type = TYPE_BUTTON;// AXIS_DX;
+					if (event->value < JOYSTICK_MIN/2) {
+						event->id = BUTTON_SQUARE;
+						event->value = 1;
+					} else if (event->value > JOYSTICK_MAX/2) {
+						event->id = BUTTON_CIRCLE;
+						event->value = 1;
+					} else {
+						event->id = BUTTON_CIRCLE;
+						event->value = 0;
+						
+						fakeEvent.id = BUTTON_SQUARE;
+						fakeEvent.value = 0;
+						chaosEngine->fakePipelinedEvent(&fakeEvent, me);
+					}
+					//event->value = event->value > JOYSTICK_MAX/2 ? 1 : event->value < JOYSTICK_MIN/2 ? -1 : 0;
+					break;
+				case AXIS_RY:
+						event->type = TYPE_BUTTON;// AXIS_DX;
+						if (event->value < JOYSTICK_MIN/2) {
+							event->id = BUTTON_TRIANGLE;
+							event->value = 1;
+						} else if (event->value > JOYSTICK_MAX/2) {
+							event->id = BUTTON_X;
+							event->value = 1;
+						} else {
+							event->id = BUTTON_TRIANGLE;
+							event->value = 0;
+							
+							fakeEvent.id = BUTTON_X;
+							fakeEvent.value = 0;
+							chaosEngine->fakePipelinedEvent(&fakeEvent, me);
+						}
+					break;
+				default: break;
+			}
+		} else if (event->type == TYPE_BUTTON) {
+			switch (event->id) {
+				case BUTTON_SQUARE:
+					event->type = TYPE_AXIS;
+					event->id = AXIS_RX;
+					event->value = event->value ? JOYSTICK_MIN : 0;
+					break;
+				case BUTTON_CIRCLE:
+					event->type = TYPE_AXIS;
+					event->id = AXIS_RX;
+					event->value = event->value ? JOYSTICK_MAX : 0;
+					break;
+				case BUTTON_TRIANGLE:
+					event->type = TYPE_AXIS;
+					event->id = AXIS_RY;
+					event->value = event->value ? JOYSTICK_MIN : 0;
+					break;
+				case BUTTON_X:
+					event->type = TYPE_AXIS;
+					event->id = AXIS_RY;
+					event->value = event->value ? JOYSTICK_MAX : 0;
+					break;
+					
+				default:
+					break;
+			}
+		}
+		
+		return true;
+	}
+};
+
 class MotionControls : public Chaos::Modifier {
 public:
 	static void regist() { Chaos::Modifier::factory["Motion Control Movement"] = [](){return new MotionControls();}; };
@@ -654,13 +766,13 @@ public:
 					newEvent = *event;
 					newEvent.id = AXIS_LX;
 					newEvent.value = joystickLimit(-event->value/20);
-					chaosEngine->fakePipelinedEvent(&newEvent, this);
+					chaosEngine->fakePipelinedEvent(&newEvent, me);
 					break;
 				case AXIS_ACCZ:
 					newEvent = *event;
 					newEvent.id = AXIS_LY;
 					newEvent.value = joystickLimit(-event->value/20);
-					chaosEngine->fakePipelinedEvent(&newEvent, this);
+					chaosEngine->fakePipelinedEvent(&newEvent, me);
 					break;
 				case AXIS_LX: return false;
 				case AXIS_LY: return false;
@@ -683,13 +795,13 @@ public:
 					newEvent = *event;
 					newEvent.id = AXIS_RX;
 					newEvent.value = joystickLimit(-event->value/24);
-					chaosEngine->fakePipelinedEvent(&newEvent, this);
+					chaosEngine->fakePipelinedEvent(&newEvent, me);
 					break;
 				case AXIS_ACCZ:
 					newEvent = *event;
 					newEvent.id = AXIS_RY;
 					newEvent.value = joystickLimit(event->value/24);	// This makes sense to be inverted
-					chaosEngine->fakePipelinedEvent(&newEvent, this);
+					chaosEngine->fakePipelinedEvent(&newEvent, me);
 					break;
 				case AXIS_RX: return false;
 				case AXIS_RY: return false;
@@ -780,11 +892,11 @@ public:
 				newEvent.id = AXIS_RX;
 				newEvent.type = TYPE_AXIS;
 				newEvent.value = 0;
-				chaosEngine->fakePipelinedEvent(&newEvent, this);
+				chaosEngine->fakePipelinedEvent(&newEvent, me);
 				newEvent.id = AXIS_RY;
 				newEvent.type = TYPE_AXIS;
 				newEvent.value = 0;
-				chaosEngine->fakePipelinedEvent(&newEvent, this);
+				chaosEngine->fakePipelinedEvent(&newEvent, me);
 				//	printf("Falling Edge TOuch\n");
 			}
 			
@@ -806,7 +918,7 @@ public:
 						} else  {
 							newEvent.value = 0;
 						}
-						chaosEngine->fakePipelinedEvent(&newEvent, this);
+						chaosEngine->fakePipelinedEvent(&newEvent, me);
 					}
 					//printf("x derivative: %d\n", newEvent.value);
 					break;
@@ -822,7 +934,7 @@ public:
 						} else  {
 							newEvent.value = 0;
 						}
-						chaosEngine->fakePipelinedEvent(&newEvent, this);
+						chaosEngine->fakePipelinedEvent(&newEvent, me);
 					}
 					break;
 				case AXIS_RX:
@@ -841,13 +953,13 @@ public:
 		//					newEvent = *event;
 		//					newEvent.id = AXIS_RX;
 		//					newEvent.value = joystickLimit(((double)event->value/1000 - 1) * JOYSTICK_MAX * 2 * 1.1 );
-		//					chaosEngine->fakePipelinedEvent(&newEvent, this);
+		//					chaosEngine->fakePipelinedEvent(&newEvent, me);
 		//					break;
 		//				case AXIS_TOUCHPAD_Y:
 		//					newEvent = *event;
 		//					newEvent.id = AXIS_RY;
 		//					newEvent.value = joystickLimit(((double)event->value/500 - 1) * JOYSTICK_MAX * 1.1 );
-		//					chaosEngine->fakePipelinedEvent(&newEvent, this);
+		//					chaosEngine->fakePipelinedEvent(&newEvent, me);
 		//					break;
 		//				case AXIS_RX: return false;
 		//				case AXIS_RY: return false;
@@ -958,7 +1070,7 @@ public:
 			i += 4;
 			
 			//			dualshock->applyEvent(&event);
-			chaosEngine->fakePipelinedEvent(&event, this);
+			chaosEngine->fakePipelinedEvent(&event, me);
 			
 		}
 		if (timer.runningTime()-buttonPressTime > 1.0) {
@@ -970,13 +1082,13 @@ public:
 	
 	void finish() {
 		DeviceEvent event = {0,(short)axisToValue[AXIS_LX],TYPE_AXIS,AXIS_LX};
-		chaosEngine->fakePipelinedEvent( &event, this);
+		chaosEngine->fakePipelinedEvent( &event, me);
 		event = {0,(short)axisToValue[AXIS_LY],TYPE_AXIS,AXIS_LY};
-		chaosEngine->fakePipelinedEvent( &event, this);
+		chaosEngine->fakePipelinedEvent( &event, me);
 		event = {0,(short)axisToValue[AXIS_RX],TYPE_AXIS,AXIS_RX};
-		chaosEngine->fakePipelinedEvent( &event, this);
+		chaosEngine->fakePipelinedEvent( &event, me);
 		event = {0,(short)axisToValue[AXIS_RY],TYPE_AXIS,AXIS_RY};
-		chaosEngine->fakePipelinedEvent( &event, this);
+		chaosEngine->fakePipelinedEvent( &event, me);
 	}
 	
 	bool tweak( DeviceEvent* event ) {
@@ -1006,19 +1118,19 @@ public:
 		
 		event.value = 1.5*cos(t);
 		event.id = AXIS_DX;
-		chaosEngine->fakePipelinedEvent( &event, this);
+		chaosEngine->fakePipelinedEvent( &event, me);
 		
 		event.value = 1.5*sin(t);
 		event.id = AXIS_DY;
-		chaosEngine->fakePipelinedEvent( &event, this);
+		chaosEngine->fakePipelinedEvent( &event, me);
 		
 	}
 	
 	void finish() {
 		DeviceEvent event = {0,0,TYPE_AXIS,AXIS_DX};
-		chaosEngine->fakePipelinedEvent( &event, this);
+		chaosEngine->fakePipelinedEvent( &event, me);
 		event = {0,0,TYPE_AXIS,AXIS_DY};
-		chaosEngine->fakePipelinedEvent( &event, this);
+		chaosEngine->fakePipelinedEvent( &event, me);
 	}
 	
 	bool tweak( DeviceEvent* event ) {
@@ -1059,7 +1171,7 @@ public:
 			if (applySway) {
 				offsetValue[event.id] = sin(((t+1.6)*i )*4.0) * JOYSTICK_MAX ;
 				event.value = joystickLimit( it->second + offsetValue[event.id] );
-				chaosEngine->fakePipelinedEvent(&event, this);
+				chaosEngine->fakePipelinedEvent(&event, me);
 				i += 1;
 			} else {
 				offsetValue[event.id]  = 0;
@@ -1071,9 +1183,9 @@ public:
 	
 	void finish() {
 		DeviceEvent event = {0,(short)axisToValue[AXIS_RX],TYPE_AXIS,AXIS_RX};
-		chaosEngine->fakePipelinedEvent( &event, this);
+		chaosEngine->fakePipelinedEvent( &event, me);
 		event = {0,(short)axisToValue[AXIS_RY],TYPE_AXIS,AXIS_RY};
-		chaosEngine->fakePipelinedEvent( &event, this);
+		chaosEngine->fakePipelinedEvent( &event, me);
 	}
 	
 	bool tweak( DeviceEvent* event ) {
@@ -1202,7 +1314,7 @@ public:
 class Rubbernecking : public Chaos::Modifier {
 public:
 	static void regist() { Chaos::Modifier::factory["Rubbernecking"] = [](){ return new Rubbernecking();}; };
-	const char* description() { return "Woah!  What's behind you?  Invokes perioding 180 quick turn"; }
+	const char* description() { return "Woah!  What's behind you?  Invokes periodic 180 quick turn"; }
 	
 	//	std::map<int,int> axisToValue;
 	//std::map<int,int> offsetValue;
@@ -1279,9 +1391,9 @@ public:
 			event = {0,0,TYPE_AXIS,AXIS_LY};
 			dualshock->applyEvent(&event);
 		}
-		//		chaosEngine->fakePipelinedEvent( &event, this);
+		//		chaosEngine->fakePipelinedEvent( &event, me);
 		//		event = {0,(short)axisToValue[AXIS_RY],TYPE_AXIS,AXIS_RY};
-		//		chaosEngine->fakePipelinedEvent( &event, this);
+		//		chaosEngine->fakePipelinedEvent( &event, me);
 	}
 	
 	bool tweak( DeviceEvent* event ) {
@@ -1320,6 +1432,50 @@ public:
 	
 	bool tweak( DeviceEvent* event ) {
 		if (event->type == TYPE_AXIS && event->id == AXIS_DX) {
+			return false;
+		}
+		return true;
+	}
+};
+
+class NoShortGuns : public Chaos::Modifier {
+public:
+	static void regist() { Chaos::Modifier::factory["No Short Guns"] = [](){ return new NoShortGuns();}; };
+	const char* description() { return "D-Pad Right Disabled"; };
+	
+	void begin() {
+		DeviceEvent event = {0,0,TYPE_AXIS, AXIS_DX};
+		dualshock->applyEvent(&event);
+		
+		Chaos::Sequence sequence;
+		sequence.addAxisPress( AXIS_DY, 1);	// select a non-gun
+		sequence.send(dualshock);
+	}
+	
+	bool tweak( DeviceEvent* event ) {
+		if (event->type == TYPE_AXIS && event->id == AXIS_DX && event->value > 0) {
+			return false;
+		}
+		return true;
+	}
+};
+
+class NoLongGuns : public Chaos::Modifier {
+public:
+	static void regist() { Chaos::Modifier::factory["No Long Guns"] = [](){ return new NoLongGuns();}; };
+	const char* description() { return "D-Pad Left Disabled"; };
+	
+	void begin() {
+		DeviceEvent event = {0,0,TYPE_AXIS, AXIS_DX};
+		dualshock->applyEvent(&event);
+		
+		Chaos::Sequence sequence;
+		sequence.addAxisPress( AXIS_DY, 1);	// select a non-gun
+		sequence.send(dualshock);
+	}
+	
+	bool tweak( DeviceEvent* event ) {
+		if (event->type == TYPE_AXIS && event->id == AXIS_DX && event->value < 0) {
 			return false;
 		}
 		return true;
@@ -1521,14 +1677,14 @@ public:
 					newEvent.id	= AXIS_R2;
 					newEvent.type = TYPE_AXIS;
 					newEvent.value = event->value ? JOYSTICK_MAX : JOYSTICK_MIN;
-					chaosEngine->fakePipelinedEvent(&newEvent, this);
+					chaosEngine->fakePipelinedEvent(&newEvent, me);
 					break;
 				case BUTTON_L1:
 					event->id = BUTTON_L2;
 					newEvent.id	= AXIS_L2;
 					newEvent.type = TYPE_AXIS;
 					newEvent.value = event->value ? JOYSTICK_MAX : JOYSTICK_MIN;
-					chaosEngine->fakePipelinedEvent(&newEvent, this);
+					chaosEngine->fakePipelinedEvent(&newEvent, me);
 					break;
 				case BUTTON_R2: event->id = BUTTON_R1; break;
 				case BUTTON_L2: event->id = BUTTON_L1; break;
@@ -1569,7 +1725,7 @@ public:
 		sequence.addButtonPress( BUTTON_X);
 		sequence.addAxisPress( AXIS_DX, -1);
 		sequence.addButtonPress( BUTTON_X);
-		sequence.addTimeDelay(2000);
+		sequence.addTimeDelay(3000);
 		sequence.send(dualshock);
 		
 		busy = false;
@@ -2527,6 +2683,60 @@ public:
 	}
 };
 
+class EmptyGun : public Chaos::Modifier {
+public:
+	static void regist() { Chaos::Modifier::factory["Use Items"] = [](){return new EmptyGun();}; };
+	const char* description() { return "Shoots or throws 6 of whatever item is currently equipped (will not work on medkits)"; };
+	
+	bool busy;
+	
+	void begin() {
+		busy = true;
+		
+		Chaos::Sequence sequence;
+		
+		//sequence.addAxisPress(AXIS_DX, 1);
+		//sequence.addTimeDelay(1000);
+		sequence.addButtonHold(BUTTON_L2);
+		sequence.addTimeDelay(1000);
+		for (int i = 0; i < 6; i++) {
+//			sequence.addAxisPress(AXIS_R2, JOYSTICK_MAX);
+			sequence.addAxisHold(AXIS_R2, JOYSTICK_MAX);
+			//sequence.addButtonPress(BUTTON_R2);
+			sequence.addButtonHold(BUTTON_R2);
+			sequence.addTimeDelay(250);
+			sequence.addAxisHold(AXIS_R2, JOYSTICK_MIN);
+			sequence.addButtonRelease(BUTTON_R2);
+			sequence.addTimeDelay(250);
+		}
+//		sequence.addButtonHold(BUTTON_R2);
+		sequence.addButtonRelease(BUTTON_L2);
+//		sequence.addButtonRelease(BUTTON_R2);
+//		sequence.addAxisHold(AXIS_R2, JOYSTICK_MIN);
+		
+		sequence.send(dualshock);
+		
+		busy = false;
+	}
+	
+	bool tweak( DeviceEvent* event ) {
+		if (event->type == TYPE_BUTTON) {
+			if (event->id == BUTTON_L2 ||
+				event->id == BUTTON_R2) {
+				return !busy;
+			}
+		} else if (event->type == TYPE_AXIS) {
+			if (event->id == AXIS_R2 ||
+				event->id == AXIS_DX ||
+				event->id == AXIS_DY) {
+				return !busy;
+			}
+		}
+		
+		return true;
+	}
+};
+
 class TossMolly : public Chaos::Modifier {
 public:
 	static void regist() { Chaos::Modifier::factory["Toss A Molly"] = [](){return new TossMolly();}; };
@@ -2546,9 +2756,11 @@ public:
 		//		sequence.addButtonHold(BUTTON_L2);
 		sequence.addTimeDelay(2500);
 		sequence.addButtonHold(BUTTON_R2);
+		sequence.addAxisHold(AXIS_R2, JOYSTICK_MAX);
 		sequence.addTimeDelay(500);
 		//		sequence.addButtonRelease(BUTTON_L2);
 		sequence.addButtonRelease(BUTTON_R2);
+		sequence.addAxisHold(AXIS_R2, JOYSTICK_MIN);
 		
 		sequence.send(dualshock);
 		
@@ -2579,11 +2791,13 @@ public:
 		sequence.addAxisPress(AXIS_DY, 1);
 		//		sequence.addTimeDelay(1000);
 		//		sequence.addButtonHold(BUTTON_L2);
-		sequence.addTimeDelay(2500);
+		sequence.addTimeDelay(3000);
 		sequence.addButtonHold(BUTTON_R2);
+		sequence.addAxisHold(AXIS_R2, JOYSTICK_MAX);
 		sequence.addTimeDelay(500);
 		//		sequence.addButtonRelease(BUTTON_L2);
 		sequence.addButtonRelease(BUTTON_R2);
+		sequence.addAxisHold(AXIS_R2, JOYSTICK_MIN);
 		
 		sequence.addAxisHold(AXIS_RY, 0);
 		sequence.addAxisHold(AXIS_RX, 0);
@@ -2616,9 +2830,11 @@ public:
 		//		sequence.addButtonHold(BUTTON_L2);
 		//		sequence.addTimeDelay(1000);
 		sequence.addButtonHold(BUTTON_R2);
+		sequence.addAxisHold(AXIS_R2, JOYSTICK_MAX);
 		sequence.addTimeDelay(200);
 		//		sequence.addButtonRelease(BUTTON_L2);
 		sequence.addButtonRelease(BUTTON_R2);
+		sequence.addAxisHold(AXIS_R2, JOYSTICK_MIN);
 		
 		sequence.send(dualshock);
 		
@@ -2649,9 +2865,11 @@ public:
 		//		sequence.addButtonHold(BUTTON_L2);
 		//		sequence.addTimeDelay(1000);
 		sequence.addButtonHold(BUTTON_R2);
+		sequence.addAxisHold(AXIS_R2, JOYSTICK_MAX);
 		sequence.addTimeDelay(200);
 		//		sequence.addButtonRelease(BUTTON_L2);
 		sequence.addButtonRelease(BUTTON_R2);
+		sequence.addAxisHold(AXIS_R2, JOYSTICK_MIN);
 		
 		sequence.send(dualshock);
 		
@@ -3001,12 +3219,47 @@ public:
 	}
 };
 
+//class Mystery : public Chaos::Modifier {
+//	// Prototoxin
+//	bool dummy;
+//public:
+//	static void regist() {
+//		Chaos::Modifier::factory["Mystery"] = []() {
+//			Mogi::Math::Random rng;
+//			int selection = rng.uniform(0, Chaos::Modifier::factory.size()-1);
+//			printf("Selection = %d out of %d\n", selection, Chaos::Modifier::factory.size());
+//			int count = 0;
+//			std::map<std::string, std::function<Chaos::Modifier*()>>:: iterator it;
+//			for (it = Chaos::Modifier::factory.begin();
+//				 it != Chaos::Modifier::factory.end();
+//				 it++) {
+//				count++;
+//				if (count >= selection) {
+//					printf("Mystery: %s\n", it->first.c_str());
+//					if (it->first.compare("Mystery") == 0) {
+//						continue;
+//					}
+//					return it->second();
+//				}
+//			}
+//			return (--it)->second();
+//			//return new InfiniteBreath();
+//			//return new Mystery();	// will do nothing
+//		};
+//
+//	};
+//	const char* description() { return "Applies any random modifier"; };
+//};
+
 class Mystery : public Chaos::Modifier {
 	// Prototoxin
-	bool dummy;
+	Chaos::Modifier* trueMod = NULL;
 public:
-	static void regist() {
-		Chaos::Modifier::factory["Mystery"] = []() {
+	static void regist() { Chaos::Modifier::factory["Mystery"] = [](){return new Mystery();}; };
+	const char* description() { return "Applies any random modifier"; };
+	
+	Chaos::Modifier* getRandomModifier() {
+//		Chaos::Modifier::factory["Mystery"] = []() {
 			Mogi::Math::Random rng;
 			int selection = rng.uniform(0, Chaos::Modifier::factory.size()-1);
 			printf("Selection = %d out of %d\n", selection, Chaos::Modifier::factory.size());
@@ -3027,10 +3280,132 @@ public:
 			return (--it)->second();
 			//return new InfiniteBreath();
 			//return new Mystery();	// will do nothing
-		};
-		
-	};
-	const char* description() { return "Applies any random mod"; };
+//		};
+	}
+	
+	void begin() {
+		trueMod = getRandomModifier();
+		printf("- Setting parent of sub-mod\n");
+		trueMod->setParentModifier(this);
+		printf("- Setting chaosEngine and Dualshock of sub-mod\n");
+		trueMod->setDualshock(dualshock);
+		trueMod->setChaosEngine(chaosEngine);
+		printf("- begin() on sub-mod\n");
+		trueMod->begin();
+		printf("Done.\n");
+	}
+	void update() {
+		if (trueMod != NULL) {
+			trueMod->_update(chaosEngine->isPaused());	// Not very elegant, timer needs to be updated
+			//trueMod->update();
+		}
+	}
+	void finish() {
+		if (trueMod != NULL) {
+			trueMod->finish();
+			delete trueMod;
+		}
+	}
+	bool tweak( DeviceEvent* event ) {
+		if (trueMod != NULL) {
+			return trueMod->tweak(event);
+		}
+		return true;
+	}
+};
+
+class ChaosMod : public Chaos::Modifier {
+	// JustSaft
+//	Chaos::Modifier* trueMod;
+	std::vector<Chaos::Modifier*> trueModifiers;
+	std::vector<std::string> modNames;
+public:
+	static void regist() { Chaos::Modifier::factory["Chaos"] = [](){return new ChaosMod();}; };
+	const char* description() { return "Applies 5 random modifiers"; };
+	
+	void buildModifiers() {
+//		Chaos::Modifier::factory["Mystery"] = []() {
+		Mogi::Math::Random rng;
+		while(trueModifiers.size() < 5) {
+			
+			int selection = rng.uniform(0, Chaos::Modifier::factory.size()-1);
+			printf("Selection = %d out of %d\n", selection, Chaos::Modifier::factory.size());
+			int count = 0;
+			std::map<std::string, std::function<Chaos::Modifier*()>>:: iterator it;
+			for (it = Chaos::Modifier::factory.begin();
+				 it != Chaos::Modifier::factory.end();
+				 it++) {
+				count++;
+				if (count >= selection) {
+					if ((it->first.compare("Mystery") == 0) ||
+						(it->first.compare("Chaos") == 0)) {
+						continue;
+					}
+					bool copycat = false;
+					for (std::vector<std::string>::iterator it2 = modNames.begin();
+						 it2 != modNames.end();
+						 it2++) {
+						if (it->first.compare(*it2) == 0) {
+							copycat = true;
+							break;
+						}
+					}
+					if (copycat) {
+						continue;
+					}
+					printf("Chaos: %s\n", it->first.c_str());
+					modNames.push_back(it->first);
+//
+//					for (std::vector<Chaos::Modifier*>::iterator it = trueModifiers.begin(); it != trueModifiers.end(); it++) {
+//						if (it->second) {
+//							<#statements#>
+//						}
+//					}
+//
+//					return it->second();
+					trueModifiers.push_back(it->second());
+					break;
+				}
+			}
+			//if (it == Chaos::Modifier::factory.end()) {
+			//	trueModifiers.push_back((--it)->second());
+			//}
+//			return (--it)->second();
+		}
+			//return new InfiniteBreath();
+			//return new Mystery();	// will do nothing
+//		};
+	}
+	
+	void begin() {
+		buildModifiers();
+		for (std::vector<Chaos::Modifier*>::iterator it = trueModifiers.begin(); it != trueModifiers.end(); it++) {
+			(*it)->setParentModifier(this);
+			(*it)->setDualshock(dualshock);
+			(*it)->setChaosEngine(chaosEngine);
+			(*it)->begin();
+		}
+	}
+	void update() {
+		//trueMod->_update(chaosEngine->isPaused());	// Not very elegant, may not be needed
+		for (std::vector<Chaos::Modifier*>::iterator it = trueModifiers.begin(); it != trueModifiers.end(); it++) {
+			(*it)->_update(chaosEngine->isPaused());
+			//(*it)->update();
+		}
+	}
+	void finish() {
+		for (std::vector<Chaos::Modifier*>::iterator it = trueModifiers.begin(); it != trueModifiers.end(); it++) {
+			(*it)->finish();
+			delete *it;
+		}
+	}
+	bool tweak( DeviceEvent* event ) {
+		bool ret = true;
+		for (std::vector<Chaos::Modifier*>::iterator it = trueModifiers.begin(); it != trueModifiers.end(); it++) {
+			ret &= (*it)->tweak(event);
+		}
+		return ret;
+	}
 };
 
 
@@ -3119,6 +3494,188 @@ public:
 };
 
 
+typedef struct _TimeAndEvent{
+	double time;
+	DeviceEvent event;
+} TimeAndEvent;
+
+class InputDelay : public Chaos::Modifier {
+	// JustSaft
+	std::queue<TimeAndEvent> eventQueue;
+	double delayTime;
+public:
+	static void regist() { Chaos::Modifier::factory["Input Delay"] = [](){return new InputDelay();}; };
+	const char* description() { return "Introduces a 0.2 second delay to the controller"; };
+	
+	void begin() {
+		delayTime = 0.2;
+	}
+	
+	void update() {
+		while ( !eventQueue.empty() ) {
+			if( (timer.runningTime() - eventQueue.front().time) >= delayTime ) {
+				// Where events are actually sent:
+				chaosEngine->fakePipelinedEvent(&eventQueue.front().event, me);
+				eventQueue.pop();
+			} else {
+				break;
+			}
+		}
+	}
+	
+	bool tweak( DeviceEvent* event ) {
+		eventQueue.push( {this->timer.runningTime(), *event} );
+		
+		return false;	// Block all events
+	}
+};
+
+class MeleeDelay : public Chaos::Modifier {
+	// JustSaft
+	std::queue<TimeAndEvent> eventQueue;
+	double delayTime;
+public:
+	static void regist() { Chaos::Modifier::factory["Melee Delay"] = [](){return new MeleeDelay();}; };
+	const char* description() { return "Introduces a 0.5 second delay to square presses"; };
+	
+	void begin() {
+		delayTime = 0.5;
+	}
+	
+	void update() {
+		while ( !eventQueue.empty() ) {
+			if( (timer.runningTime() - eventQueue.front().time) >= delayTime ) {
+				// Where events are actually sent:
+				chaosEngine->fakePipelinedEvent(&eventQueue.front().event, me);
+				eventQueue.pop();
+			} else {
+				break;
+			}
+		}
+	}
+	
+	bool tweak( DeviceEvent* event ) {
+		if (event->type == TYPE_BUTTON && event->id == BUTTON_SQUARE) {
+			eventQueue.push( {this->timer.runningTime(), *event} );
+			
+			return false;
+		}
+		
+		return true;
+	}
+};
+
+class ShootDelay : public Chaos::Modifier {
+	// JustSaft
+	std::queue<TimeAndEvent> eventQueue;
+	double delayTime;
+public:
+	static void regist() { Chaos::Modifier::factory["Shooting Delay"] = [](){return new ShootDelay();}; };
+	const char* description() { return "Introduces a 0.5 second delay to R2 presses"; };
+	
+	void begin() {
+		delayTime = 0.5;
+	}
+	
+	void update() {
+		while ( !eventQueue.empty() ) {
+			if( (timer.runningTime() - eventQueue.front().time) >= delayTime ) {
+				// Where events are actually sent:
+				chaosEngine->fakePipelinedEvent(&eventQueue.front().event, me);
+				eventQueue.pop();
+			} else {
+				break;
+			}
+		}
+	}
+	
+	bool tweak( DeviceEvent* event ) {
+		if (((event->type == TYPE_BUTTON) && (event->id == BUTTON_R2)) ||
+			((event->type == TYPE_AXIS) && (event->id == AXIS_R2))) {
+			eventQueue.push( {timer.runningTime(), *event} );
+			
+			return false;
+		}
+		
+		return true;
+	}
+};
+
+class DpadDelay : public Chaos::Modifier {
+	// JustSaft
+	std::queue<TimeAndEvent> eventQueue;
+	double delayTime;
+public:
+	static void regist() { Chaos::Modifier::factory["Dpad Delay"] = [](){return new DpadDelay();}; };
+	const char* description() { return "Introduces a 5 second delay to the D-pad"; };
+	
+	void begin() {
+		delayTime = 5;
+	}
+	
+	void update() {
+		while ( !eventQueue.empty() ) {
+			if( (timer.runningTime() - eventQueue.front().time) >= delayTime ) {
+				// Where events are actually sent:
+				chaosEngine->fakePipelinedEvent(&eventQueue.front().event, me);
+				eventQueue.pop();
+			} else {
+				break;
+			}
+		}
+	}
+	
+	bool tweak( DeviceEvent* event ) {
+		if ((event->type == TYPE_AXIS && event->id == AXIS_DY) ||
+			(event->type == TYPE_AXIS && event->id == AXIS_DX)) {
+			eventQueue.push( {this->timer.runningTime(), *event} );
+			
+			return false;
+		}
+		
+		return true;
+	}
+};
+
+class JoystickDelay : public Chaos::Modifier {
+	// JustSaft
+	std::queue<TimeAndEvent> eventQueue;
+	double delayTime;
+public:
+	static void regist() { Chaos::Modifier::factory["Joystick Delay"] = [](){return new JoystickDelay();}; };
+	const char* description() { return "Introduces a 0.2 second delay to joysticks"; };
+	
+	void begin() {
+		delayTime = 0.2;
+	}
+	
+	void update() {
+		while ( !eventQueue.empty() ) {
+			if( (timer.runningTime() - eventQueue.front().time) >= delayTime ) {
+				// Where events are actually sent:
+				chaosEngine->fakePipelinedEvent(&eventQueue.front().event, me);
+				eventQueue.pop();
+			} else {
+				break;
+			}
+		}
+	}
+	
+	bool tweak( DeviceEvent* event ) {
+		if ((event->type == TYPE_AXIS && event->id == AXIS_RX) ||
+			(event->type == TYPE_AXIS && event->id == AXIS_RY) ||
+			(event->type == TYPE_AXIS && event->id == AXIS_LY) ||
+			(event->type == TYPE_AXIS && event->id == AXIS_LX)) {
+			eventQueue.push( {this->timer.runningTime(), *event} );
+			
+			return false;
+		}
+		
+		return true;
+	}
+};
+
+
 int main(int argc, char** argv) {
 	std::cout << "Welcome to Chaos" << std::endl;
 	
@@ -3150,8 +3707,11 @@ int main(int argc, char** argv) {
 	NoRun::regist();
 	ForceRun::regist();
 	DisableJoystick::regist();
+	DisableDpad::regist();	// new
+	Moose::regist();
 	SwapSticks::regist();
 	SwapStickDpad::regist();
+	SwapStickShapes::regist();
 	MotionControls::regist();
 	MotionControlAiming::regist();
 	TouchpadAiming::regist();
@@ -3166,6 +3726,8 @@ int main(int argc, char** argv) {
 	Rubbernecking::regist();
 
 	NoGuns::regist();
+	NoShortGuns::regist();
+	NoLongGuns::regist();
 	NoThrows::regist();
 	MaxSensitivity::regist();
 	MinSensitivity::regist();
@@ -3173,6 +3735,7 @@ int main(int argc, char** argv) {
 	ControllerFlip::regist();
 
 	DeskPop::regist();
+	EmptyGun::regist();	// new
 	TossMolly::regist();
 	CtgStrat::regist();
 	PdubIt::regist();
@@ -3180,7 +3743,7 @@ int main(int argc, char** argv) {
 
 
 	// Main menu:
-	RestartCheckpoint::regist();
+//	RestartCheckpoint::regist();
 
 	//  HUD settings:
 	NoReticle::regist();
@@ -3204,11 +3767,11 @@ int main(int argc, char** argv) {
 	Vintage::regist();
 	Beasts::regist();
 	Terminated::regist();
-	GridLocked::regist();	// Working
+	GridLocked::regist();
 	Blacklight::regist();
 	DesertFog::regist();
 	Blood::regist();
-	Inferno::regist();		// Working
+	Inferno::regist();
 	Fire::regist();
 	Trinity::regist();
 	Pusher::regist();
@@ -3217,7 +3780,7 @@ int main(int argc, char** argv) {
 	Moonlight::regist();
 
 	// Gameplay Modes:
-	Mirror::regist();		// Render mode
+	Mirror::regist();
 	MirrorOnDeath::regist();
 	SlowMotion::regist();
 	BulletSpeed::regist();
@@ -3237,13 +3800,13 @@ int main(int argc, char** argv) {
 	// Alternative Controls:
 	LockOnAim::regist();
 	AutoPickUp::regist();
-	
+
 	// Framerate (PS5 only)
 	SetThirtyFps::regist();
 
 	// Magnification:
 	LargeHud::regist();
-	HighContrastDisplay::regist();	// Render mode
+	HighContrastDisplay::regist();
 
 	// Navigation And Traversal
 	TraversalAssistance::regist();
@@ -3268,13 +3831,19 @@ int main(int argc, char** argv) {
 	ForceAim::regist();
 	SpeedrunGlitch::regist();
 	
-	Mystery::regist();
+	Mystery::regist();	// "new"
+	ChaosMod::regist();	// new
 	
 	MuteAudioMusic::regist();
 	MuteAudioEffects::regist();
 	MuteAudioDialogue::regist();
 	MonoAudio::regist();
 	
+	InputDelay::regist();	// new
+	MeleeDelay::regist();	// new
+	ShootDelay::regist();	// new
+	DpadDelay::regist();	// new
+	JoystickDelay::regist();	// new
 	// Custom: 48
 	// Audio: 10
 	// Render/Display: 32

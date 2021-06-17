@@ -17,6 +17,8 @@ Currently this is hard-coded for The Last Of Us Part 2.  Controller-based Chaos 
 
 ## What is Chaos?
 
+"[I liked watching your stream, those mods you have are awesome!](https://clips.twitch.tv/AggressiveSuspiciousWalrusFutureMan-RZRm3iwICUuD8rgY)" - Shannon Woodward aka [ShannonIsLive](https://www.twitch.tv/shannonislive), Voice Actress for Dina in TLOU2
+
 [Watch a minute long video explanation of how users can interact with a controller.](https://www.twitch.tv/blegas78/clip/SmellyDepressedPancakeKappaPride-llz6ldXSKjSJLs9s)
 ![Twitch Clip](https://github.com/blegas78/chaos/blob/main/docs/images/explain.png?raw=true)
 
@@ -129,6 +131,9 @@ Implemented:
  - - Min Sensitivity
  - [joshuatimes7](https://www.twitch.tv/joshuatimes7), [JustForSaft](https://www.twitch.tv/JustForSaft)
  - - Swap Dpad/Left Joystick
+ - [JustForSaft](https://www.twitch.tv/JustForSaft)
+ - - Input Delay
+ - - Chaos Mod
  - [HeHathYought](https://www.twitch.tv/HeHathYought)
  - - Anthony Caliber
  - - TLOU1 Run Glitch
@@ -138,11 +143,11 @@ Implemented:
  - - Controller Flip
  - [gabemusic](https://www.twitch.tv/gabemusic)
 - - Max Sensitivity
- -[carnalgasyeah](https://www.twitch.tv/carnalgasyeah)
+ - [carnalgasyeah](https://www.twitch.tv/carnalgasyeah)
 - - Zoolander
 - [inabox44](https://www.twitch.tv/inabox44)
 - - Mute certain game volumes
--[crescenterra](https://www.twitch.tv/crescenterra)
+- [crescenterra](https://www.twitch.tv/crescenterra)
 - - 30fps
 
 

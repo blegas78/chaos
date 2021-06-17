@@ -10,6 +10,7 @@ using namespace Chaos;
 
 Modifier::Modifier() {
 	this->timer.initialize();
+	me = this;
 	pauseTimeAccumulator = 0;
 }
 
@@ -107,3 +108,6 @@ bool Modifier::tweak( DeviceEvent* event ) {
 	return true;	// by default it is valid and we do nothing
 }
 
+void Modifier::setParentModifier(Modifier* parent) {
+	this->me = parent;
+}

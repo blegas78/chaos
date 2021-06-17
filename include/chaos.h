@@ -46,6 +46,8 @@ public:
 	void setInterfaceReply(const std::string& reply);
 	void setTimePerModifier(double time);
 	void fakePipelinedEvent(DeviceEvent* fakeEvent, Modifier* modifierThatSentTheFakeEvent);
+	
+	bool isPaused();
 };
 
 };

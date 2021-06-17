@@ -221,7 +221,7 @@ class ChaosModel():
 				# update softmax
 				if newMod in self.winTracker:
 					self.winTracker[newMod]["count"] += 1
-					self.winTracker[newMod]["contribution"] = math.exp(self.winTracker[newMod]["count"] * -1.0)
+					self.winTracker[newMod]["contribution"] = math.exp(self.winTracker[newMod]["count"] * -2.0)
 					softMaxDivisor = 0
 					for key in self.winTracker:
 						softMaxDivisor += self.winTracker[key]["contribution"]

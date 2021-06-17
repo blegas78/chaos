@@ -15,6 +15,7 @@ class Engine;
 
 class Modifier {
 friend Engine;
+//friend Modifier;
 protected:
 	Modifier();
 	
@@ -22,9 +23,11 @@ protected:
 	Controller* dualshock;
 	Engine* chaosEngine;
 	
+	Modifier* me; // represents "this" except in cases where there is a parent modifier
+	
 	double pauseTimeAccumulator;
 	
-	void _update(bool isPaused);	// ChaosEngine call this, which then calls virtual update();
+	//void _update(bool isPaused);	// ChaosEngine call this, which then calls virtual update();
 	
 public:
 	
@@ -35,6 +38,8 @@ public:
 	void setDualshock(Controller* dualshock);
 	void setChaosEngine(Engine* chaosEngine);
 	
+	void _update(bool isPaused);	// ChaosEngine call this, which then calls virtual update();
+	
 	virtual void begin();	// called when first instantiated
 	virtual void update();	// called regularly
 	virtual void finish();	// called just
@@ -43,6 +48,8 @@ public:
 	double lifetime();
 	
 	virtual bool tweak( DeviceEvent* event );
+	
+	void setParentModifier(Modifier* parent);
 };
 
 };
