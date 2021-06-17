@@ -2,6 +2,8 @@
 
 ![Chaos](https://github.com/blegas78/chaos/blob/main/docs/images/chaos.jpg?raw=true)
 
+"[I liked watching your stream, those mods you have are awesome!](https://clips.twitch.tv/AggressiveSuspiciousWalrusFutureMan-RZRm3iwICUuD8rgY)" - Shannon Woodward aka [ShannonIsLive](https://www.twitch.tv/shannonislive), Voice Actress for Dina in TLOU2
+
 
 This project was inspired after watching Twitch user [DarkViperAU](https://www.twitch.tv/DarkViperAU) stream "Twich Controls Chaos" using  [ChaosModV](https://github.com/gta-chaos-mod/ChaosModV).  Here are a few differences between that and this version:
 
@@ -17,7 +19,7 @@ Currently this is hard-coded for The Last Of Us Part 2.  Controller-based Chaos 
 
 ## What is Chaos?
 
-"[I liked watching your stream, those mods you have are awesome!](https://clips.twitch.tv/AggressiveSuspiciousWalrusFutureMan-RZRm3iwICUuD8rgY)" - Shannon Woodward aka [ShannonIsLive](https://www.twitch.tv/shannonislive), Voice Actress for Dina in TLOU2
+
 
 [Watch a minute long video explanation of how users can interact with a controller.](https://www.twitch.tv/blegas78/clip/SmellyDepressedPancakeKappaPride-llz6ldXSKjSJLs9s)
 ![Twitch Clip](https://github.com/blegas78/chaos/blob/main/docs/images/explain.png?raw=true)
