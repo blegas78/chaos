@@ -27,7 +27,7 @@ Press the Options button
 Navigate to "Extras"
  - Select "Gameplay Modifiers"
  - - Press Triangle to reset all options (make sure that all cheats are purchased)
- - - hover over the top selection "Mirror World
+ - - hover over the top selection "Mirror World"
  - - Press Circle to back out
  - Select "Render Modes"
  - - Press Triangle to reset all options (make sure that all modes are purchased)
@@ -38,10 +38,7 @@ Navigate to "Extras"
 
 Navigate to "Options"
  - Select "Accessibility"
- - - Except for "Alternate Controls" and "Combat Accessibility", enter each menu and press Triangle to reset everything to the default.  Then hover over the top-most option and press Circle to back out
- - - Select "Combat Accessibility"
- - - - Press Triangle to rest to defaults
- - - - Turn on the top-most option to enable everything, then back out with circle
+ - - Except for "Alternate Controls", enter each menu and press Triangle to reset everything to the default.  Then hover over the top-most option and press Circle to back out
  - - Select "Alternate Controls"
  - - - Only manually set everything to Off in "Assistance."
  - - - Hover over the top-most option "Customize Controls" and press Circle to back out

@@ -70,7 +70,7 @@ Now that everything is installed, power up your Raspberry Pi and follow these st
 
 1. Your console will need to be set up to prefer USB communication over bluetooth for your controllers.  
 
-2. On the same network as the Raspberry Pi, navigate your stream PC's browser to raspberrypi.local by [clicking here](raspberrypi.local) (if you renamed your pi's hostname then navigate to <pi hostname>.local instead).  If that doesn't work you may need to figure out your pi's IP from your router and enter that into your browser instead.  Alternatively, run ifconfig to get your IP.
+2. On the same network as the Raspberry Pi, navigate your stream PC's browser to raspberrypi.local by [clicking here](raspberrypi.local) (if you renamed your pi's hostname then navigate to (hostname).local instead).  If that doesn't work you may need to figure out your pi's IP from your router and enter that into your browser instead.  Alternatively, run ifconfig to get your IP.
 
 3. Click on the link labeled "BotSetup".  Here you can enter your bot account credentials and your channel name.  You can also use your broadcaster account if you do not have a secondary custom bot account.
 

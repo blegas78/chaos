@@ -1865,7 +1865,8 @@ public:
 	
 	void finish() {
 		busy = true;
-		Menuing::getInstance()->selectHudMode(HUD_RETICLE, RETICLE_SIMPLE, dualshock);
+//		Menuing::getInstance()->selectHudMode(HUD_RETICLE, RETICLE_SIMPLE, dualshock);
+		Menuing::getInstance()->selectHudMode(HUD_RETICLE, RETICLE_DEFAULT, dualshock);
 		busy = false;
 	}
 	
