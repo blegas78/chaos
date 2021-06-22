@@ -489,7 +489,7 @@ public:
 class BadStamina : public Chaos::Modifier {
 public:
 	static void regist() { Chaos::Modifier::factory["Bad Stamina"] = [](){return new BadStamina();}; };
-	const char* description() { return "Running gets disabled after 2 seconds and takes 4 seconds to recharge."; };
+	const char* description() { return "Running gets disabled after 2 seconds and takes 4 seconds to recharge"; };
 	double stateTime;
 	bool pressedState;
 	double stamina;
@@ -4633,7 +4633,9 @@ int main(int argc, char** argv) {
 	printf("Registered Modfiers: \n");
 	for (auto const& it : Chaos::Modifier::factory) {
 		//std::cout << "Registered Mod: " << it.first << std::endl;
-		printf("%3d: %s\n", i++, it.first.c_str());
+		Chaos::Modifier* tempMod = it.second();
+		printf("%3d: %s -- %s\n", i++, it.first.c_str(), tempMod->description());
+		delete  tempMod;
 	}
 	
 	Chaos::Engine chaosEngine(&dualshock);
