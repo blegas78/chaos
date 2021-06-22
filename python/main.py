@@ -322,14 +322,15 @@ class ChaosModel():
 					command = message.split(" ",1)
 					firstWord = command[0]
 					if firstWord == "!mods":
-						response = str(str(self.allMods) + " @" + notice["user"]).replace('\'', '').replace('[','').replace(']','')
-						splitMessage = [response[i:i+484] for i in range(0, len(response), 484)]
-						pp.pprint(splitMessage)
-						print("number of elements in splitMessage: " + str(len(splitMessage)))
-						for message in splitMessage:
-							#response =	"!mods: " + message
-							
-							qResponse.put( "!mods: " + message );
+#						response = str(str(self.allMods) + " @" + notice["user"]).replace('\'', '').replace('[','').replace(']','')
+#						splitMessage = [response[i:i+484] for i in range(0, len(response), 484)]
+#						pp.pprint(splitMessage)
+#						print("number of elements in splitMessage: " + str(len(splitMessage)))
+#						for message in splitMessage:
+#							#response =	"!mods: " + message
+#
+#							qResponse.put( "!mods: " + message );
+						qResponse.put( "!mods: There are currently " + str(len(self.allMods)) + " modifiers!  See them all with descriptions here: https://github.com/blegas78/chaos/tree/main/docs/TLOU2 @" + notice["user"] );
 						continue
 							
 					if firstWord == "!mod":
