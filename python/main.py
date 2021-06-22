@@ -338,14 +338,15 @@ class ChaosModel():
 							qResponse.put( message );
 							continue
 						argument = command[1]
-						message = "Unrecognized mod :("
+						message = "!mod: Unrecognized mod :("
 						for x in self.allModsDb:
 							if x["name"].lower() == argument.lower():
 								if x["desc"] == "":
-									message = x["name"] + ": No Description :("
+									message = "!mod " + x["name"] + ": No Description :("
 								else:
-									message = x["name"] + ": " + x["desc"]
+									message = "!mod " + x["name"] + ": " + x["desc"]
 								break
+						message += " @" + notice["user"]
 						qResponse.put( message );
 						
 				#relay.newVotes(self.votes)
