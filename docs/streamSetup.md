@@ -20,4 +20,4 @@ The defualt colors are boring web-default blue/white colors.  You can make use o
 ### Chat For The Broadcaster using BTTV
 Twich user [RachyMonster](https://www.twitch.tv/rachyonster) put together the following amazing guide to remove certain commands and votes from chat.  This is an effective way to maintain chat on the streamer's end without seeing the plethora of votes and partiucalr bot commands.  Thank you for the guide Rachy!
 
-[BTTV Chat](https://github.com/blegas78/chaos/blob/main/docs/images/bttv.png?raw=true)
+![BTTV Chat](https://github.com/blegas78/chaos/blob/main/docs/images/bttv.png?raw=true)
