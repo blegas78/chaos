@@ -64,6 +64,7 @@ If you know that you are about to enter a new area where you lose control of you
 
 
 ## Modifier List:
+```
 1: 1960 -- Render Mode
 2: 30 fps -- Converting a PS5 to play like PS4
 3: 4-Bit Audio -- Audio mode.  Incompatible with 8-bit
@@ -216,3 +217,4 @@ If you know that you are about to enter a new area where you lose control of you
 150: Water Color -- Render Mode
 151: Xenon Audio -- Audio mode.  Incompatible with Helium
 152: Zoolander -- We are not an ambiturner, but at least we can look right.  Left movement/camera disabled.
+```
