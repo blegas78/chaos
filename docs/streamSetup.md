@@ -30,6 +30,11 @@ When adding browser sources in your chat for the Votes, VoteTime, and ActiveMods
    - - Height 117
    
 ## Chat For The Broadcaster using BTTV
-Twich user [RachyMonster](https://www.twitch.tv/rachyonster) put together the following amazing guide to remove certain commands and votes from chat.  This is an effective way to maintain chat on the streamer's end without seeing the plethora of votes and partiucalr bot commands.  Thank you for the guide Rachy!
+Twich user [RachyMonster](https://www.twitch.tv/rachyonster) put together the following amazing guide to remove certain commands and votes from chat.  This is an effective way to maintain chat on the streamer's end without seeing the plethora of votes and particular bot commands that may spoil the winning mod surprise.  Thank you for the guide Rachy!  
+
+For easy copy/paste, here is what I put in my BTTV blacklist settings:
+```
+{<1>}{<2>}{<3>}{!mods}{!mod}
+```
 
 ![BTTV Chat](https://github.com/blegas78/chaos/blob/main/docs/images/bttv.png?raw=true)
