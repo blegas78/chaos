@@ -28,7 +28,18 @@ enum OptionsOptions {
 
 enum OptionsHUD {
 	HUD_RETICLE = 0,
-	HUD_WEAPON_CROSS_DISABLE = 1
+	HUD_WEAPON_CROSS = 1,
+	HUD_DAMAGE_INDICATORS = 2,
+	HUD_AWARENESS_INDICATORS = 3,
+	HUD_HIT_MARKERS = 4,
+	HUD_ARC_THROW_PATH = 5,
+	HUD_HEALTH_AND_WEAPON = 6,
+	HUD_PICK_UP_NOTIFICATIONS = -6
+};
+
+enum OptionsSubtitles {
+	SUBTITLES_SUBTITLES = 0,
+	SUBTITLES_SIZE = 1
 };
 
 enum OptionsDisplay {
@@ -118,7 +129,9 @@ enum OptionsAccessibility {	// options/accessibility
 
 enum OptionsAternateControls {	// options/accessibility/alternate controls
 	ALTERNATE_CUSTOMIZE_CONTROLS = 0,
+	ALTERNATE_CAMERA_ASSIST = -7,
 	ALTERNATE_LOCK_ON_AIM = -6,
+	ALTERNATE_ARC_THROW_LOCK_ON = -4,
 	ALTERNATE_AUTO_PICK_UP = -1
 };
 
@@ -170,6 +183,7 @@ private:
     int gameplay;
     int options;
     int hud;
+	int subtitle;
 	int display;
 	int audio;
 	
@@ -212,6 +226,9 @@ private:
 			void selectHudItem( int selection );
 			void deselectHud();
 	
+			void selectSubtitleItem( int selection );
+			void deselectSubtitle();
+	
 			void selectDisplayItem( int selection );
 			void deselectDisplay();
 	
@@ -230,6 +247,8 @@ public:
 	void teardownAudio( int whatToTeardown, Chaos::Controller* dualshock );
     void selectGameplayMode( int gameplayMode, Chaos::Controller* dualshock );
     void selectHudMode( int hudOption, int option, Chaos::Controller* dualshock );
+	
+	void selectSubtitleMode( int subtitleOption, int option, Chaos::Controller* dualshock );
 	
 	void setDisplayMode( int displayOption, bool enable, Chaos::Controller* dualshock );
 	

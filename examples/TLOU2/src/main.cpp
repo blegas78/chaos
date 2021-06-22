@@ -44,6 +44,19 @@ public:
 	}
 };
 
+class SidewaysMoonwalk : public Chaos::Modifier {
+public:
+	static void regist() { Chaos::Modifier::factory["Sideways Moonwalk"] = [](){return new SidewaysMoonwalk();}; };
+	const char* description() { return "Go left to go right and go right to go left"; };
+	
+	bool tweak( DeviceEvent* event ) {
+		if ((event->id == AXIS_LX ) && event->type == TYPE_AXIS) {
+			event->value = -((int)event->value+1) ;
+		}
+		return true;
+	}
+};
+
 class MeleeOnly : public Chaos::Modifier {
 public:
 	static void regist() { Chaos::Modifier::factory["Melee Only"] = [](){return new MeleeOnly();}; };
@@ -473,6 +486,59 @@ public:
 	}
 };
 
+class BadStamina : public Chaos::Modifier {
+public:
+	static void regist() { Chaos::Modifier::factory["Bad Stamina"] = [](){return new BadStamina();}; };
+	const char* description() { return "Running gets disabled after 2 seconds and takes 4 seconds to recharge."; };
+	double stateTime;
+	bool pressedState;
+	double stamina;
+	
+	enum {
+		STAMINA_GOOD,
+		STAMINA_BAD
+	} state;
+	
+	void begin() {
+		pressedState = dualshock->getState(BUTTON_L1, TYPE_BUTTON);
+		stamina = 0.0;
+		state = STAMINA_GOOD;
+		stateTime = 0.0;
+	}
+	void update() {
+		stateTime = timer.dTime();
+		
+		if (state == STAMINA_GOOD) {
+			if (dualshock->getState(BUTTON_L1, TYPE_BUTTON)) {
+				stamina += stateTime;
+				if (stamina > 2.0) {
+					stamina = 2.0;
+					state = STAMINA_BAD;
+					DeviceEvent event = {0, 0, TYPE_BUTTON, BUTTON_L1};
+					chaosEngine->fakePipelinedEvent(&event, me);
+				}
+			} else {
+				stamina -= stateTime/2.0;
+				if (stamina < 0.0) {
+					stamina = 0;
+				}
+			}
+		} else if (state == STAMINA_BAD) {
+			stamina -= stateTime/2.0;
+			if (stamina < 0.0) {
+				stamina = 0;
+				state = STAMINA_GOOD;
+			}
+		}
+	}
+	bool tweak( DeviceEvent* event ) {
+		if (event->id == BUTTON_L1 && event->type == TYPE_BUTTON) {
+			return state == STAMINA_GOOD;
+		}
+		return true;
+	}
+};
+
 class LeeroyJenkins : public Chaos::Modifier {
 public:
 	static void regist() { Chaos::Modifier::factory["Leeroy Jenkins"] = [](){return new LeeroyJenkins();}; };
@@ -570,6 +636,18 @@ public:
 	}
 };
 
+class DisableJoystickHorizontal : public Chaos::Modifier {
+public:
+	static void regist() { Chaos::Modifier::factory["No Horizontal Aim"] = [](){return new DisableJoystickHorizontal();}; };
+	const char* description() { return "The right joystick right/left is disabled"; };
+	bool tweak( DeviceEvent* event ) {
+		if ( (event->id == AXIS_RX) && event->type == TYPE_AXIS) {
+			event->value = 0;
+		}
+		return true;
+	}
+};
+
 class DisableDpad : public Chaos::Modifier {
 	// JustSaft
 public:
@@ -579,6 +657,24 @@ public:
 		if ( (event->id == AXIS_DX || event->id == AXIS_DY) && event->type == TYPE_AXIS) {
 			event->value = 0;
 		}
+		return true;
+	}
+};
+
+class DpadRotate : public Chaos::Modifier {
+public:
+	static void regist() { Chaos::Modifier::factory["D-pad Rotate"] = [](){return new DpadRotate();}; };
+	const char* description() { return "Rotates the D-pad inputs clockwise"; };
+	bool tweak( DeviceEvent* event ) {
+		if (event->type == TYPE_AXIS) {
+			if (event->id == AXIS_DX) {
+				event->id = AXIS_DY;
+			} else if (event->id == AXIS_DY) {
+				event->id = AXIS_DX;
+				event->value = joystickLimit( -event->value );
+			}
+		}
+		
 		return true;
 	}
 };
@@ -614,6 +710,21 @@ public:
 	const char* description() { return "Y-axis on the left joystick is disabled.  Only left/right motion is allowed."; };
 	bool tweak( DeviceEvent* event ) {
 		if ( event->id == AXIS_LX && event->type == TYPE_AXIS) {
+			event->value = 0;
+		}
+		return true;
+	}
+};
+
+class AimMovement : public Chaos::Modifier {
+public:
+	static void regist() { Chaos::Modifier::factory["Only Aim Movement"] = [](){return new AimMovement();}; };
+	const char* description() { return "Left joystick is disabled if not aiming"; };
+	
+	bool tweak( DeviceEvent* event ) {
+		if ((event->id == AXIS_LX || event->id == AXIS_LY) &&
+			event->type == TYPE_AXIS &&
+			!dualshock->getState(BUTTON_L2, TYPE_BUTTON) ) {
 			event->value = 0;
 		}
 		return true;
@@ -672,7 +783,7 @@ public:
 class SwapStickShapes : public Chaos::Modifier {
 public:
 	DeviceEvent fakeEvent;
-	static void regist() { Chaos::Modifier::factory["Swap Shape Buttons/Right Joystick"] = [](){return new SwapStickShapes();}; };
+	static void regist() { Chaos::Modifier::factory["Swap Shapes/Right Joystick"] = [](){return new SwapStickShapes();}; };
 	const char* description() { return "Analog actions, and digital camera movement"; };
 	void begin() {
 		DeviceEvent event = {0,0,TYPE_AXIS, AXIS_RY};
@@ -1418,7 +1529,7 @@ public:
 
 class NoGuns : public Chaos::Modifier {
 public:
-	static void regist() { Chaos::Modifier::factory["No Guns"] = [](){ return new NoGuns();}; };
+	static void regist() { Chaos::Modifier::factory["No Gun Selection"] = [](){ return new NoGuns();}; };
 	const char* description() { return "D-Pad Left/Right Disabled"; };
 	
 	void begin() {
@@ -1509,7 +1620,7 @@ class MaxSensitivity : public Chaos::Modifier {
 	// gabemusic
 public:
 	static void regist() { Chaos::Modifier::factory["Max Sensitivity"] = [](){return new MaxSensitivity();}; };
-	const char* description() { return "Goodbye precision aiming"; };
+	const char* description() { return "Goodbye precision aiming.  Joystick postions multiplied by 5"; };
 	
 	bool tweak( DeviceEvent* event ) {
 		if (event->type == TYPE_AXIS) {
@@ -1532,7 +1643,7 @@ class MinSensitivity : public Chaos::Modifier {
 	// prototoxin
 public:
 	static void regist() { Chaos::Modifier::factory["Min Sensitivity"] = [](){return new MinSensitivity();}; };
-	const char* description() { return "It is like slomo, but not for the enemies"; };
+	const char* description() { return "It is like slomo, but not for the enemies.  Joystick positions divided by 2.5"; };
 	
 	bool tweak( DeviceEvent* event ) {
 		if (event->type == TYPE_AXIS) {
@@ -1762,6 +1873,199 @@ public:
 		return !busy;
 	}
 };
+
+class NoInventoryHud : public Chaos::Modifier {
+public:
+	static void regist() { Chaos::Modifier::factory["No Inventory HUD"] = [](){return new NoInventoryHud();}; };
+	const char* description() { return "Blind weapon and throwable selection"; };
+	
+	bool busy;
+	
+	void begin() {
+		busy = true;
+		Menuing::getInstance()->selectHudMode(HUD_WEAPON_CROSS, -1, dualshock);
+		busy = false;
+	}
+	
+	void finish() {
+		busy = true;
+		Menuing::getInstance()->selectHudMode(HUD_WEAPON_CROSS, 1, dualshock);
+		busy = false;
+	}
+	
+	bool tweak( DeviceEvent* event ) {
+		return !busy;
+	}
+};
+
+class NoDamageIndicators : public Chaos::Modifier {
+public:
+	static void regist() { Chaos::Modifier::factory["No Damage Indicators"] = [](){return new NoDamageIndicators();}; };
+	const char* description() { return "Locating the source of damage will be harder"; };
+	
+	bool busy;
+	
+	void begin() {
+		busy = true;
+		Menuing::getInstance()->selectHudMode(HUD_DAMAGE_INDICATORS, -1, dualshock);
+		busy = false;
+	}
+	
+	void finish() {
+		busy = true;
+		Menuing::getInstance()->selectHudMode(HUD_DAMAGE_INDICATORS, 1, dualshock);
+		busy = false;
+	}
+	
+	bool tweak( DeviceEvent* event ) {
+		return !busy;
+	}
+};
+
+class NoAwarenessIndicators : public Chaos::Modifier {
+public:
+	static void regist() { Chaos::Modifier::factory["No Awareness Indicators"] = [](){return new NoAwarenessIndicators();}; };
+	const char* description() { return "Stealth strats have no visual feedback"; };
+	
+	bool busy;
+	
+	void begin() {
+		busy = true;
+		Menuing::getInstance()->selectHudMode(HUD_AWARENESS_INDICATORS, -2, dualshock);
+		busy = false;
+	}
+	
+	void finish() {
+		busy = true;
+		Menuing::getInstance()->selectHudMode(HUD_AWARENESS_INDICATORS, 1, dualshock);
+		busy = false;
+	}
+	
+	bool tweak( DeviceEvent* event ) {
+		return !busy;
+	}
+};
+
+class NoHitMarkers : public Chaos::Modifier {
+public:
+	static void regist() { Chaos::Modifier::factory["No Hit Markers"] = [](){return new NoHitMarkers();}; };
+	const char* description() { return "No feedback on connected shots"; };
+	
+	bool busy;
+	
+	void begin() {
+		busy = true;
+		Menuing::getInstance()->selectHudMode(HUD_HIT_MARKERS, -2, dualshock);
+		busy = false;
+	}
+	
+	void finish() {
+		busy = true;
+		Menuing::getInstance()->selectHudMode(HUD_HIT_MARKERS, 2, dualshock);
+		busy = false;
+	}
+	
+	bool tweak( DeviceEvent* event ) {
+		return !busy;
+	}
+};
+
+class NoArcs : public Chaos::Modifier {
+public:
+	static void regist() { Chaos::Modifier::factory["No Arc Throw Paths"] = [](){return new NoArcs();}; };
+	const char* description() { return "The trajectory of your throwable will now be based on feel"; };
+	
+	bool busy;
+	
+	void begin() {
+		busy = true;
+		Menuing::getInstance()->selectHudMode(HUD_ARC_THROW_PATH, -1, dualshock);
+		busy = false;
+	}
+	
+	void finish() {
+		busy = true;
+		Menuing::getInstance()->selectHudMode(HUD_ARC_THROW_PATH, 1, dualshock);
+		busy = false;
+	}
+	
+	bool tweak( DeviceEvent* event ) {
+		return !busy;
+	}
+};
+
+class NoHealthHud : public Chaos::Modifier {
+public:
+	static void regist() { Chaos::Modifier::factory["No Health HUD"] = [](){return new NoHealthHud();}; };
+	const char* description() { return "The health and weapon HUD int he lower right is disabled"; };
+	
+	bool busy;
+	
+	void begin() {
+		busy = true;
+		Menuing::getInstance()->selectHudMode(HUD_HEALTH_AND_WEAPON, -1, dualshock);
+		busy = false;
+	}
+	
+	void finish() {
+		busy = true;
+		Menuing::getInstance()->selectHudMode(HUD_HEALTH_AND_WEAPON, 1, dualshock);
+		busy = false;
+	}
+	
+	bool tweak( DeviceEvent* event ) {
+		return !busy;
+	}
+};
+
+class PickupNotifications : public Chaos::Modifier {
+public:
+	static void regist() { Chaos::Modifier::factory["Show Pickups"] = [](){return new PickupNotifications();}; };
+	const char* description() { return "Enables the HUD that shows notifications on ammo, crafting, and other pickups"; };
+	
+	bool busy;
+	
+	void begin() {
+		busy = true;
+		Menuing::getInstance()->selectHudMode(HUD_PICK_UP_NOTIFICATIONS, 1, dualshock);
+		busy = false;
+	}
+	
+	void finish() {
+		busy = true;
+		Menuing::getInstance()->selectHudMode(HUD_PICK_UP_NOTIFICATIONS, -1, dualshock);
+		busy = false;
+	}
+	
+	bool tweak( DeviceEvent* event ) {
+		return !busy;
+	}
+};
+
+class LargeSubtitles : public Chaos::Modifier {
+public:
+	static void regist() { Chaos::Modifier::factory["Large Subtitles"] = [](){return new LargeSubtitles();}; };
+	const char* description() { return "The ability to read subtitles even at 160p"; };
+	
+	bool busy;
+	
+	void begin() {
+		busy = true;
+		Menuing::getInstance()->selectSubtitleMode(SUBTITLES_SIZE, 2, dualshock);
+		busy = false;
+	}
+	
+	void finish() {
+		busy = true;
+		Menuing::getInstance()->selectSubtitleMode(SUBTITLES_SIZE, -1, dualshock);
+		busy = false;
+	}
+	
+	bool tweak( DeviceEvent* event ) {
+		return !busy;
+	}
+};
+
 
 /*
  Render Modes:
@@ -2551,7 +2855,7 @@ class TouchOfDeath : public Chaos::Modifier {
 	bool busy;
 public:
 	static void regist() { Chaos::Modifier::factory["Touch Of Death"] = [](){return new TouchOfDeath();}; };
-	const char* description() { return "Golden fists activated"; };
+	const char* description() { return "Golden fists activated.  One hit enemy deaths"; };
 	
 	void begin() {
 		busy = true;
@@ -2683,6 +2987,90 @@ public:
 	}
 };
 
+class DoubleTap : public Chaos::Modifier {
+public:
+	static void regist() { Chaos::Modifier::factory["Double Tap"] = [](){return new DoubleTap();}; };
+	const char* description() { return "It's Rule #2. Everytime a shot is fired, another occurs in quick succession.  For Rule #1, see Leeroy Jenkins"; };
+	
+	//bool busy;
+	//bool priorR2;
+	bool shotFired;
+	double timeBetweenShots;
+	double timeTracker;
+	
+	enum DoubleTapStates {
+		DOUBLE_TAP_IDLE,
+		DOUBLE_TAP_FIRST_TAP,
+		DOUBLE_TAP_FIRST_RELEASE,
+		DOUBLE_TAP_SECOND_TAP,
+		DOUBLE_TAP_FINAL_RELEASE
+	} state;
+	
+	
+	void begin() {
+		timeBetweenShots = 1.0;
+		timeTracker = 0;
+		//busy = false;
+		shotFired = false;
+		state = DOUBLE_TAP_IDLE;
+		//priorR2 = dualshock->getState(BUTTON_R2, TYPE_BUTTON);
+	}
+	
+	void update() {
+		if (state == DOUBLE_TAP_IDLE) {
+			return;
+		}
+		timeTracker += timer.dTime();
+		
+		if (timeTracker > 0.2 && state == DOUBLE_TAP_FIRST_TAP) { // invoke a release
+			DeviceEvent fakeEvent = {0, 0, TYPE_BUTTON, BUTTON_R2};
+			dualshock->applyEvent(&fakeEvent);
+			fakeEvent = {0, JOYSTICK_MIN, TYPE_AXIS, AXIS_R2};
+			dualshock->applyEvent(&fakeEvent);
+			state = DOUBLE_TAP_FIRST_RELEASE;
+		} else if (timeTracker > timeBetweenShots && state == DOUBLE_TAP_FIRST_RELEASE) {
+			DeviceEvent fakeEvent = {0, 1, TYPE_BUTTON, BUTTON_R2};
+			dualshock->applyEvent(&fakeEvent);
+			fakeEvent = {0, JOYSTICK_MAX, TYPE_AXIS, AXIS_R2};
+			dualshock->applyEvent(&fakeEvent);
+			state = DOUBLE_TAP_SECOND_TAP;
+		} else if (timeTracker > (timeBetweenShots+0.2) && state == DOUBLE_TAP_SECOND_TAP) {
+			DeviceEvent fakeEvent = {0, 0, TYPE_BUTTON, BUTTON_R2};
+			dualshock->applyEvent(&fakeEvent);
+			fakeEvent = {0, JOYSTICK_MIN, TYPE_AXIS, AXIS_R2};
+			dualshock->applyEvent(&fakeEvent);
+			state = DOUBLE_TAP_FINAL_RELEASE;
+		}
+		
+		// end of sequence
+		if (state == DOUBLE_TAP_FINAL_RELEASE) {
+			//shotFired = false;
+			timeTracker = 0.0;
+			state = DOUBLE_TAP_IDLE;
+		}
+	}
+	
+	bool tweak( DeviceEvent* event ) {
+		
+		if (event->type == TYPE_BUTTON &&
+			event->id == BUTTON_R2 &&
+			event->value == 1 &&
+			state == DOUBLE_TAP_IDLE) {
+			state = DOUBLE_TAP_FIRST_TAP;
+			DeviceEvent fakeEvent = {0, JOYSTICK_MAX, TYPE_AXIS, AXIS_R2};
+			dualshock->applyEvent(&fakeEvent);
+			return true;
+		}
+		
+		if ((event->type == TYPE_BUTTON && (event->id == BUTTON_L2 || event->id == BUTTON_R2)) ||
+			(event->type == TYPE_AXIS && (event->id == AXIS_L2 || event->id == AXIS_R2)) ) {
+			return state == DOUBLE_TAP_IDLE;
+		}
+		
+		return true;
+	}
+};
+
 class EmptyGun : public Chaos::Modifier {
 public:
 	static void regist() { Chaos::Modifier::factory["Use Items"] = [](){return new EmptyGun();}; };
@@ -2739,8 +3127,8 @@ public:
 
 class TossMolly : public Chaos::Modifier {
 public:
-	static void regist() { Chaos::Modifier::factory["Toss A Molly"] = [](){return new TossMolly();}; };
-	const char* description() { return "Time to riot"; };
+	static void regist() { Chaos::Modifier::factory["Toss A Molly/Bomb"] = [](){return new TossMolly();}; };
+	const char* description() { return "Time to riot, chucks a molly (bomb if Abby)"; };
 	
 	bool busy;
 	
@@ -2885,8 +3273,8 @@ public:
 class HostagesDontEscape : public Chaos::Modifier {
 	bool busy;
 public:
-	static void regist() { Chaos::Modifier::factory["Hostages Do Not Escape"] = [](){return new HostagesDontEscape();}; };
-	const char* description() { return "Hugging enemies from behind forever <3"; };
+	static void regist() { Chaos::Modifier::factory["Infinite Hugging"] = [](){return new HostagesDontEscape();}; };
+	const char* description() { return "Hugging enemies from behind forever <3 Enables option Hostages Do Not Escape"; };
 	
 	void begin() {
 		busy = true;
@@ -2903,11 +3291,32 @@ public:
 	}
 };
 
+class AlliesDontGetGrabbed : public Chaos::Modifier {
+	bool busy;
+public:
+	static void regist() { Chaos::Modifier::factory["No Plus Signs"] = [](){return new AlliesDontGetGrabbed();}; };
+	const char* description() { return "Speedrunners need this.  Allies do not get grabbed."; };
+	
+	void begin() {
+		busy = true;
+		Menuing::getInstance()->setCombatAccessibility(COMBAT_ALLIES_DONT_GET_GRABBED, 1, dualshock);
+		busy = false;
+	}
+	void finish() {
+		busy = true;
+		Menuing::getInstance()->setCombatAccessibility(COMBAT_ALLIES_DONT_GET_GRABBED, 0, dualshock);
+		busy = false;
+	}
+	bool tweak( DeviceEvent* event ) {
+		return !busy;
+	}
+};
+
 class EnemiesDontFlank : public Chaos::Modifier {
 	bool busy;
 public:
 	static void regist() { Chaos::Modifier::factory["Enemies Do Not Flank"] = [](){return new EnemiesDontFlank();}; };
-	const char* description() { return "Very effective on infected"; };
+	const char* description() { return "Very effective on infected Kappa"; };
 	
 	void begin() {
 		busy = true;
@@ -3030,11 +3439,32 @@ public:
 	}
 };
 
+class CameraAssist : public Chaos::Modifier {
+	bool busy;
+public:
+	static void regist() { Chaos::Modifier::factory["Camera Assist"] = [](){return new CameraAssist();}; };
+	const char* description() { return "Automatically reorients the camera in the direction of movement."; };
+	
+	void begin() {
+		busy = true;
+		Menuing::getInstance()->setAlternateControls(ALTERNATE_CAMERA_ASSIST, 1, dualshock);
+		busy = false;
+	}
+	void finish() {
+		busy = true;
+		Menuing::getInstance()->setAlternateControls(ALTERNATE_CAMERA_ASSIST, 0, dualshock);
+		busy = false;
+	}
+	bool tweak( DeviceEvent* event ) {
+		return !busy;
+	}
+};
+
 class LockOnAim : public Chaos::Modifier {
 	bool busy;
 public:
-	static void regist() { Chaos::Modifier::factory["Lock On Aim"] = [](){return new LockOnAim();}; };
-	const char* description() { return "Aimbot... but like a detuned aimbot"; };
+	static void regist() { Chaos::Modifier::factory["Aimbot"] = [](){return new LockOnAim();}; };
+	const char* description() { return "Aimbot... but like a detuned aimbot.  Turns on Lock On Aim"; };
 	
 	void begin() {
 		busy = true;
@@ -3051,11 +3481,32 @@ public:
 	}
 };
 
+class ThrowableLockOnAim : public Chaos::Modifier {
+	bool busy;
+public:
+	static void regist() { Chaos::Modifier::factory["Aimbot Throwables"] = [](){return new ThrowableLockOnAim();}; };
+	const char* description() { return "Aimbot for throwables. Turns on Lock On Throwables"; };
+	
+	void begin() {
+		busy = true;
+		Menuing::getInstance()->setAlternateControls(ALTERNATE_ARC_THROW_LOCK_ON, 1, dualshock);
+		busy = false;
+	}
+	void finish() {
+		busy = true;
+		Menuing::getInstance()->setAlternateControls(ALTERNATE_ARC_THROW_LOCK_ON, 0, dualshock);
+		busy = false;
+	}
+	bool tweak( DeviceEvent* event ) {
+		return !busy;
+	}
+};
+
 class AutoPickUp : public Chaos::Modifier {
 	bool busy;
 public:
-	static void regist() { Chaos::Modifier::factory["Auto Pick-Up"] = [](){return new AutoPickUp();}; };
-	const char* description() { return "Picking up items at inconvenient times"; };
+	static void regist() { Chaos::Modifier::factory["Kleptomania"] = [](){return new AutoPickUp();}; };
+	const char* description() { return "Picking up items at inconvenient times. Turns on Auto Pick-Up"; };
 	
 	void begin() {
 		busy = true;
@@ -3156,6 +3607,47 @@ public:
 	}
 };
 
+class NavigationAssistance : public Chaos::Modifier {
+	bool busy;
+	double pressTime;
+public:
+	static void regist() { Chaos::Modifier::factory["Navigation Assistance"] = [](){return new NavigationAssistance();}; };
+	const char* description() { return "Keeps pointing camera in direction of story progression"; };
+	
+	void begin() {
+		busy = true;
+		Menuing::getInstance()->setNavigationAndTraversal(NAVIGATION_ASSISTANCE, 1, dualshock);
+		busy = false;
+		DeviceEvent event = {0,0,TYPE_BUTTON, BUTTON_L3};
+		dualshock->applyEvent(&event);
+		pressTime = 0;
+	}
+	void finish() {
+		busy = true;
+		Menuing::getInstance()->setNavigationAndTraversal(NAVIGATION_ASSISTANCE, 0, dualshock);
+		busy = false;
+		DeviceEvent event = {0,0,TYPE_BUTTON, BUTTON_L3};
+		dualshock->applyEvent(&event);
+	}
+
+	void update() {
+		pressTime += timer.dTime();
+		if ( pressTime > 0.1  && dualshock->getState(BUTTON_L3, TYPE_BUTTON) ) {
+			DeviceEvent event = {0,0,TYPE_BUTTON, BUTTON_L3};
+			dualshock->applyEvent(&event);
+			pressTime = 0;
+		} else if( pressTime > 5.0 && !dualshock->getState(BUTTON_L3, TYPE_BUTTON) ) {
+			DeviceEvent event = {0,1,TYPE_BUTTON, BUTTON_L3};
+			dualshock->applyEvent(&event);
+			pressTime = 0;
+		}
+	}
+	
+	bool tweak( DeviceEvent* event ) {
+		return !busy;
+	}
+};
+
 class TraversalAssistance : public Chaos::Modifier {
 	bool busy;
 public:
@@ -3218,6 +3710,7 @@ public:
 		return !busy;
 	}
 };
+
 
 //class Mystery : public Chaos::Modifier {
 //	// Prototoxin
@@ -3476,7 +3969,7 @@ class MonoAudio : public Chaos::Modifier {
 	bool busy;
 public:
 	static void regist() { Chaos::Modifier::factory["Mono Audio"] = [](){return new MonoAudio();}; };
-	const char* description() { return "No more Stereo.  Where did that gunshot come from?"; };
+	const char* description() { return "No more stereo.  Where did that gunshot come from?"; };
 	
 	void begin() {
 		busy = true;
@@ -3557,6 +4050,112 @@ public:
 	bool tweak( DeviceEvent* event ) {
 		if (event->type == TYPE_BUTTON && event->id == BUTTON_SQUARE) {
 			eventQueue.push( {this->timer.runningTime(), *event} );
+			
+			return false;
+		}
+		
+		return true;
+	}
+};
+
+class JumpDelay : public Chaos::Modifier {
+	// JustSaft
+	std::queue<TimeAndEvent> eventQueue;
+	double delayTime;
+public:
+	static void regist() { Chaos::Modifier::factory["Jump Delay"] = [](){return new JumpDelay();}; };
+	const char* description() { return "Introduces a 2.0 second delay to X presses"; };
+	
+	void begin() {
+		delayTime = 2.0;
+	}
+	
+	void update() {
+		while ( !eventQueue.empty() ) {
+			if( (timer.runningTime() - eventQueue.front().time) >= delayTime ) {
+				// Where events are actually sent:
+				chaosEngine->fakePipelinedEvent(&eventQueue.front().event, me);
+				eventQueue.pop();
+			} else {
+				break;
+			}
+		}
+	}
+	
+	bool tweak( DeviceEvent* event ) {
+		if (event->type == TYPE_BUTTON && event->id == BUTTON_X) {
+			eventQueue.push( {this->timer.runningTime(), *event} );
+			
+			return false;
+		}
+		
+		return true;
+	}
+};
+
+class DodgeDelay : public Chaos::Modifier {
+	// JustSaft
+	std::queue<TimeAndEvent> eventQueue;
+	double delayTime;
+public:
+	static void regist() { Chaos::Modifier::factory["Dodge Delay"] = [](){return new DodgeDelay();}; };
+	const char* description() { return "Introduces a 0.5 second delay to L1 presses"; };
+	
+	void begin() {
+		delayTime = 0.5;
+	}
+	
+	void update() {
+		while ( !eventQueue.empty() ) {
+			if( (timer.runningTime() - eventQueue.front().time) >= delayTime ) {
+				// Where events are actually sent:
+				chaosEngine->fakePipelinedEvent(&eventQueue.front().event, me);
+				eventQueue.pop();
+			} else {
+				break;
+			}
+		}
+	}
+	
+	bool tweak( DeviceEvent* event ) {
+		if (event->type == TYPE_BUTTON && event->id == BUTTON_L1) {
+			eventQueue.push( {this->timer.runningTime(), *event} );
+			
+			return false;
+		}
+		
+		return true;
+	}
+};
+
+class AimDelay : public Chaos::Modifier {
+	// JustSaft
+	std::queue<TimeAndEvent> eventQueue;
+	double delayTime;
+public:
+	static void regist() { Chaos::Modifier::factory["Aim Delay"] = [](){return new AimDelay();}; };
+	const char* description() { return "Introduces a 1 second delay to L2 presses"; };
+	
+	void begin() {
+		delayTime = 1;
+	}
+	
+	void update() {
+		while ( !eventQueue.empty() ) {
+			if( (timer.runningTime() - eventQueue.front().time) >= delayTime ) {
+				// Where events are actually sent:
+				chaosEngine->fakePipelinedEvent(&eventQueue.front().event, me);
+				eventQueue.pop();
+			} else {
+				break;
+			}
+		}
+	}
+	
+	bool tweak( DeviceEvent* event ) {
+		if (((event->type == TYPE_BUTTON) && (event->id == BUTTON_L2)) ||
+			((event->type == TYPE_AXIS) && (event->id == AXIS_L2))) {
+			eventQueue.push( {timer.runningTime(), *event} );
 			
 			return false;
 		}
@@ -3675,6 +4274,158 @@ public:
 	}
 };
 
+class ShapeShuffle : public Chaos::Modifier {
+	// Prototoxin
+	std::map<int, int> mapping;
+public:
+	static void regist() { Chaos::Modifier::factory["Shape Shuffle"] = [](){return new ShapeShuffle();}; };
+	const char* description() { return "Randomly remaps the shape buttons (square, circle, triangle, X)"; };
+	
+	void begin() {
+		Mogi::Math::Random rng;
+		std::list<int> buttons, buttonsCopy;
+		buttons.push_back(BUTTON_X);
+		buttons.push_back(BUTTON_SQUARE);
+		buttons.push_back(BUTTON_CIRCLE);
+		buttons.push_back(BUTTON_TRIANGLE);
+		buttonsCopy = buttons;
+		
+		while (buttons.size() > 0) {
+			int index = floor(rng.uniform(0, buttons.size()-0.01));
+			std::list<int>::iterator it = buttons.begin();
+			std::advance(it, index);
+			mapping[buttonsCopy.front()] = *it;
+			buttonsCopy.pop_front();
+			buttons.erase(it);
+		}
+	}
+	
+	bool tweak( DeviceEvent* event ) {
+		if ( (event->type == TYPE_BUTTON) &&
+			mapping.find(event->id) != mapping.end() ) {
+			event->id = mapping[event->id];
+		}
+		
+		return true;
+	}
+};
+
+class MegaShuffle : public Chaos::Modifier {
+	// Prototoxin
+	std::map<int, int> mapping;
+	
+	short remappedR2;
+	short remappedL2;
+public:
+	static void regist() { Chaos::Modifier::factory["Random Remap"] = [](){return new MegaShuffle();}; };
+	const char* description() { return "Randomly remaps buttons (square, circle, triangle, X, L1, R1, L2, R2, L3, R3)"; };
+	
+	void begin() {
+		Mogi::Math::Random rng;
+		std::list<int> buttons, buttonsCopy;
+		buttons.push_back(BUTTON_X);
+		buttons.push_back(BUTTON_SQUARE);
+		buttons.push_back(BUTTON_CIRCLE);
+		buttons.push_back(BUTTON_TRIANGLE);
+		buttons.push_back(BUTTON_L1);
+		buttons.push_back(BUTTON_L2);
+		buttons.push_back(BUTTON_L3);
+		buttons.push_back(BUTTON_R1);
+		buttons.push_back(BUTTON_R2);
+		buttons.push_back(BUTTON_R3);
+		//buttons.push_back(BUTTON_TOUCHPAD);
+		buttonsCopy = buttons;
+		
+		while (buttons.size() > 0) {
+			int index = floor(rng.uniform(0, buttons.size()-0.01));
+			std::list<int>::iterator it = buttons.begin();
+			std::advance(it, index);
+			mapping[buttonsCopy.front()] = *it;
+			buttonsCopy.pop_front();
+			buttons.erase(it);
+		}
+	}
+	
+	bool tweak( DeviceEvent* event ) {
+		if ( (event->type == TYPE_BUTTON) &&
+			mapping.find(event->id) != mapping.end() ) {
+			event->id = mapping[event->id];
+			if (event->id == BUTTON_R2) {
+				DeviceEvent fakeEvent = {0, (short int)(event->value ? JOYSTICK_MAX : JOYSTICK_MIN), TYPE_AXIS, AXIS_R2};
+				chaosEngine->fakePipelinedEvent(&fakeEvent, me);
+			} else if (event->id == BUTTON_L2) {
+				 DeviceEvent fakeEvent = {0, (short int)(event->value ? JOYSTICK_MAX : JOYSTICK_MIN), TYPE_AXIS, AXIS_L2};
+				 chaosEngine->fakePipelinedEvent(&fakeEvent, me);
+			 }
+		}
+		
+		if ((event->type == TYPE_AXIS) &&
+			(event->id	== AXIS_L2 || event->id	== AXIS_R2) ) {
+			return false;
+		}
+		
+		return true;
+	}
+};
+
+class TriggerShuffle : public Chaos::Modifier {
+	// Prototoxin
+	std::map<int, int> mapping;
+	
+	short remappedR2;
+	short remappedL2;
+public:
+	static void regist() { Chaos::Modifier::factory["Trigger Remap"] = [](){return new TriggerShuffle();}; };
+	const char* description() { return "Randomly remaps trigger/bumper buttons (L1, R1, L2, R2)"; };
+	
+	void begin() {
+		Mogi::Math::Random rng;
+		std::list<int> buttons, buttonsCopy;
+//		buttons.push_back(BUTTON_X);
+//		buttons.push_back(BUTTON_SQUARE);
+//		buttons.push_back(BUTTON_CIRCLE);
+//		buttons.push_back(BUTTON_TRIANGLE);
+		buttons.push_back(BUTTON_L1);
+		buttons.push_back(BUTTON_L2);
+//		buttons.push_back(BUTTON_L3);
+		buttons.push_back(BUTTON_R1);
+		buttons.push_back(BUTTON_R2);
+//		buttons.push_back(BUTTON_R3);
+		//buttons.push_back(BUTTON_TOUCHPAD);
+		buttonsCopy = buttons;
+		
+		while (buttons.size() > 0) {
+			int index = floor(rng.uniform(0, buttons.size()-0.01));
+			std::list<int>::iterator it = buttons.begin();
+			std::advance(it, index);
+			mapping[buttonsCopy.front()] = *it;
+			buttonsCopy.pop_front();
+			buttons.erase(it);
+		}
+	}
+	
+	bool tweak( DeviceEvent* event ) {
+		if ( (event->type == TYPE_BUTTON) &&
+			mapping.find(event->id) != mapping.end() ) {
+			event->id = mapping[event->id];
+			if (event->id == BUTTON_R2) {
+				DeviceEvent fakeEvent = {0, (short int)(event->value > 0 ? JOYSTICK_MAX : JOYSTICK_MIN), TYPE_AXIS, AXIS_R2};
+				chaosEngine->fakePipelinedEvent(&fakeEvent, me);
+			} else if (event->id == BUTTON_L2) {
+				 DeviceEvent fakeEvent = {0, (short int)(event->value > 0 ? JOYSTICK_MAX : JOYSTICK_MIN), TYPE_AXIS, AXIS_L2};
+				 chaosEngine->fakePipelinedEvent(&fakeEvent, me);
+			 }
+		}
+		
+		if ((event->type == TYPE_AXIS) &&
+			(event->id	== AXIS_L2 || event->id	== AXIS_R2) ) {
+			return false;
+		}
+		
+		return true;
+	}
+};
+
 
 int main(int argc, char** argv) {
 	std::cout << "Welcome to Chaos" << std::endl;
@@ -3686,6 +4437,7 @@ int main(int argc, char** argv) {
 	// Custom:
 	Inverted::regist();
 	Moonwalk::regist();
+	SidewaysMoonwalk::regist();	// new
 	MeleeOnly::regist();
 	NoMelee::regist();
 	Pacifist::regist();
@@ -3706,8 +4458,11 @@ int main(int argc, char** argv) {
 	PeriodicListenMode::regist();
 	NoRun::regist();
 	ForceRun::regist();
+	BadStamina::regist();	// new
 	DisableJoystick::regist();
-	DisableDpad::regist();	// new
+	DisableJoystickHorizontal::regist();	// new
+	DisableDpad::regist();
+	DpadRotate::regist();	// new
 	Moose::regist();
 	SwapSticks::regist();
 	SwapStickDpad::regist();
@@ -3735,7 +4490,8 @@ int main(int argc, char** argv) {
 	ControllerFlip::regist();
 
 	DeskPop::regist();
-	EmptyGun::regist();	// new
+	DoubleTap::regist();	// new
+	EmptyGun::regist();
 	TossMolly::regist();
 	CtgStrat::regist();
 	PdubIt::regist();
@@ -3743,10 +4499,20 @@ int main(int argc, char** argv) {
 
 
 	// Main menu:
-//	RestartCheckpoint::regist();
+	RestartCheckpoint::regist();
 
 	//  HUD settings:
 	NoReticle::regist();
+	NoInventoryHud::regist();	// new
+	NoDamageIndicators::regist();	// new
+	NoAwarenessIndicators::regist();	// new
+	NoHitMarkers::regist();	// new
+	NoArcs::regist();	// new
+	NoHealthHud::regist();	// new
+	PickupNotifications::regist();	// new
+	
+	// Subtitles
+	LargeSubtitles::regist();	// new
 
 	// Render modes:
 	Graphic::regist();
@@ -3798,6 +4564,7 @@ int main(int argc, char** argv) {
 	XenonAudio::regist();
 
 	// Alternative Controls:
+	CameraAssist::regist();	// new
 	LockOnAim::regist();
 	AutoPickUp::regist();
 
@@ -3809,6 +4576,7 @@ int main(int argc, char** argv) {
 	HighContrastDisplay::regist();
 
 	// Navigation And Traversal
+	NavigationAssistance::regist();	// new
 	TraversalAssistance::regist();
 	EnhancedListenMode::regist();
 	InfiniteBreath::regist();
@@ -3816,9 +4584,11 @@ int main(int argc, char** argv) {
 	// TTS:
 	TraversalAudioCues::regist();	// audio
 	CombatAudioCues::regist();		//audio
+	
 
 	// Combat Accessibilities:
-	HostagesDontEscape::regist();
+	HostagesDontEscape::regist();	// "new"
+	AlliesDontGetGrabbed::regist(); 	// new
 	EnemiesDontFlank::regist();
 	ReducedEnemyPerception::regist();
 	ReducedEnemyAccuracy::regist();
@@ -3827,23 +4597,32 @@ int main(int argc, char** argv) {
 
 	StrafeOnly::regist();
 	NoStrafe::regist();
+	AimMovement::regist();	// new
 	LeeroyJenkins::regist();
 	ForceAim::regist();
 	SpeedrunGlitch::regist();
-	
-	Mystery::regist();	// "new"
-	ChaosMod::regist();	// new
-	
+
+	Mystery::regist();
+	ChaosMod::regist();
+
 	MuteAudioMusic::regist();
 	MuteAudioEffects::regist();
 	MuteAudioDialogue::regist();
 	MonoAudio::regist();
+
+	InputDelay::regist();
+	MeleeDelay::regist();
+	JumpDelay::regist();	// new
+	DodgeDelay::regist();	// new
+	ShootDelay::regist();
+	AimDelay::regist();		// new
+	DpadDelay::regist();
+	JoystickDelay::regist();
 	
-	InputDelay::regist();	// new
-	MeleeDelay::regist();	// new
-	ShootDelay::regist();	// new
-	DpadDelay::regist();	// new
-	JoystickDelay::regist();	// new
+	ShapeShuffle::regist();	// new
+	MegaShuffle::regist();	// new
+	TriggerShuffle::regist();	// new
+	
 	// Custom: 48
 	// Audio: 10
 	// Render/Display: 32

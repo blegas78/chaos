@@ -137,7 +137,8 @@ bool Engine::sniffify(const DeviceEvent* input, DeviceEvent* output) {
 	
 	
 	// Tweak the event based on modifiers
-	if (input->type == TYPE_BUTTON && input->id == BUTTON_OPTIONS) {
+	if (input->type == TYPE_BUTTON &&
+		(input->id == BUTTON_OPTIONS || input->id == BUTTON_PS) ) {
 		if(input->value == 1 && pause == false)	{ // on rising edge
 			pause = true;
 			chaosInterface.sendMessage("{\"pause\":1}");
@@ -170,6 +171,9 @@ bool Engine::sniffify(const DeviceEvent* input, DeviceEvent* output) {
 		//pthread_mutex_lock(&chaosMutex);
 		for (std::list<Modifier*>::iterator it = modifiers.begin(); it != modifiers.end(); it++) {
 			valid &= (*it)->tweak(output);
+			if (!valid) {
+				break;
+			}
 		}
 		unlock();
 		//pthread_mutex_unlock(&chaosMutex);
@@ -190,6 +194,9 @@ void Engine::fakePipelinedEvent(DeviceEvent* fakeEvent, Modifier* modifierThatSe
 		
 		for ( it++; it != modifiers.end(); it++) {	// iterate from the next element till the end
 			valid &= (*it)->tweak(fakeEvent);
+			if (!valid) {
+				break;
+			}
 		}
 		//unlock();
 	}

@@ -24,7 +24,7 @@ Currently this is hard-coded for The Last Of Us Part 2.  Controller-based Chaos 
 [Watch a minute long video explanation of how users can interact with a controller.](https://www.twitch.tv/blegas78/clip/SmellyDepressedPancakeKappaPride-llz6ldXSKjSJLs9s)
 ![Twitch Clip](https://github.com/blegas78/chaos/blob/main/docs/images/explain.png?raw=true)
 
-## Supported Controllers
+## Required Hardware
 I intend to grow this list over time as needed.
 
 1. Dualshock 4 Generation 2 - Has the lightbar in front - CUH-ZCT2U
@@ -33,9 +33,11 @@ I intend to grow this list over time as needed.
 
 
 ## Installation
+Here is an [Amazon shopping list](https://a.co/fp7VGcb) with items that are used to install and run chaos.
+
 Currently this setup is only supported on a Raspberry Pi 4 with 32-bit Raspian Lite, though other setups may work. Also, currently directories are hardcoded to look for /home/pi/chaos, so make sure to check out this project into your default account home directory.  This may change later depending on project interest.
 
-I like to use this tool to flash SD cards: [Raspberry Pi Imager](https://www.raspberrypi.org/software/)
+I like to use this software tool to flash SD cards: [Raspberry Pi Imager](https://www.raspberrypi.org/software/)
 
 >Note: The default username for Raspbian is "pi", the default password is "raspberry"
 
@@ -131,6 +133,7 @@ Implemented:
  - - Force Aim
  - - Mystery
  - - Min Sensitivity
+ - - Button remap randomizer
  - [joshuatimes7](https://www.twitch.tv/joshuatimes7), [JustForSaft](https://www.twitch.tv/JustForSaft)
  - - Swap Dpad/Left Joystick
  - [JustForSaft](https://www.twitch.tv/JustForSaft)
@@ -139,6 +142,9 @@ Implemented:
  - [HeHathYought](https://www.twitch.tv/HeHathYought)
  - - Anthony Caliber
  - - TLOU1 Run Glitch
+ - [RachyMonster](https://www.twitch.tv/rachymonster)
+ - - Moose
+ - - Use Equipped Items
  - [PrincessDiodes](https://www.twitch.tv/princessdiodes),  [DJ_Squall_808](https://www.twitch.tv/DJ_Squall_808), [cloverfieldmel](https://www.twitch.tv/cloverfieldmel:)
  - - Controller Mirror
  - [hipsterobot](https://www.twitch.tv/hipsterobot)
@@ -155,7 +161,6 @@ Implemented:
 
 TBD:
  - [KillstreekDaGeek](https://www.twitch.tv/killstreekdageek) AKA Prototoxin187
- - - Button remap randomizer
  - - Pirouette/Dizzy
  - [AeathOne](https://www.twitch.tv/aeathone)
  - - Button remap randomizer

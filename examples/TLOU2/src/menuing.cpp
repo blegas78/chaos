@@ -12,6 +12,7 @@ Menuing::Menuing() {
 	audioCrappifier = AUDIO_DEFAULT;
 	audioPitch = AUDIO_DEFAULT;
 	hud = 0;
+	subtitle = 0;
 	display = 0;
 	audio = 0;
 }
@@ -142,13 +143,38 @@ void Menuing::selectHudMode( int hudOption, int option, Controller* dualshock ) 
         for (int i = 0; i < option; i++) {
             sequence.addAxisPress( AXIS_DX, 1);
         }
-    }
+	} else {
+		for (int i = 0; i < option; i++) {
+			sequence.addAxisPress( AXIS_DX, 1);
+		}
+		for (int i = 0; i > option; i--) {
+			sequence.addAxisPress( AXIS_DX, -1);
+		}
+	}
 	
 	deselectHud();
 //	selectHudItem( 0 );
     
     //sequence.addButtonPress( BUTTON_OPTIONS );
     
+	sendSequence( dualshock );
+}
+
+void Menuing::selectSubtitleMode( int subtitleOption, int option, Controller* dualshock ) {
+	selectSubtitleItem( subtitleOption );
+	
+//	sequence.addAxisPress( AXIS_DX, 1);
+//	sequence.addAxisPress( AXIS_DX, 1);
+	
+	for (int i = 0; i < option; i++) {
+		sequence.addAxisPress( AXIS_DX, 1);
+	}
+	for (int i = 0; i > option; i--) {
+		sequence.addAxisPress( AXIS_DX, -1);
+	}
+	
+	deselectSubtitle();
+	
 	sendSequence( dualshock );
 }
 
@@ -266,6 +292,20 @@ void Menuing::selectHudItem( int selection ) {
     
     hud = selection;
     
+}
+
+void Menuing::selectSubtitleItem( int selection ) {
+	selectOptionItem( OPTIONS_SUBTITLES );
+
+	sequence.addAxisPress( AXIS_DX, 1);
+	sequence.addAxisPress( AXIS_DX, 1);
+	
+	int difference = selection - subtitle;
+	moveToMenuItem( difference );
+//    sequence.addButtonPress( BUTTON_X );
+	
+	subtitle = selection;
+	
 }
 
 void Menuing::selectDisplayItem( int selection ) {
@@ -389,6 +429,9 @@ void Menuing::setTtsAndAudioCues( int item, bool turnOn, Controller* dualshock )
 void Menuing::setCombatAccessibility( int item, bool turnOn, Controller* dualshock ) {
 	selectAccessibilityItem( ACCESSIBILITY_COMBAT_ACCESSIBILITY );
 	
+	// Unique for this is to ensure thatthey are turned on.
+	sequence.addAxisPress( AXIS_DX, 1);
+	
 	moveToMenuItem( item - combat );
 	
 	// All combat accessibilities have either 1 or 2 options, pressing right enables them
@@ -468,6 +511,16 @@ void Menuing::deselectHud() {
 	int selection = 0;
 	moveToMenuItem( selection - hud );
 	hud = selection;
+	
+	deselectOption();
+	
+//    sequence.addButtonPress( BUTTON_X );
+}
+
+void Menuing::deselectSubtitle() {
+	int selection = 0;
+	moveToMenuItem( selection - subtitle );
+	subtitle = selection;
 	
 	deselectOption();
 	
