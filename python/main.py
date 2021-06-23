@@ -71,6 +71,7 @@ class ChaosModel():
 		self.parser.add_argument("-g", "--reward", help="Whether to display messages or emotes on gift (1 or 0)", default=False)
 		
 		self.context = zmq.Context()
+		self.firstTime = True
 
 		#  Socket to talk to server
 		print("Connecting to chaos: c++ based server…")
@@ -189,9 +190,10 @@ class ChaosModel():
 			self.voteTime =  now - beginTime
 			dTime = now - priorTime
 			
-			if self.pause:
+			if self.pause:	# hack implementation of pausing
 				beginTime += dTime
-				continue
+				dTime = 0
+#				continue
 			
 			if not self.timePerVote == (relay.timePerModifier/3.0 - 0.5):
 				self.timePerVote = relay.timePerModifier/3.0 - 0.5
@@ -202,6 +204,10 @@ class ChaosModel():
 			
 			for i in range(len(self.activeModTimes)):
 				self.activeModTimes[i] -= dTime/((self.timePerVote+0.25)*self.totalVoteOptions)
+				
+			if self.firstTime and self.gotNewMods:
+				self.voteTime = self.timePerVote+1
+				self.firstTime = False
 			
 			if self.voteTime >= self.timePerVote:
 				beginTime = now
@@ -240,9 +246,11 @@ class ChaosModel():
 				self.votingLog.write(logString)
 				
 				# Update view:
-				finishedModIndex = self.activeModTimes.index(min(self.activeModTimes))
-				self.activeMods[finishedModIndex] = newMod
-				self.activeModTimes[finishedModIndex] = 1.0
+						
+				if not (newMod.isdigit() and 0 < int(newMod) and int(newMod) < 7):
+					finishedModIndex = self.activeModTimes.index(min(self.activeModTimes))
+					self.activeMods[finishedModIndex] = newMod
+					self.activeModTimes[finishedModIndex] = 1.0
 				
 				# Select new mods
 				inactiveMods = set(np.setdiff1d(self.allMods, self.activeMods))
@@ -306,50 +314,53 @@ class ChaosModel():
 			except Exception as e:
 				logging.info(e)
 				
-			if q.qsize() > 0:
-				while q.qsize() > 0:
-					# q.empty(), q.get(), q.qsize()
-					notice = q.get();
+			#if q.qsize() > 0:
+			needToUpdateVotes = False
+			while q.qsize() > 0:
+				# q.empty(), q.get(), q.qsize()
+				notice = q.get();
 					
-					message = notice["message"]
-					if message.isdigit():
-						messageAsInt = int(message) - 1
-						if messageAsInt >= 0 and messageAsInt < self.totalVoteOptions and not notice["user"] in self.votedUsers:
-							self.votedUsers.append(notice["user"])
-							self.votes[messageAsInt] += 1
-							continue
-								
-					command = message.split(" ",1)
-					firstWord = command[0]
-					if firstWord == "!mods":
-#						response = str(str(self.allMods) + " @" + notice["user"]).replace('\'', '').replace('[','').replace(']','')
-#						splitMessage = [response[i:i+484] for i in range(0, len(response), 484)]
-#						pp.pprint(splitMessage)
-#						print("number of elements in splitMessage: " + str(len(splitMessage)))
-#						for message in splitMessage:
-#							#response =	"!mods: " + message
-#
-#							qResponse.put( "!mods: " + message );
-						qResponse.put( "!mods: There are currently " + str(len(self.allMods)) + " modifiers!  See them all with descriptions here: https://github.com/blegas78/chaos/tree/main/docs/TLOU2 @" + notice["user"] );
+				message = notice["message"]
+				if message.isdigit():
+					messageAsInt = int(message) - 1
+					if messageAsInt >= 0 and messageAsInt < self.totalVoteOptions and not notice["user"] in self.votedUsers:
+						self.votedUsers.append(notice["user"])
+						self.votes[messageAsInt] += 1
+						needToUpdateVotes = True
 						continue
+								
+				command = message.split(" ",1)
+				firstWord = command[0]
+				if firstWord == "!mods":
+#					response = str(str(self.allMods) + " @" + notice["user"]).replace('\'', '').replace('[','').replace(']','')
+#					splitMessage = [response[i:i+484] for i in range(0, len(response), 484)]
+#					pp.pprint(splitMessage)
+#					print("number of elements in splitMessage: " + str(len(splitMessage)))
+#					for message in splitMessage:
+#						#response =	"!mods: " + message
+#
+#						qResponse.put( "!mods: " + message );
+					qResponse.put( "!mods: There are currently " + str(len(self.allMods)) + " modifiers!  See them all with descriptions here: https://github.com/blegas78/chaos/tree/main/docs/TLOU2 @" + notice["user"] );
+					continue
 							
-					if firstWord == "!mod":
-						if len(command) == 1:
-							message = "Usage: !mod <mod name>"
-							qResponse.put( message );
-							continue
-						argument = command[1]
-						message = "!mod: Unrecognized mod :("
-						for x in self.allModsDb:
-							if x["name"].lower() == argument.lower():
-								if x["desc"] == "":
-									message = "!mod " + x["name"] + ": No Description :("
-								else:
-									message = "!mod " + x["name"] + ": " + x["desc"]
-								break
-						message += " @" + notice["user"]
+				if firstWord == "!mod":
+					if len(command) == 1:
+						message = "Usage: !mod <mod name>"
 						qResponse.put( message );
-						
+						continue
+					argument = command[1]
+					message = "!mod: Unrecognized mod :("
+					for x in self.allModsDb:
+						if x["name"].lower() == argument.lower():
+							if x["desc"] == "":
+								message = "!mod " + x["name"] + ": No Description :("
+							else:
+								message = "!mod " + x["name"] + ": " + x["desc"]
+							break
+					message += " @" + notice["user"]
+					qResponse.put( message );
+				
+			if needToUpdateVotes:
 				#relay.newVotes(self.votes)
 				try:
 					relay.set_votes( self.votes )
@@ -901,7 +912,7 @@ class Chatbot():
 				
 	def chatResponseLoop(self):
 		thread = threading.currentThread()
-		cooldownInSeconds = 5
+		cooldownInSeconds = 2
 		timeSinceLastResponse = cooldownInSeconds
 
 		while not getattr(thread, "kill", False):

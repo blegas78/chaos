@@ -3949,7 +3949,7 @@ class MuteAudioDialogue : public Chaos::Modifier {
 	bool busy;
 public:
 	static void regist() { Chaos::Modifier::factory["Mute Dialogue"] = [](){return new MuteAudioDialogue();}; };
-	const char* description() { return "Characters just need to STFU"; };
+	const char* description() { return "Sorry Shannon :("; };
 	
 	void begin() {
 		busy = true;

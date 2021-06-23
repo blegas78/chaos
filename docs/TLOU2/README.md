@@ -20,7 +20,7 @@ During tough battles with ridiculous control schemes, you will die very frequent
 ## Menu setup:
 The menu must be set up in a particular way to that Chaos can navigate and enable/disable options.  The last selected settings will persist, so you will need to make sure to back out of the menu in a proper way to that the persisted options are the ones that Chaos expects.
 
-The simple rule for chaos meaning is that the top-most option must be selected in every screen before backing out to a prior menu.
+The simple rule for chaos is that the top-most option must be hovered over in every menu screen before backing out to a prior menu.
 
 
 Press the Options button
@@ -59,7 +59,7 @@ You can pull up a web browser and navigate to your Raspberry Pi (like you did du
 
 You can certainly play Chaos however you like, though I think it is fun to try your best to get through encounters even though the control scheme feels nearly impossible.  Now is a great time to improvise and try out new strats!  If some sections were simple run-through sections, now treat them as a kill-all to really see how you handle crazy scenarios.
 
-If you know that you are about to enter a new area where you lose control of your character ro if you want to craft something, take a look over at the ActiveMods window to see how much time you have until the next mod kicks in.  If you only have a few seconds, wait until the new mod comes in.  This will let modifiers like Desk Pop, Throw Molly, etc. actually work.
+If you know that you are about to enter a new area where you lose control of your character or if you want to craft something, take a look over at the ActiveMods window to see how much time you have until the next mod kicks in.  If you only have a few seconds, wait until the new mod comes in.  This will let modifiers like Desk Pop, Throw Molly, etc. actually work.
 
 
 
@@ -144,7 +144,7 @@ If you know that you are about to enter a new area where you lose control of you
 77: Moose -- The moose is dead.  The moose does not move.  (Disables Left Joystick)
 78: Motion Control Aiming -- No more right joystick, tilt the controller to aim/look instead
 79: Motion Control Movement -- No more left joystick, tilt the controller to move instead
-80: Mute Dialogue -- Characters just need to STFU
+80: Mute Dialogue -- Sorry Shannon :(
 81: Mute Music -- The music is too intense, let's turn it off!
 82: Mute Sound Effects -- Gunshots hurt our ears :(
 83: Mystery -- Applies any random modifier
