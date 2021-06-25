@@ -37,20 +37,33 @@ Here is an [Amazon shopping list](https://a.co/fp7VGcb) with items that are used
 
 Currently this setup is only supported on a Raspberry Pi 4 with 32-bit Raspian Lite, though other setups may work. Also, currently directories are hardcoded to look for /home/pi/chaos, so make sure to check out this project into your default account home directory.  This may change later depending on project interest.
 
-I like to use this software tool to flash SD cards: [Raspberry Pi Imager](https://www.raspberrypi.org/software/)
-
->Note: The default username for Raspbian is "pi", the default password is "raspberry"
-
 To install:
-1. Set up your Raspberry Pi's network.  I *highly* recommend using ethernet for Chaos, though low-interferenced WiFi should be fine too. [WiFi Instructions here](https://www.raspberrypi.org/documentation/configuration/wireless/wireless-cli.md).
 
-2. If you have not already installed git (like on fresh installations of Raspbian Lite), run:
+1. Flash Rasbpian OS Lite to your SD card. 
+
+- - I like to use this software tool to flash SD cards: [Raspberry Pi Imager](https://www.raspberrypi.org/software/)
+- - Connect your SD card to your computer using an SD card reader
+- - Select the SD card in the Raspberry Pi Imager
+- - Under "Choose OS" select Raspberry Pi OS (Other) -> Raspberry Pi OS Lite (32-bit)
+- - Click on the "Write" button  If writing fails, simply try it again.
+
+2. Install the SD card nto your Pi.  Then proceed to connect a monitor and keyboard.  Now apply power over the Pi's USB-C connector.
+
+Now is the time to set up your Raspberry Pi's network.  I *highly* recommend using ethernet for Chaos, though low-interferenced WiFi should be fine too. [WiFi Instructions here](https://www.raspberrypi.org/documentation/configuration/wireless/wireless-cli.md).
+
+3. When your Pi boots log in using the following credentials:
+- Username: pi
+- PAssword: raspberry
+
+>Note: The password field will look like nothing is getting typed but it will be reading the password as you type it.
+
+4. If you have not already installed git (like on fresh installations of Raspbian Lite), run:
 
 ```bash
 sudo apt update && sudo apt install git -y
 ```
 
-3. Run the following commands:
+5. Run the following commands:
 
 ```bash
 cd ~
@@ -59,7 +72,7 @@ cd chaos
 ./install.sh
 ```
 
-4. A reboot is required to enable USB communication to hosts:
+6. A reboot is required to enable USB communication to hosts:
 
 ```bash
 sudo reboot
