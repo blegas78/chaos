@@ -41,18 +41,18 @@ This is a collection of streamers that have used chaos along with some example c
 
 
 ## Required Hardware
-I intend to grow this list over time as needed.
 
-1. Dualshock 4 Generation 2 - Has the lightbar in front - CUH-ZCT2U
+Here is an [Amazon shopping list](https://a.co/fp7VGcb) with items that are used to install and run chaos.
+
+Important: The only controller supported is the Dualshock 4 Generation 2 - Has the lightbar visible from the front at the top of the touchpad - Model: CUH-ZCT2U
 
 >Note: The first generation Dualshock 4 controller can only send control inputs over bluetooth, making it unusable for this project.
 
 ## Installation
-Here is an [Amazon shopping list](https://a.co/fp7VGcb) with items that are used to install and run chaos.
 
 Currently this setup is only supported on a Raspberry Pi 4 with 32-bit Raspian Lite, though other setups may work. Also, currently directories are hardcoded to look for /home/pi/chaos, so make sure to check out this project into your default account home directory.  This may change later depending on project interest.
 
-To install:
+#### Step-by-step Setup Guide
 
 1. Flash Rasbpian OS Lite to your SD card. 
 
