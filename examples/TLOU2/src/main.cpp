@@ -1217,7 +1217,7 @@ class SpeedrunGlitch : public Chaos::Modifier {
 	// HeHathYought
 public:
 	static void regist() { Chaos::Modifier::factory["TLOU1 Run Glitch"] = [](){return new SpeedrunGlitch();}; };
-	const char* description() { return "Is this an Any% speedrun of TLOU1? Rapid D-pad circular presses"; };
+	const char* description() { return "Is this an Any% speedrun of TLOU1? Rapid D-pad circular presses. Try moving while prone."; };
 	
 	void update() {
 		DeviceEvent event;	// Event to inject

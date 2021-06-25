@@ -32,6 +32,15 @@ I intend to grow this list over time as needed.
 >Note: The first generation Dualshock 4 controller can only send control inputs over bluetooth, making it unusable for this project.
 
 
+
+## Notable Users of Chaos
+
+- [inabox44](https://www.twitch.tv/inabox44)
+- - [Helium Audio Dino Climb](https://clips.twitch.tv/ConcernedInventiveTortoiseDansGame-vaLowhLl-MLk4Qk8)
+
+- [RachyMonster](https://www.twitch.tv/rachymonster)
+- - [Snake Ellie](https://www.twitch.tv/videos/1066095946) - resulted from TLOU1 Run Glitch breaking animations
+
 ## Installation
 Here is an [Amazon shopping list](https://a.co/fp7VGcb) with items that are used to install and run chaos.
 
@@ -120,11 +129,6 @@ Currently TLOU2 is hardcoded as the only supported game.  See TLOU2 specific ins
 I recommend using things like a Chat Box and Color Correction filters to make chat more readable and change the colors to match your style:
 
 [Stream Setup](docs/streamSetup.md)
-
-## Notable Users of Chaos
-
-- [inabox44](https://www.twitch.tv/inabox44)
-- [RachyMonster](https://www.twitch.tv/rachymonster)
 
 
 ## Contributors
