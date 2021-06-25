@@ -54,12 +54,12 @@ Currently this setup is only supported on a Raspberry Pi 4 with 32-bit Raspian L
 
 #### Step-by-step Setup Guide
 
-1. Flash Rasbpian OS Lite to your SD card. 
+1. Flash Raspbian OS Lite (32-Bit) to your SD card. 
 
 - I like to use this software tool to flash SD cards: [Raspberry Pi Imager](https://www.raspberrypi.org/software/)
 - - Connect your SD card to your computer using an SD card reader
 - - Select the SD card in the Raspberry Pi Imager
-- - Under "Choose OS" select Raspberry Pi OS (Other) -> Raspberry Pi OS Lite (32-bit)
+- - Under "Choose OS" select Raspberry Pi OS (other) -> Raspberry Pi OS Lite (32-bit)
 - - Click on the "Write" button.  If writing fails, simply try it again.
 
 2. Install the SD card into your Pi.  Then proceed to connect a monitor and keyboard.  Now apply power over the Pi's USB-C connector.
@@ -81,7 +81,7 @@ sudo apt update && sudo apt install git -y
 5. Run the following commands:
 
 ```bash
-cd ~
+cd
 git clone https://github.com/blegas78/chaos.git
 cd chaos
 ./install.sh
@@ -100,7 +100,7 @@ Now that everything is installed, power up your Raspberry Pi and follow these st
 
 1. Your console will need to be set up to prefer USB communication over bluetooth for your controllers.  
 
-2. On the same network as the Raspberry Pi, navigate your stream PC's browser to raspberrypi.local by [clicking here](raspberrypi.local) (if you renamed your pi's hostname then navigate to (hostname).local instead).  If that doesn't work you may need to figure out your pi's IP from your router and enter that into your browser instead.  Alternatively, run ifconfig to get your IP.
+2. On the same network as the Raspberry Pi, navigate your stream PC's browser to raspberrypi.local by [clicking here](http://raspberrypi.local) (if you renamed your pi's hostname then navigate to (hostname).local instead).  If that doesn't work you may need to figure out your pi's IP from your router and enter that into your browser instead.  Alternatively, run ifconfig to get your IP.
 
 3. Click on the link labeled "BotSetup".  Here you can enter your bot account credentials and your channel name.  You can also use your broadcaster account if you do not have a secondary custom bot account.
 
@@ -108,7 +108,7 @@ Now that everything is installed, power up your Raspberry Pi and follow these st
 
 ## Running
 
-1. For each start, You must connect your USB controller to the lower left USB port on your Rasbperry Pi.  This is the USB 2.0 port furthest from the ethernet port and closest to circuit board.  Then use another USB-C to USB-A cable to connect the Raspberry Pi's power to your console.
+1. For each start, You must connect your USB controller to the lower left USB port on your Raspberry Pi.  This is the USB 2.0 port furthest from the ethernet port and closest to circuit board.  Then use another USB-C to USB-A cable to connect the Raspberry Pi's power to your console.
 
 2. Turn on your console.  On a Playstation, pressing the PS button will turn on the console, which will then power the Raspberry Pi.  During boot, bluetooth connection will let you navigate to your game.  At some point, you'll see a USB connectivity notification, meaning that chaos is active.
 
