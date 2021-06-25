@@ -47,13 +47,13 @@ To install:
 - - Under "Choose OS" select Raspberry Pi OS (Other) -> Raspberry Pi OS Lite (32-bit)
 - - Click on the "Write" button.  If writing fails, simply try it again.
 
-2. Install the SD card nto your Pi.  Then proceed to connect a monitor and keyboard.  Now apply power over the Pi's USB-C connector.
+2. Install the SD card into your Pi.  Then proceed to connect a monitor and keyboard.  Now apply power over the Pi's USB-C connector.
 
 Now is the time to set up your Raspberry Pi's network.  I *highly* recommend using ethernet for Chaos, though low-interferenced WiFi should be fine too. [WiFi Instructions here](https://www.raspberrypi.org/documentation/configuration/wireless/wireless-cli.md).
 
 3. When your Pi boots log in using the following credentials:
 - Username: pi
-- PAssword: raspberry
+- Password: raspberry
 
 >Note: The password field will look like nothing is getting typed but it will be reading the password as you type it.
 
