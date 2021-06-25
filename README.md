@@ -41,11 +41,11 @@ To install:
 
 1. Flash Rasbpian OS Lite to your SD card. 
 
-- - I like to use this software tool to flash SD cards: [Raspberry Pi Imager](https://www.raspberrypi.org/software/)
+- I like to use this software tool to flash SD cards: [Raspberry Pi Imager](https://www.raspberrypi.org/software/)
 - - Connect your SD card to your computer using an SD card reader
 - - Select the SD card in the Raspberry Pi Imager
 - - Under "Choose OS" select Raspberry Pi OS (Other) -> Raspberry Pi OS Lite (32-bit)
-- - Click on the "Write" button  If writing fails, simply try it again.
+- - Click on the "Write" button.  If writing fails, simply try it again.
 
 2. Install the SD card nto your Pi.  Then proceed to connect a monitor and keyboard.  Now apply power over the Pi's USB-C connector.
 
