@@ -17,12 +17,28 @@ This project was inspired after watching Twitch user [DarkViperAU](https://www.t
 
 Currently this is hard-coded for The Last Of Us Part 2.  Controller-based Chaos works very well for this game due to the massive amount of accessibility options, gameplay modifiers, and render modes.  Eventually I will make this more portable for other games, starting with Uncharted 4/The Lost Legacy.
 
+
+
 ## What is Chaos?
-
-
 
 [Watch a minute long video explanation of how users can interact with a controller.](https://www.twitch.tv/blegas78/clip/SmellyDepressedPancakeKappaPride-llz6ldXSKjSJLs9s)
 ![Twitch Clip](https://github.com/blegas78/chaos/blob/main/docs/images/explain.png?raw=true)
+
+
+
+
+## Notable Users of Chaos
+This is a collection of streamers that have used chaos along with some example chaos clips from their streams
+
+[inabox44](https://www.twitch.tv/inabox44)
+- [Helium Audio Dino Climb](https://clips.twitch.tv/ConcernedInventiveTortoiseDansGame-vaLowhLl-MLk4Qk8)
+
+[RachyMonster](https://www.twitch.tv/rachymonster)
+- [Snake Ellie](https://www.twitch.tv/videos/1066095946) - TLOU1 Run Glitch breaks prone animations
+- [Shoot Her!](https://clips.twitch.tv/DeafObservantWrenKeepo-ANKfhZgAcjh-gkye) - Run/Dodge disabled
+
+
+
 
 ## Required Hardware
 I intend to grow this list over time as needed.
@@ -30,17 +46,6 @@ I intend to grow this list over time as needed.
 1. Dualshock 4 Generation 2 - Has the lightbar in front - CUH-ZCT2U
 
 >Note: The first generation Dualshock 4 controller can only send control inputs over bluetooth, making it unusable for this project.
-
-
-
-## Notable Users of Chaos
-
-- [inabox44](https://www.twitch.tv/inabox44)
-- - [Helium Audio Dino Climb](https://clips.twitch.tv/ConcernedInventiveTortoiseDansGame-vaLowhLl-MLk4Qk8)
-
-- [RachyMonster](https://www.twitch.tv/rachymonster)
-- - [Snake Ellie](https://www.twitch.tv/videos/1066095946) - TLOU1 Run Glitch breaks prone animations
-- - [Shoot Her!](https://clips.twitch.tv/DeafObservantWrenKeepo-ANKfhZgAcjh-gkye) - Run/Dodge disabled
 
 ## Installation
 Here is an [Amazon shopping list](https://a.co/fp7VGcb) with items that are used to install and run chaos.
@@ -87,6 +92,8 @@ cd chaos
 ```bash
 sudo reboot
 ```
+
+
 
 ## First Time Setup
 Now that everything is installed, power up your Raspberry Pi and follow these steps:
