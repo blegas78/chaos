@@ -39,7 +39,8 @@ I intend to grow this list over time as needed.
 - - [Helium Audio Dino Climb](https://clips.twitch.tv/ConcernedInventiveTortoiseDansGame-vaLowhLl-MLk4Qk8)
 
 - [RachyMonster](https://www.twitch.tv/rachymonster)
-- - [Snake Ellie](https://www.twitch.tv/videos/1066095946) - resulted from TLOU1 Run Glitch breaking animations
+- - [Snake Ellie](https://www.twitch.tv/videos/1066095946) - TLOU1 Run Glitch breaks prone animations
+- - [Shoot Her!](https://clips.twitch.tv/DeafObservantWrenKeepo-ANKfhZgAcjh-gkye) - Run/Dodge disabled
 
 ## Installation
 Here is an [Amazon shopping list](https://a.co/fp7VGcb) with items that are used to install and run chaos.
