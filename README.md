@@ -86,6 +86,8 @@ git clone https://github.com/blegas78/chaos.git
 cd chaos
 ./install.sh
 ```
+Running the above final install command will take ~5 minutes
+
 
 6. A reboot is required to enable USB communication to hosts:
 
@@ -98,13 +100,13 @@ sudo reboot
 ## First Time Setup
 Now that everything is installed, power up your Raspberry Pi and follow these steps:
 
-1. Your console will need to be set up to prefer USB communication over bluetooth for your controllers.  
+1. Your console will need to be set up to prefer USB communication over bluetooth for your controllers. On a PS5 do this by navigating to Settings (gear icon top right) -> Accessories -> Controllers -> Communication Method -> Use USB Cable 
 
-2. On the same network as the Raspberry Pi, navigate your stream PC's browser to raspberrypi.local by [clicking here](http://raspberrypi.local) (if you renamed your pi's hostname then navigate to (hostname).local instead).  If that doesn't work you may need to figure out your pi's IP from your router and enter that into your browser instead.  Alternatively, run ifconfig to get your IP.
+2. On the same network as the Raspberry Pi, navigate your stream PC's browser to raspberrypi.local by [clicking here](http://raspberrypi.local).  If that doesn't work you may need to figure out your pi's IP address from your router and enter that into your browser instead.  Alternatively, run the command `ifconfig` on your Pi to get your Pi's IP address.
 
 3. Click on the link labeled "BotSetup".  Here you can enter your bot account credentials and your channel name.  You can also use your broadcaster account if you do not have a secondary custom bot account.
 
-4. The other links next to "BotSetup" are overlays that can be added as a *browser* source in streaming applications like OBS.  Open these links to view what they are, or copy and paste into a browser source.  I prefer to have the browser sources in OBS set to refresh when not displayed so that I can refresh them easily.
+4. The other links next to "BotSetup" are overlays that can be added as a *browser* source in streaming applications like OBS.  Open these links to view what they are, or copy and paste into a browser source on OBS.  I prefer to have the browser sources in OBS set to refresh when not displayed so that I can refresh them easily.  More of the OBS setup instruction are available in the [Stream Setup](docs/streamSetup.md) guide.
 
 ## Running
 
@@ -128,16 +130,16 @@ Chaos initializes in a paused state.  This paused state prevents any modifier fr
 
 >Note: This means that you will actively need to resume Chaos whenever you enter your game's pause menu.
 
-#### Game-Specific Usage
-Currently TLOU2 is hardcoded as the only supported game.  See TLOU2 specific instructions here:
-
-[TLOU2 Usage](docs/TLOU2/README.md)
 
 #### OBS, Streamlabs
 I recommend using things like a Chat Box and Color Correction filters to make chat more readable and change the colors to match your style:
 
 [Stream Setup](docs/streamSetup.md)
 
+#### Game-Specific Usage
+Currently TLOU2 is hardcoded as the only supported game.  See TLOU2 specific instructions here:
+
+[TLOU2 Usage](docs/TLOU2/README.md)
 
 ## Contributors
 Chaos would not be nearly as colorful or effective without community contributions, so thanks to everyone that has made this project better!
