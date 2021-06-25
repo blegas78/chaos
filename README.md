@@ -120,7 +120,7 @@ Chaos would not be nearly as colorful or effective without community contributio
   - - Reviewer
   - PrincessDiodes [Github](https://github.com/ash3rz) [Twitch](https://www.twitch.tv/princessdiodes)
   - - Server-side gamepad viewer implementation
-  - RachyMonster [Twitch](https://www.twitch.tv/rachyonster)
+  - RachyMonster [Twitch](https://www.twitch.tv/rachymonster)
   - - Figured out how to make readable and spoiler free chat in the [Stream Setup](docs/streamSetup.md) guide
 
 #### Testers

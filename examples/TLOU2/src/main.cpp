@@ -3238,7 +3238,7 @@ public:
 class ChuckStun : public Chaos::Modifier {
 public:
 	static void regist() { Chaos::Modifier::factory["Chuck Smoke Bomb"] = [](){return new ChuckStun();}; };
-	const char* description() { return "It was taking up space anyway"; };
+	const char* description() { return "It was taking up space anyway.  Does nothing when playing Abby"; };
 	
 	bool busy;
 	

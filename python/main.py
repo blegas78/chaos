@@ -88,6 +88,7 @@ class ChaosModel():
 		self.votingLog = open("/home/pi/chaosLogs/votes-" + currentTime + ".log","a", buffering=1)
 		
 		self.pause = True
+#		relay.set_paused(True)
 #		self.chaosListener = ChaosListener()
 #		self.chaosListener.start()
 
@@ -125,6 +126,11 @@ class ChaosModel():
 		if "pause" in y:
 			logging.info("Got a pause command of: " + str(y["pause"]))
 			self.pause = y["pause"]
+#			try:
+#				relay.set_paused(y["pause"])
+#			except Exception as e:
+#				logging.info(e)
+				
 		
 	def applyNewMod(self, mod):
 		print("Winning mod: " + mod)
@@ -182,17 +188,38 @@ class ChaosModel():
 			relay.set_activeMods( self.activeMods )
 		except Exception as e:
 			logging.info(e)
-						
+					
+		self.pausedFlashingTimer = 0.0
+		self.pausedFlashingToggle = True
 		while True:
 			time.sleep(1.0/self.rate)
 			priorTime = now
 			now = time.time()
 			self.voteTime =  now - beginTime
 			dTime = now - priorTime
+			self.pausedFlashingTimer += dTime
 			
+			if not relay.paused == self.pause:
+				try:
+					relay.set_paused(self.pause)
+				except Exception as e:
+					logging.info(e)
+					
 			if self.pause:	# hack implementation of pausing
 				beginTime += dTime
 				dTime = 0
+				if self.pausedFlashingTimer > 0.5 and relay.pausedBrightBackground == True:
+					try:
+						relay.set_pausedBrightBackground(False)
+					except Exception as e:
+						logging.info(e)
+				elif self.pausedFlashingTimer > 1.0 and relay.pausedBrightBackground == False:
+					try:
+						relay.set_pausedBrightBackground(True)
+						self.pausedFlashingTimer = 0.0
+					except Exception as e:
+						logging.info(e)
+					
 #				continue
 			
 			if not self.timePerVote == (relay.timePerModifier/3.0 - 0.5):
@@ -378,6 +405,8 @@ class Relay(flx.Component):
 	activeMods = flx.ListProp(["","",""], settable=True)
 	allMods = flx.ListProp(["1", "2", "3", "4", "5", "6"], settable=True)
 	timePerModifier = flx.FloatProp(chaosConfig["modifier_time"], settable=True)
+	paused = flx.BoolProp(True, settable=True)
+	pausedBrightBackground = flx.BoolProp(True, settable=True)
 	
 	bot_name = flx.StringProp(chaosConfig["bot_name"], settable=True)
 	bot_oauth = flx.StringProp(chaosConfig["bot_oauth"], settable=True)
@@ -420,6 +449,16 @@ class Relay(flx.Component):
 			chaosConfig["modifier_time"]  = ev.new_value
 #			self.updateTimePerModifier(ev.new_value)
 			
+	@flx.reaction('paused')
+	def on_paused(self, *events):
+		for ev in events:
+			self.updatePaused(ev.new_value)
+			
+	@flx.reaction('pausedBrightBackground')
+	def on_pausedBrightBackground(self, *events):
+		for ev in events:
+			self.updatePausedBrightBackground(ev.new_value)
+			
 	@flx.reaction('bot_name')
 	def on_bot_name(self, *events):
 		for ev in events:
@@ -456,6 +495,14 @@ class Relay(flx.Component):
 		
 	@flx.emitter
 	def updateActiveMods(self, value):
+		return dict(value=value)
+		
+	@flx.emitter
+	def updatePaused(self, value):
+		return dict(value=value)
+		
+	@flx.emitter
+	def updatePausedBrightBackground(self, value):
 		return dict(value=value)
         
 # Create global relay object, shared by all connections
@@ -513,6 +560,51 @@ class ChaosActiveView(flx.PyWidget):
 		self.progress[1].set_value(modTimes[1])
 		self.progress[2].set_value(modTimes[2])
 
+class StreamerInterfaceLayout(ui.HVLayout):
+	def init(self):
+		self.set_flex(1)
+		self.set_orientation('v')
+		self.apply_style('background:#000000;')
+
+class StreamerInterface(flx.PyWidget):
+
+#	CSS = """
+#    .flx-Widget {
+#        background: #0C0C0C;
+#    }
+#    """
+	def init(self):
+		with StreamerInterfaceLayout() as self.s:
+			self.voteTimerView = ChaosVoteTimerView(self)
+			self.chaosActiveView = ChaosActiveView(self)
+			self.chaosPausedView = ChaosPausedView(self)
+			
+	@relay.reaction('updateVoteTime')
+	def _updateVoteTime(self, *events):
+		for ev in events:
+			self.voteTimerView.updateTime(ev.value)
+			
+	@relay.reaction('updateModTimes')
+	def _updateModTimes(self, *events):
+		for ev in events:
+			self.chaosActiveView.updateTime(ev.value)
+			
+	@relay.reaction('updateActiveMods')
+	def _updateActiveMods(self, *events):
+		for ev in events:
+			self.chaosActiveView.updateMods(ev.value)
+			
+	@relay.reaction('updatePaused')
+	def _updatePaused(self, *events):
+		for ev in events:
+			self.chaosPausedView.updatePaused(ev.value)
+			
+	@relay.reaction('updatePausedBrightBackground')
+	def _updatePausedBrightBackground(self, *events):
+		for ev in events:
+			self.chaosPausedView.updatePausedBrightBackground(ev.value)
+			
+
 class VoteTimer(flx.PyWidget):
 	def init(self):
 		self.voteTimerView = ChaosVoteTimerView(self)
@@ -533,6 +625,37 @@ class ChaosVoteTimerView(flx.PyWidget):
 	@flx.action
 	def updateTime(self, voteTime):
 		self.progressTime.set_value(voteTime)
+		
+class ChaosPausedView(flx.PyWidget):
+	def init(self, model):
+		super().init()
+		self.model = model
+		
+		#self.apply_style("background-color:black")
+		
+		self.stylePausedDark = "color:white;text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;text-align:center;font-weight: bold; vertical-align: middle; font-size:50px; min-width:250px; line-height: 2.0; background-color:black"
+		self.stylePausedBright = "color:white;text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;text-align:center;font-weight: bold; vertical-align: middle; font-size:50px; min-width:250px; line-height: 2.0; background-color:white"
+		if relay.paused:
+			text="Paused"
+		else:
+			text="Running"
+		self.pausedText = flx.Label(flex=3, style=self.stylePausedDark, text=text )
+		
+	@flx.action
+	def updatePaused(self, paused):
+		if paused:
+			self.pausedText.set_text("Paused")
+		else:
+			self.pausedText.apply_style(self.stylePausedDark)
+			self.pausedText.set_text("Running")
+			
+					
+	@flx.action
+	def updatePausedBrightBackground(self, pausedBright):
+		if pausedBright:
+			self.pausedText.apply_style(self.stylePausedBright)
+		else:
+			self.pausedText.apply_style(self.stylePausedDark)
 		
 class Votes(flx.PyWidget):
 	def init(self):
@@ -786,6 +909,7 @@ def startFlexx():
 	#flx.App(ChaosViewController).serve()
 	flx.App(ActiveMods).serve()
 	#flx.App(ChatRoom).serve()
+	flx.App(StreamerInterface).serve()
 	flx.App(VoteTimer).serve()
 	flx.App(Votes).serve()
 	flx.App(BotSetup).serve()

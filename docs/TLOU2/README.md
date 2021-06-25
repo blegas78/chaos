@@ -204,7 +204,7 @@ If you know that you are about to enter a new area where you lose control of you
 137: Terminated -- Render Mode
 138: Toss A Molly/Bomb -- Time to riot, chucks a molly (bomb if Abby)
 139: Touch Of Death -- Golden fists activated.  One hit enemy deaths
-140: Touchpad Aiming -- No more right joystick, finally making use of the touchpaUHID_OPEN from uhid-dev
+140: Touchpad Aiming -- No more right joystick, finally making use of the touchpad
 141: Traversal Assistance -- Climb when you really do not want to
 142: Traversal Audio Cues -- Add some music to climbable objects
 143: Trigger Remap -- Randomly remaps trigger/bumper buttons (L1, R1, L2, R2)
