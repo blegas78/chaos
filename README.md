@@ -108,6 +108,11 @@ I recommend using things like a Chat Box and Color Correction filters to make ch
 
 [Stream Setup](docs/streamSetup.md)
 
+## Notable Users of Chaos
+
+- [inabox44](https://www.twitch.tv/inabox44)
+- [RachyMonster](https://www.twitch.tv/rachymonster)
+
 
 ## Contributors
 Chaos would not be nearly as colorful or effective without community contributions, so thanks to everyone that has made this project better!
@@ -123,8 +128,6 @@ Chaos would not be nearly as colorful or effective without community contributio
   - RachyMonster [Twitch](https://www.twitch.tv/rachymonster)
   - - Figured out how to make readable and spoiler free chat in the [Stream Setup](docs/streamSetup.md) guide
 
-#### Testers
-- [inabox44](https://www.twitch.tv/inabox44)
 
 #### Modifier Ideas
 Implemented:
