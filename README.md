@@ -144,7 +144,7 @@ Currently TLOU2 is hardcoded as the only supported game.  See TLOU2 specific ins
 ## Contributors
 Chaos would not be nearly as colorful or effective without community contributions, so thanks to everyone that has made this project better!
 
-#### Developers
+#### General
  - Aeathone [Twitch](https://www.twitch.tv/aeathone)
  - - Informs me of my terrible curly braces <3
  - - Suggested great design improvements to handling things like menuing
@@ -154,7 +154,8 @@ Chaos would not be nearly as colorful or effective without community contributio
   - - Server-side gamepad viewer implementation
   - RachyMonster [Twitch](https://www.twitch.tv/rachymonster)
   - - Figured out how to make readable and spoiler free chat in the [Stream Setup](docs/streamSetup.md) guide
-
+ - ners14 [Twitch](https://www.twitch.tv/ners14)
+  - - Informed the idea of proportional voting from GTAV chaos
 
 #### Modifier Ideas
 Implemented:
@@ -207,19 +208,19 @@ TBD:
 The following features/bug will be implemented/fixed based on project interest over time.
 
 #### USB hot-plugging
-If the controller becomes disconnected, the chaos service must be restarted or a reboot must be performed.  This is certainly annoying and can be fixed in code with an overhaul to usb-sniffify
+If the controller becomes disconnected, the chaos service must be restarted or a reboot must be performed.  This is certainly annoying and can be fixed in code with an overhaul to usb-sniffify to allow hot-plugging.
 
 #### USB crashing or delaying inputs over time on PS5
-This can usually only currently be corrected with a reboot of the Pi.  dmesg will show many errors and they are fine, but eventually the kernel will prevent raw-gadget from running.  This may be a limitation of raw-gadget
+This can usually only currently be corrected with a reboot of the Pi.  dmesg will show many errors and they are fine, but eventually the kernel will prevent raw-gadget from running.  This may be a limitation of the raw-gadget Linux kernel module.
 
 #### Configuration
-Right now many of the timings.values are hard-coded, these can be slowly implemented in the webUI over time.
+Right now many of the timings and values are hard-coded, these can be slowly implemented in the webUI over time.
 
 #### Video feedback
-Implementing video feedback, in similar form to video-based load removers, can aid in providing game-state information so that Chaos can know when it can/cannot perform certain actions.  This would bea  major overhaul and add complication to the game setup, so this is certainly a long-term stretch goal.
+Implementing video feedback in a similar form to video-based load removers can aid in providing game-state information so that Chaos can know when it can/cannot perform certain actions.  This would be a major overhaul and add complication to the game setup, so this is certainly a long-term stretch goal.
 
 #### Semantic modifiers
-Right now the chaos structure can only operate on pipelined button commands or apply direct controls.  It cannot block any command on the controller output, meaning that some modifiers named "No shooting" truly mean "Disable passing R2".  If a button remapping occurs then R2 could be sent through stacked modifiers, meaning that "No shooting" could not be accurate.  For voting purposes, it would be nice to have a true semantic mapping for all modifiers.  This will require adding more functions to modifiers, to be performed specifically at the end of the current chaos pipeline.
+Right now the chaos structure can only operate on pipelined button commands or apply direct controls.  It cannot block any command on the controller output, meaning that some modifiers named "No shooting" truly mean "Disable passing R2".  If a button remapping occurs then R2 could be sent through stacked modifiers involving button remapping, meaning that "No shooting" could not be accurate.  For voting purposes, it would be nice to have a true semantic mapping for all modifiers.  This will require adding more functions to modifiers, to be performed specifically at the end of the current chaos pipeline.
 
 ## Design
 The lowest level aspect of controller chaos is based on forwarding USB protocols using the Linux raw-gadget kernel module.  For every USB request, Chaos duplicates the request and passes it along.  However, in the case of messages corresponding to controller buttons/joysticks the data is passed to other processes that can meddle with the data.  This forwarding infrastructure is done by using [usb-sniffify](https://github.com/blegas78/usb-sniffify), a library that combines [raw-gadget](https://github.com/xairy/raw-gadget) and [libusb](https://libusb.info).

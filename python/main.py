@@ -154,6 +154,28 @@ class ChaosModel():
 			self.winTracker[mod]["contribution"] = math.exp(0)
 		#pp.pprint(self.winTracker)
         
+	def selectWinningModifier(self):
+		if self.proportionalVoting:
+			totalVotes = sum(self.votes)
+			if totalVotes < 1:
+				for i in range(len(self.votes)):
+					self.votes[i] += 1
+				totalVotes = sum(self.votes)
+			
+			theChoice = np.random.uniform(0,totalVotes)
+			print("theChoice = " + str(theChoice))
+			index = 0
+			accumulator = 0
+			for i in range(len(self.votes)):
+				index = i
+				accumulator += self.votes[i]
+				if accumulator >= theChoice:
+					break
+			
+			return self.currentMods[ index ]
+		else:
+			return self.currentMods[ self.votes.index(max(self.votes)) ]
+	
 	def loop(self):
 		beginTime = time.time() #0.0
 		now = beginTime
@@ -171,6 +193,8 @@ class ChaosModel():
 		self.activeModTimes = [0.0, 0.0, 0.0]
 		
 		self.gotNewMods = False
+		
+		self.proportionalVoting = True
 		
 		# allMods will be set by thte C program
 		#self.allMods = ["1", "2", "3", "4", "5", "6"]
@@ -240,7 +264,8 @@ class ChaosModel():
 				beginTime = now
 				
 				# Send winning choice:
-				newMod = self.currentMods[ self.votes.index(max(self.votes)) ]
+				#newMod = self.currentMods[ self.votes.index(max(self.votes)) ]
+				newMod = self.selectWinningModifier()
 				self.applyNewMod( newMod )
 				if self.gotNewMods:
 					self.gotNewMods = False
