@@ -95,6 +95,7 @@ Running the above final install command will take ~5 minutes
 sudo reboot
 ```
 
+Chaos should now be installed!  Now all that is needed is configuration and setup for OBS and your particular game.
 
 
 ## First Time Setup
@@ -108,15 +109,24 @@ Now that everything is installed, power up your Raspberry Pi and follow these st
 
 4. The other links next to "BotSetup" are overlays that can be added as a *browser* source in streaming applications like OBS.  Open these links to view what they are, or copy and paste into a browser source on OBS.  I prefer to have the browser sources in OBS set to refresh when not displayed so that I can refresh them easily.  More of the OBS setup instruction are available in the [Stream Setup](docs/streamSetup.md) guide.
 
+
+#### OBS, Streamlabs
+I recommend using things like a Chat Box and Color Correction filters to make chat more readable and change the colors to match your style:
+
+[Stream Setup](docs/streamSetup.md)
+
 ## Running
 
-1. For each start, You must connect your USB controller to the lower left USB port on your Raspberry Pi.  This is the USB 2.0 port furthest from the ethernet port and closest to circuit board.  Then use another USB-C to USB-A cable to connect the Raspberry Pi's power to your console.
+1. For each start, You must connect your USB controller to the lower left USB port on your Raspberry Pi.  This is the USB 2.0 port furthest from the ethernet port and closest to circuit board.  Then use a USB-C to USB-A cable to connect the Raspberry Pi's power to your console.
 
-2. Turn on your console.  On a Playstation, pressing the PS button will turn on the console, which will then power the Raspberry Pi.  During boot, bluetooth connection will let you navigate to your game.  At some point, you'll see a USB connectivity notification, meaning that chaos is active.
+2. Turn on your console.  On a Playstation, pressing the PS button will turn on the console, which will then power the Raspberry Pi.  During the Pi's boot process, the controller's bluetooth connection will let you navigate to your game.  At some point, you'll see a USB connectivity notification, meaning that chaos is active.
 
 3. If OBS was already up, refresh your browser sources.  Overlays should be active.
 
-4. Test your connection to your chat.  First, resume Chaos by pressing the Share button.  The VoteTimer progress bar should begin to move.   Then pull up your chat and try to vote.  If a vote shows up on your overlay all is connected and ready to go!
+4. Test your connection to your chat.  Pull up your chat and try to vote.  If a vote shows up on your overlay all is connected and ready to go!
+
+5. Lastly check that the controller is connected properly.  Start up and load into your game so that you are controlling your character.  Press the "Share" button to check that the VoteTimer resumes.  If the timer runs and you can control your character, then all is connected and ready to go!
+
 
 ## Usage
 
@@ -131,10 +141,6 @@ Chaos initializes in a paused state.  This paused state prevents any modifier fr
 >Note: This means that you will actively need to resume Chaos whenever you enter your game's pause menu.
 
 
-#### OBS, Streamlabs
-I recommend using things like a Chat Box and Color Correction filters to make chat more readable and change the colors to match your style:
-
-[Stream Setup](docs/streamSetup.md)
 
 #### Game-Specific Usage
 Currently TLOU2 is hardcoded as the only supported game.  See TLOU2 specific instructions here:
@@ -154,7 +160,7 @@ Chaos would not be nearly as colorful or effective without community contributio
   - - Server-side gamepad viewer implementation
   - RachyMonster [Twitch](https://www.twitch.tv/rachymonster)
   - - Figured out how to make readable and spoiler free chat in the [Stream Setup](docs/streamSetup.md) guide
- - ners14 [Twitch](https://www.twitch.tv/ners14)
+ - ners_14 [Twitch](https://www.twitch.tv/ners_14)
   - - Informed the idea of proportional voting from GTAV chaos
 
 #### Modifier Ideas
