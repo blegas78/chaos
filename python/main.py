@@ -711,20 +711,20 @@ class ChaosVoteView(flx.PyWidget):
 		totalVotes = sum(relay.votes)
 		with flx.VBox(flex=0):
 			with flx.HFix(flex=1):
-				self.voteLabel = flx.Label(flex=0,style=styleTitleText, text="Total Votes: " + str(0) )
+				self.voteLabel = flx.Label(flex=0,style=styleTitleText, text="Total Votes: " + str(totalVotes) )
 				self.blankLabel = flx.Label(flex=0,style=styleTitleText, text=" ")
 			#with flx.VBox(flex=1):
 				
 			with flx.HFix(flex=1):
 				with flx.VFix(flex=1):
-					for i in range(3):
+					for i in range(len(relay.votes)):
 						if totalVotes > 0:
 							self.progress.append( flx.ProgressBar(flex=2, value=relay.votes[i]/totalVotes, text='{percent}', style=styleVoteProgress) )
 						else:
-							self.progress.append( flx.ProgressBar(flex=2, value=0.0, text='{percent}', style=styleVoteProgress) )
+							self.progress.append( flx.ProgressBar(flex=2, value=1.0/len(relay.votes), text='{percent}', style=styleVoteProgress) )
 							
 				with flx.VFix(flex=1):
-					for i in range(3):
+					for i in range(len(relay.votes)):
 						self.label.append( flx.Label(flex=1,style=styleModText, text=str(i+1) + " " + relay.mods[i]) )
 	@flx.action
 	def updateMods(self, mods):
@@ -742,9 +742,9 @@ class ChaosVoteView(flx.PyWidget):
 			self.progress[1].set_value(votes[1]/totalVotes)
 			self.progress[2].set_value(votes[2]/totalVotes)
 		else:
-			self.progress[0].set_value(0.0)
-			self.progress[1].set_value(0.0)
-			self.progress[2].set_value(0.0)
+			self.progress[0].set_value(1.0/len(self.progress))
+			self.progress[1].set_value(1.0/len(self.progress))
+			self.progress[2].set_value(1.0/len(self.progress))
 					
 class ChaosViewController(flx.PyWidget):
 	def init(self):
