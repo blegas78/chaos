@@ -19,6 +19,8 @@ class Chatbot():
 		self.heartbeatTimeout = 5
 		self.reconfigured = True
 		
+		self.verbose = False
+		
 		self.chat_rate = 0.67
 		self.host = "irc.twitch.tv"
 		self.port = 6667
@@ -96,6 +98,8 @@ class Chatbot():
 					self.s.send("CAP REQ :twitch.tv/tags\r\n".encode("utf-8"))
 					self.s.send("CAP REQ :twitch.tv/commands\r\n".encode("utf-8"))
 					self.s.send("CAP REQ :twitch.tv/membership\r\n".encode("utf-8"))
+					
+					time.sleep(1)
 
 					connected = True #Socket successfully connected
 				except Exception as e:
@@ -153,7 +157,9 @@ class Chatbot():
 						continue
 						
 				response = response.decode("utf-8")
-				#logging.info(response)
+				if self.verbose:
+					logging.info(response)
+					
 				if response == "PING :tmi.twitch.tv\r\n":
 					self.s.send("PONG :tmi.twitch.tv\r\n".encode("utf-8"))
 					logging.info("Pong")
@@ -233,10 +239,11 @@ if __name__ == "__main__":
 	logging.basicConfig(level="INFO")
 	
 	chatbot = Chatbot()
+	chatbot.verbose = True
 	chatbot.start()
 	
 	chatbot.setChatRate(0.2)
-	chatbot.setBotCredentials("See_Bot", "oauth:")
+	chatbot.setBotCredentials("See_Bot", "oauth:ejt8und49pmz3i18fgjdov6jly3en0")
 
 	count = 0
 	while True:

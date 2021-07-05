@@ -165,7 +165,7 @@ class ChaosModel():
 		self.chatbot.setChatRate(relay.chat_rate)
 		self.chatbot.setChannelName(relay.channel_name)
 		self.chatbot.setBotCredentials(relay.bot_name, relay.bot_oauth)
-		self.chatbot.setIrcInfo(relay.chaosConfig["host"], relay.chaosConfig["port"])
+		self.chatbot.setIrcInfo(relay.ircHost, relay.ircPort)
 
 	
 	def _loop(self):
@@ -176,7 +176,7 @@ class ChaosModel():
 		dTime = 1.0/relay.ui_rate
 		priorTime = beginTime - dTime
 		
-		self.timePerVote = 1.0	# This will be set by the C progra
+		self.timePerVote = 1.0	# This will be set by the C program
 				
 		self.totalVoteOptions = 3
 		self.votes = [0.0] * self.totalVoteOptions
@@ -421,8 +421,8 @@ class ChaosModel():
 				except Exception as e:
 					logging.info(e)
 
-#
 
+#  This is how Flexx API states that data passing should work
 relay = chaosRelay.ChaosRelay()
 
 class ActiveMods(flx.PyWidget):
@@ -533,10 +533,18 @@ class Interface(flx.PyWidget):
 		self.relay = relay
 		with ui.TabLayout(style="background: #aaa; color: #000; text-align: center; foreground-color:#808080") as self.t:
 		#with StreamerInterfaceLayout() as self.s:
-			self.Interface = StreamerInterface(self.relay, title='Interface')
+			self.interface = StreamerInterface(self.relay, title='Interface')
 			self.settings = Settings(self.relay, title='Settings')
 			self.botSetup = BotSetup(self.relay, title='Bot Setup')
 #		self.t.apply_style("background: #222; color: #fff; text-align: center;")
+
+
+	def dispose(self):
+		super().dispose()
+		# ... do clean up or notify other parts of the app
+		self.interface.dispose()
+		self.settings.dispose()
+		self.botSetup.dispose()
 
 		
 def startFlexx():
@@ -549,12 +557,14 @@ def startFlexx():
 	flx.App(Interface, relay).serve()
 #	flx.App(GamepadServer).serve()
 	
-	flx.create_server(host='0.0.0.0',port=relay.chaosConfig["ui-port"],loop=asyncio.new_event_loop())
+	flx.create_server(host='0.0.0.0', port=relay.uiPort, loop=asyncio.new_event_loop())
 	flx.start()
 
 if __name__ == "__main__":
 	# for chat
 	chatbot = chatbot.Chatbot()
+	chatbot.setIrcInfo(relay.ircHost, relay.ircPort)
+	
 	chatbot.start()
 	
 #	chaosListener = ChaosListener()

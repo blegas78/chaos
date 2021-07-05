@@ -13,8 +13,11 @@ class ChaosRelay(flx.Component):
 
 #	def __init__(self):
 	chaosConfigFile="/home/pi/chaosConfig.json"
-	with open(chaosConfigFile) as json_data_file:
-		chaosConfig = json.load(json_data_file)
+	try:
+		with open(chaosConfigFile) as json_data_file:
+			chaosConfig = json.load(json_data_file)
+	except Exception as e:
+		chaosConfig = {}
 			
 	voteTime = flx.FloatProp(0.5, settable=True)
 	modTimes = flx.ListProp([0.0,0.0,0.0], settable=True)
@@ -26,12 +29,16 @@ class ChaosRelay(flx.Component):
 	paused = flx.BoolProp(True, settable=True)
 	pausedBrightBackground = flx.BoolProp(True, settable=True)
 	
+	ircHost = flx.StringProp(get_attribute(chaosConfig, "host", "irc.twitch.tv"), settable=True)
+	ircPort = flx.IntProp(get_attribute(chaosConfig, "port", 6667), settable=True)
+	
 	bot_name = flx.StringProp(get_attribute(chaosConfig, "bot_name", "see_bot"), settable=True)
 	bot_oauth = flx.StringProp(get_attribute(chaosConfig, "bot_oauth", "oauth:abcdefghijklmnopqrstuvwxyz1234"), settable=True)
 	channel_name = flx.StringProp(get_attribute(chaosConfig, "channel_name", "blegas78"), settable=True)
 	chat_rate = flx.FloatProp(get_attribute(chaosConfig, "chat-rate", 0.67), settable=True)
 	
 	ui_rate = flx.FloatProp(get_attribute(chaosConfig, "ui_rate", 20.0), settable=True)
+	uiPort = flx.IntProp(get_attribute(chaosConfig, "uiPort", 80), settable=True)
 	
 	shouldSave = flx.BoolProp(False, settable=True)
 	
@@ -91,6 +98,16 @@ class ChaosRelay(flx.Component):
 		for ev in events:
 			self.updatePausedBrightBackground(ev.new_value)
 			
+	@flx.reaction('ircHost')
+	def on_ircHost(self, *events):
+		for ev in events:
+			self.chaosConfig["host"] = ev.new_value
+			
+	@flx.reaction('ircPort')
+	def on_ircPort(self, *events):
+		for ev in events:
+			self.chaosConfig["port"] = ev.new_value
+			
 	@flx.reaction('bot_name')
 	def on_bot_name(self, *events):
 		for ev in events:
@@ -111,6 +128,12 @@ class ChaosRelay(flx.Component):
 		for ev in events:
 #			print("new ui_Rate: " + str(ev.new_value))
 			self.chaosConfig["ui_rate"]  = ev.new_value
+			
+	@flx.reaction('uiPort')
+	def on_uiPort(self, *events):
+		for ev in events:
+#			print("new ui_Rate: " + str(ev.new_value))
+			self.chaosConfig["uiPort"]  = ev.new_value
 			
 	@flx.reaction('shouldSave')
 	def on_shouldSave(self, *events):
