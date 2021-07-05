@@ -8,7 +8,7 @@ def chat(sock, msg, channel):
 	sock -- the socket over which to send the message
 	msg  -- the message to be sent
 	"""
-	sock.send(("PRIVMSG {} :{}\r\n".format(channel, msg)).encode("UTF-8"))
+	return sock.sendall(("PRIVMSG {} :{}\r\n".format(channel, msg)).encode("UTF-8"))
 
 def ban(sock, user):
 	"""

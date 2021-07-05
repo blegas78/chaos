@@ -105,9 +105,9 @@ Now that everything is installed, power up your Raspberry Pi and follow these st
 
 2. On the same network as the Raspberry Pi, navigate your stream PC's browser to raspberrypi.local by [clicking here](http://raspberrypi.local).  If that doesn't work you may need to figure out your pi's IP address from your router and enter that into your browser instead.  Alternatively, run the command `ifconfig` on your Pi to get your Pi's IP address.
 
-3. Click on the link labeled "BotSetup".  Here you can enter your bot account credentials and your channel name.  You can also use your broadcaster account if you do not have a secondary custom bot account.
+3. Click on the link labeled "Interface" and navigate to the "Bot Setup" tab.  Here you can enter your bot account credentials and your channel name.  You can also use your broadcaster account if you do not have a secondary custom bot account.
 
-4. The other links next to "BotSetup" are overlays that can be added as a *browser* source in streaming applications like OBS.  Open these links to view what they are, or copy and paste into a browser source on OBS.  I prefer to have the browser sources in OBS set to refresh when not displayed so that I can refresh them easily.  More of the OBS setup instruction are available in the [Stream Setup](docs/streamSetup.md) guide.
+4. The other links next to "Interface" are overlays that can be added as a *browser* source in streaming applications like OBS.  Open these links to view what they are, or copy and paste into a browser source on OBS.  I prefer to have the browser sources in OBS set to refresh when not displayed so that I can refresh them easily.  More of the OBS setup instruction are available in the [Stream Setup](docs/streamSetup.md) guide.
 
 
 #### OBS, Streamlabs
