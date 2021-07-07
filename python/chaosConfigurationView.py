@@ -10,7 +10,7 @@ class ConfigurationView(flx.PyWidget):
 		styleField = "background-color:#BBBBBB;text-align:center"
 		
 		with flx.VSplit(flex=1):
-			flx.Label(style="text-align:center", text="Bot Information" )
+			flx.Label(style="font-weight: bold; text-align:center", text="Bot Information" )
 			flx.Label(style="text-align:center", wrap=True, html='<a href="https://twitchapps.com/tmi/" target="_blank">Click here to get your bot\'s OAuth Token</a>.  You must be logged in as your bot.' )
 			with flx.HBox():
 				with flx.VBox(flex=1):
@@ -35,6 +35,13 @@ class ConfigurationView(flx.PyWidget):
 				flx.Widget(flex=1)
 			flx.Label(flex=1,style="text-align:center", wrap=True, html="You may also use your own Twitch account if you do not have a secondary bot account.")
 			flx.Label(flex=1,style="text-align:center", wrap=True, html="Things like WizeBot/StreamElements will not work unless you own those accounts." )
+			flx.Label(flex=1,style="font-weight: bold; text-align:center", wrap=True, html="Twitch Chat Server Responses:" )
+			
+			with flx.VBox(minsize=450):
+#					flx.Widget(flex=1)
+				self.tmiResponse = flx.MultiLineEdit(flex=2, style="text-align:left; background-color:#CCCCCC;", text=self.model.relay.tmiResponse)
+#					self.tmiResponse = flx.Label(flex=2, style="text-align:left; background-color:#CCCCCC", wrap=True, text=self.model.relay.tmiResponse)
+#					flx.Widget(flex=1)
 			#flx.Widget(flex=1)
 			
 	@flx.reaction('submitButton.pointer_click')
@@ -56,3 +63,8 @@ class ConfigurationView(flx.PyWidget):
 			self.model.relay.set_shouldSave(True)
 		else:
 			self.successLabel.set_text('No Change')
+
+
+	@flx.action
+	def updateTmiResponse(self, text):
+		self.tmiResponse.set_text(text)

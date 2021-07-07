@@ -29,6 +29,8 @@ class ChaosRelay(flx.Component):
 	pausedBrightBackground = flx.BoolProp(True, settable=True)
 	resetSoftmax = flx.BoolProp(False, settable=True)
 	
+	tmiResponse = flx.StringProp("", settable=True)
+	
 #	allMods = flx.ListProp(["1", "2", "3", "4", "5", "6"], settable=True)
 
 	# Settings:
@@ -109,6 +111,12 @@ class ChaosRelay(flx.Component):
 		for ev in events:
 			self.updatePausedBrightBackground(ev.new_value)
 			
+			
+	@flx.reaction('tmiResponse')
+	def on_tmiResponse(self, *events):
+		for ev in events:
+			self.updateTmiResponse(ev.new_value)
+			
 	@flx.reaction('ircHost')
 	def on_ircHost(self, *events):
 		for ev in events:
@@ -183,6 +191,10 @@ class ChaosRelay(flx.Component):
 		
 	@flx.emitter
 	def updatePausedBrightBackground(self, value):
+		return dict(value=value)
+		
+	@flx.emitter
+	def updateTmiResponse(self, value):
 		return dict(value=value)
         
 # Create global relay object, shared by all connections

@@ -67,6 +67,8 @@ class ChaosModel():
 		self.pause = True
 #		relay.set_paused(True)
 
+		self.tmiChatText = ""
+
 	def openDatabase(self, modifierDataFile):
 		self.modifierDataFile = modifierDataFile
 		try:
@@ -396,6 +398,12 @@ class ChaosModel():
 			relay.set_modTimes( self.activeModTimes )
 		except Exception as e:
 			logging.info(e)
+		try:
+			relay.set_tmiResponse(self.tmiChatText)
+		except Exception as e:
+			logging.info(e)
+		
+		
 		
 			
 	def checkMessages(self):
@@ -406,6 +414,10 @@ class ChaosModel():
 			# q.empty(), q.get(), q.qsize()
 #			notice = q.get();
 			notice = self.chatbot.messageQueue.get();
+			
+			if notice["user"] == "tmi":
+				self.tmiChatText += "tmi: " + notice["message"] + "\r\n"
+				continue
 					
 			message = notice["message"]
 			if message.isdigit():
@@ -534,7 +546,12 @@ class Votes(flx.PyWidget):
 class BotSetup(flx.PyWidget):
 	def init(self, relay):
 		self.relay = relay
-		self.ConfigurationView = chaosConfigurationView.ConfigurationView(self)
+		self.configurationView = chaosConfigurationView.ConfigurationView(self)
+			
+	@relay.reaction('updateTmiResponse')
+	def _updateTmiResponse(self, *events):
+		for ev in events:
+			self.configurationView.updateTmiResponse(ev.value)
 			
 class Settings(flx.PyWidget):
 	def init(self, relay):

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import sys # just for argument passing for bare test
 import socket
 import threading
 import logging
@@ -74,22 +75,32 @@ class Chatbot():
 		
 		thread = threading.currentThread()
 
-		connected = False
+		self.connected = False
 		heartbeatPingPong = 0.0
 #		heartbeatTimeout = 5
+		self.reconnectTimeFalloff = 0
+		self.reconfigured = False
+		
 		while not getattr(thread, "kill", False):
 #			self.bot_oauth = relay.bot_oauth
 #			self.bot_name = relay.bot_name
 #			self.channel_name = relay.channel_name.lower()
-			
-			while not connected and not getattr(thread, "kill", False):
+#			self.reconnectTimeFalloff = 0
+			while not self.connected and not getattr(thread, "kill", False):
 				try:
+					logging.info("Chatbot: Waiting " + str(self.reconnectTimeFalloff) + " seconds before reconnection attempt")
+					time.sleep(self.reconnectTimeFalloff)
+					if self.reconnectTimeFalloff == 0:
+						self.reconnectTimeFalloff = 1
+					else:
+						self.reconnectTimeFalloff *= 2
+					
 					self.s = socket.socket()
 					self.s.settimeout(self.heartbeatTimeout)
 #					self.s.connect((config.HOST, config.PORT))
 					self.s.connect((self.host, self.port))
 					
-					logging.info("Attempting to connect to " + self.channel_name + " as " + self.bot_name + " - " + self.bot_oauth)
+					logging.info("Attempting to connect to " + self.channel_name + " as " + self.bot_name )
 
 					self.s.send("PASS {}\r\n".format( self.bot_oauth ).encode("utf-8"))
 					self.s.send("NICK {}\r\n".format( self.bot_name ).encode("utf-8"))
@@ -99,22 +110,24 @@ class Chatbot():
 					self.s.send("CAP REQ :twitch.tv/commands\r\n".encode("utf-8"))
 					self.s.send("CAP REQ :twitch.tv/membership\r\n".encode("utf-8"))
 					
-					time.sleep(1)
+					
 
-					connected = True #Socket successfully connected
+					self.connected = True #Socket successfully connected
 				except Exception as e:
 					logging.info("Error connecting to Twitch, will attempt again...")
 					logging.info(str(e))
-					time.sleep(5)
-					connected = False #Socket failed to connect
+					#time.sleep(5)
+					self.connected = False #Socket failed to connect
 
 			# yeah starting threads here seems fine :(
 			#self.chatResponseThread = threading.Thread(target=self.chatResponseLoop)
 			#self.chatResponseThread.start()
 		
 			#lastTime = 0;
-			while connected and not getattr(thread, "kill", False):
-				#time.sleep(1 / self.chat_rate)
+			self.heartbeatPingPong = 0.0
+			self.waitingForWelcome = True
+			while self.connected and not getattr(thread, "kill", False):
+				time.sleep(1 / self.chat_rate)
 				#if time.time() - lastTime > 15:
 				#	lastTime = time.time()
 				#	logging.info("Inserting message into reward queue")
@@ -123,16 +136,18 @@ class Chatbot():
 					logging.info("New chat information, re-logging in to IRC")
 					#saveConfig()
 					self.reconfigured = False
-					connected = False
-					continue
+					self.connected = False
+					self.reconnectTimeFalloff = 0
+					break
 				
-				heartbeatPingPong += self.heartbeatTimeout
-				if heartbeatPingPong > 5.25*60:	# 5 minutes, 15 seconds
-					connected = False
+				self.heartbeatPingPong += (1.0 / self.chat_rate) #self.heartbeatTimeout
+				if self.heartbeatPingPong > (5.25*60):	# 5 minutes, 15 seconds
+					self.connected = False
+					logging.info("Pingpong failure, attempting to reconnect, message timeout = " + str(self.heartbeatTimeout))
 					continue
 				
 				if self.s._closed:
-					loggin.info("Socket is closed :(")
+					logging.info("Socket is closed :(")
 					
 				response = ""
 				#try:
@@ -147,52 +162,68 @@ class Chatbot():
 				except Exception as e:
 					err = e.args[0]
 					if err == 'timed out':
-						#logging.info('recv timed out, retry later')
-						#logging.info("response = " + str(response))
+						if self.verbose:
+							logging.info('recv timed out, retry later')
+							logging.info("response = " + str(response))
 						#time.sleep(heartbeatTimeout)
 						continue
 					else:
 						logging.info(str(e))
-						connected = False
+						self.connected = False
 						continue
 						
 				response = response.decode("utf-8")
 				if self.verbose:
-					logging.info(response)
+					logging.info("Raw Response:" + response)
 					
 				if response == "PING :tmi.twitch.tv\r\n":
 					self.s.send("PONG :tmi.twitch.tv\r\n".encode("utf-8"))
 					logging.info("Pong")
-					heartbeatPingPong = 0.0
+					self.heartbeatPingPong = 0.0
 					continue
 					
 				if len(response) <= 0:
 					#logging.info("len(response) <= 0")
 					continue
 						
-				heartbeatPingPong = 0.0
+				#heartbeatPingPong = 0.0
 					
 				try:
 					responses = response.split("\r\n")
-					notice = irc.responseToDictionary(response)
+#					logging.info("# of Responses: " + str(len(responses)))
+					for response in responses:
+						self.handleChatLine(response)
 
 				except Exception as e:
 					logging.info(str(e))
 					continue
+						
+	def handleChatLine(self, line):
+		#giftMessage = irc.getRewardMessage(notice)
+		if len(line) == 0:
+			return
+		notice = irc.responseToDictionary(line)
 
-				#giftMessage = irc.getRewardMessage(notice)
-
-				if "message" in notice.keys():
-					notice["message"] = notice["message"].split("\r\n",1)[0]
-					logging.info("Chat " + notice["user"] + ":" + notice["message"])
-					#q.put( (str(emoteId),img) )
-					#chatRelay.create_message(notice["user"], notice["message"])
+		if "message" in notice.keys():
+			notice["message"] = notice["message"].split("\r\n",1)[0]
+			logging.info("Chat " + notice["user"] + ":" + notice["message"])
+			#q.put( (str(emoteId),img) )
+			#chatRelay.create_message(notice["user"], notice["message"])
 			
-					#chatRelay.create_message(notice["user"], notice["message"])
+			#chatRelay.create_message(notice["user"], notice["message"])
 					
-					#q.put( notice )
-					self.messageQueue.put( notice )
-				
+			#q.put( notice )
+			self.messageQueue.put( notice )
+					
+			if self.waitingForWelcome and notice["user"] == "tmi":
+				if notice["message"] == "Welcome, GLHF!":
+					logging.info("Connection successful!")
+					self.waitingForWelcome = False
+					self.reconnectTimeFalloff = 0
+				else:
+					logging.info("Need to attempt a reconnect")
+					self.connected = False
+	
 				
 				
 	def chatResponseLoop(self):
@@ -228,23 +259,24 @@ class Chatbot():
 							#time.sleep(heartbeatTimeout)
 						else:
 							logging.info(str(e))
-							connected = False
+							self.connected = False
 					time.sleep(1 / self.chat_rate)
 				
 					timeSinceLastResponse = 0
 
 
 if __name__ == "__main__":
-
 	logging.basicConfig(level="INFO")
 	
 	chatbot = Chatbot()
 	chatbot.verbose = True
-	chatbot.start()
 	
 	chatbot.setChatRate(0.2)
-	chatbot.setBotCredentials("See_Bot", "oauth:")
-
+	if len(sys.argv) == 3:
+		logging.info("Setting custom credentials nick: " + sys.argv[1] + " - auth: " + sys.argv[2])
+		chatbot.setBotCredentials(sys.argv[1], sys.argv[2])
+	
+	chatbot.start()
 	count = 0
 	while True:
 		time.sleep(10)
