@@ -243,7 +243,7 @@ if __name__ == "__main__":
 	chatbot.start()
 	
 	chatbot.setChatRate(0.2)
-	chatbot.setBotCredentials("See_Bot", "oauth:ejt8und49pmz3i18fgjdov6jly3en0")
+	chatbot.setBotCredentials("See_Bot", "oauth:")
 
 	count = 0
 	while True:

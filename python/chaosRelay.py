@@ -19,15 +19,21 @@ class ChaosRelay(flx.Component):
 	except Exception as e:
 		chaosConfig = {}
 			
+	# Model-View bridge:
 	voteTime = flx.FloatProp(0.5, settable=True)
 	modTimes = flx.ListProp([0.0,0.0,0.0], settable=True)
 	votes = flx.ListProp([0,0,0], settable=True)
 	mods = flx.ListProp(["","",""], settable=True)
 	activeMods = flx.ListProp(["","",""], settable=True)
-#	allMods = flx.ListProp(["1", "2", "3", "4", "5", "6"], settable=True)
-	timePerModifier = flx.FloatProp(get_attribute(chaosConfig, "modifier_time", 180.0), settable=True)
 	paused = flx.BoolProp(True, settable=True)
 	pausedBrightBackground = flx.BoolProp(True, settable=True)
+	resetSoftmax = flx.BoolProp(False, settable=True)
+	
+#	allMods = flx.ListProp(["1", "2", "3", "4", "5", "6"], settable=True)
+
+	# Settings:
+	timePerModifier = flx.FloatProp(get_attribute(chaosConfig, "modifier_time", 180.0), settable=True)
+	softmaxFactor = flx.IntProp(get_attribute(chaosConfig, "softmax_factor", 33), settable=True)
 	
 	ircHost = flx.StringProp(get_attribute(chaosConfig, "host", "irc.twitch.tv"), settable=True)
 	ircPort = flx.IntProp(get_attribute(chaosConfig, "port", 6667), settable=True)
@@ -87,6 +93,11 @@ class ChaosRelay(flx.Component):
 		for ev in events:
 			self.chaosConfig["modifier_time"]  = ev.new_value
 #			self.updateTimePerModifier(ev.new_value)
+			
+	@flx.reaction('softmaxFactor')
+	def on_softmaxFactor(self, *events):
+		for ev in events:
+			self.chaosConfig["softmax_factor"]  = ev.new_value
 			
 	@flx.reaction('paused')
 	def on_paused(self, *events):

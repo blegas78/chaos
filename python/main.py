@@ -40,7 +40,7 @@ import chaoscommunicator
 from flexx import flx, ui
 logging.basicConfig(level="INFO")
 
-
+import pprint
 
 
 class ChaosModel():
@@ -67,11 +67,31 @@ class ChaosModel():
 		now = datetime.now()
 		currentTime = now.strftime("%Y-%m-%d_%H:%M:%S")
 		self.votingLog = open("/home/pi/chaosLogs/votes-" + currentTime + ".log","a", buffering=1)
+		#self.modifierDataFile = open("/home/pi/chaosLogs/chaosModifierData.json","a", buffering=1)
+		
+		self.openDatabase("/home/pi/chaosLogs/chaosModifierData.json")
 		
 		self.pause = True
 #		relay.set_paused(True)
 #		self.chaosListener = ChaosListener()
 #		self.chaosListener.start()
+
+	def openDatabase(self, modifierDataFile):
+		self.modifierDataFile = modifierDataFile
+		try:
+			with open(modifierDataFile) as json_data_file:
+				self.modifierData = json.load(json_data_file)
+			logging.info("Successfully loaded modifier data from " + modifierDataFile)
+			self.validData = True
+		except Exception as e:
+			self.modifierData = { "1":{"desc":""}, "2":{"desc":""}, "3":{"desc":""}, "4":{"desc":""}, "5":{"desc":""}, "6":{"desc":""}}
+			self.validData = False
+			logging.info("Generating modifier data, " + modifierDataFile + " load error")
+		
+
+	def saveDatabase(self):
+		with open(self.modifierDataFile, 'w') as outfile:
+			json.dump(self.modifierData, outfile)
 
 	def start(self):
 		self.thread = threading.Thread(target=self.process)
@@ -95,14 +115,12 @@ class ChaosModel():
 		y = json.loads(message)
 
 		if "mods" in y:
-			#logging.info("Got new mods!")
-			oldModLength = len(self.allMods)	# HACK
-			#self.allMods = y["mods"]
-			if not oldModLength == len(y["mods"]):
-				self.newAllMods = y["mods"]
-				self.gotNewMods = True
+#			logging.info("Got new mods!")
+			#oldModLength = len(self.allMods)	# HACK
+			#if not oldModLength == len(y["mods"]):
+			self.newAllMods = y["mods"]
+			self.gotNewMods = True
 				#self.resetSoftMax()
-#			relay.set_allMods(y["mods"])
 		
 #		if "voteTime" in y:
 #			logging.info("Got new voteTime: " + str(y["voteTime"]))
@@ -131,12 +149,105 @@ class ChaosModel():
 		#print(f"Received reply [ {message} ]")
 		#self.allMods = message.decode("utf-8").split(',')
 	
+	def initializeData(self):
+		logging.info("Initializing modifierData")
+		self.modifierData = {}
+		for mod in self.modsFromControllerProgram:
+			modName = mod["name"]
+			self.modifierData[modName] = {}
+			self.modifierData[modName]["desc"] = mod["desc"]
+		self.resetSoftMax()
+	
 	def resetSoftMax(self):
-		self.winTracker = {}
+		logging.info("Resetting SoftMax!!!")
+#		self.modifierData = {}
+		for mod in self.modifierData:
+#			modName = mod["name"]
+#			self.modifierData[modName] = {}
+			self.modifierData[mod]["count"] = 0
+#			mod["contribution"] = math.exp(0)
+#			self.modifierData[modName]["desc"] = mod["desc"]
+			
+	def verifySoftmaxIntegrity(self):
+		if len(self.allMods) != len(self.modifierData):
+			self.initializeData()
+			return
 		for mod in self.allMods:
-			self.winTracker[mod] = {}
-			self.winTracker[mod]["count"] = 0
-			self.winTracker[mod]["contribution"] = math.exp(0)
+			if not mod in self.modifierData:
+				self.initializeData()
+				return
+#		logging.info("verifySoftmaxIntegrity() Passed")
+		
+		
+	def getSoftmaxDivisor(self, data):
+		# determine the sum for the softmax divisor:
+		softMaxDivisor = 0
+		for key in data:
+			softMaxDivisor += data[key]["contribution"]
+		return softMaxDivisor
+		
+	def updateSoftmaxProbabilities(self, data):
+		for mod in data:
+			data[mod]["contribution"] = math.exp(self.modifierData[mod]["count"] * math.log(float(relay.softmaxFactor)/100.0))
+		softMaxDivisor = self.getSoftmaxDivisor(data)
+		for mod in data:
+			data[mod]["p"] = data[mod]["contribution"]/softMaxDivisor
+			
+	def updateSoftMax(self, newMod):
+		if newMod in self.modifierData:
+			self.modifierData[newMod]["count"] += 1
+#			self.modifierData[newMod]["contribution"] = math.exp(self.modifierData[newMod]["count"] * -2.0)
+#			self.modifierData[newMod]["contribution"] = math.exp(self.modifierData[newMod]["count"] * math.log(float(relay.softmaxFactor)/100.0))
+				
+			# update all probabilities:
+#			softMaxDivisor = self.getSoftmaxDivisor(self.modifierData)
+#			for key in self.modifierData:
+#				self.modifierData[key]["p"] = self.modifierData[key]["contribution"]/softMaxDivisor
+			self.updateSoftmaxProbabilities(self.modifierData)
+			#print("Update Probs:")
+			#for key in self.modifierData:
+			#	print( key + ": " + str(100*self.modifierData[key]["p"]))
+			self.saveDatabase()
+		
+	def getNewVotingPool(self):
+		# Ignore currently active mods:
+		inactiveMods = set(np.setdiff1d(self.allMods, self.activeMods))
+				
+		self.currentMods = []
+		for k in range(self.totalVoteOptions):
+			# build a list of contributor for this selection:
+			votableTracker = {}
+			for mod in inactiveMods:
+#				try:
+				votableTracker[mod] = self.modifierData[mod]
+#				except Exception as e:
+#					logging.info(e)
+							
+			# Calculate the softmax probablities (must be done each time):
+#			softMaxDivisor = self.getSoftmaxDivisor(votableTracker)
+#			for mod in votableTracker:
+#				votableTracker[mod]["p"] = votableTracker[mod]["contribution"]/softMaxDivisor
+			self.updateSoftmaxProbabilities(votableTracker)
+			#print("Votables:")
+			# make a decision:
+			theChoice = np.random.uniform(0,1)
+			selectionTracker = 0
+			#print("Choice: " + str(theChoice))
+			for mod in votableTracker:
+				selectionTracker += votableTracker[mod]["p"]
+				#print("Checking " + str(selectionTracker) + ">" + str(theChoice))
+				if selectionTracker > theChoice:
+					#print("Using mod: " + mod)
+					self.currentMods.append(mod)
+					inactiveMods.remove(mod)	#remove this to prevent a repeat
+					break
+		logging.info("New Voting Round:")
+		for mod in self.currentMods:
+			logging.info(" - %0.2f%% %s" % (self.modifierData[mod]["p"]*100.0, mod))
+		# Reset votes since there is a new voting pool
+		self.votes = [0.0] * self.totalVoteOptions
+        
+        
         
 	def selectWinningModifier(self):
 		if self.proportionalVoting:
@@ -192,9 +303,13 @@ class ChaosModel():
 		# allMods will be set by thte C program
 		#self.allMods = ["1", "2", "3", "4", "5", "6"]
 		#self.allMods = relay.allMods
-		self.allModsDb = [{"name":"1","desc":""},{"name":"2","desc":""},{"name":"3","desc":""},{"name":"4","desc":""},{"name":"5","desc":""},{"name":"6","desc":""}]
-		self.allMods = [x["name"] for x in self.allModsDb]
-		self.resetSoftMax()
+#		self.modsFromControllerProgram = [{"name":"1","desc":""},{"name":"2","desc":""},{"name":"3","desc":""},{"name":"4","desc":""},{"name":"5","desc":""},{"name":"6","desc":""}]
+#		self.allMods = [x["name"] for x in self.modsFromControllerProgram]
+		self.allMods = list(self.modifierData.keys())
+#		pprint.pprint([x["name"] for x in self.modsFromControllerProgram])
+#		pprint.pprint(self.allMods)
+#		self.resetSoftMax()
+		self.verifySoftmaxIntegrity()
 		
 		#self.allMods = [ "No Run/Dodge", "Disable Crouch/Prone", "Drunk Control"]
 		self.currentMods = random.sample(self.allMods, k=self.totalVoteOptions)
@@ -257,6 +372,14 @@ class ChaosModel():
 				self.voteTime = self.timePerVote+1
 				self.firstTime = False
 			
+			if relay.resetSoftmax:
+				try:
+					relay.set_resetSoftmax(False)
+					self.resetSoftMax()
+				except Exception as e:
+					logging.info(e)
+					
+			
 			if self.voteTime >= self.timePerVote:
 				beginTime = now
 				
@@ -266,31 +389,43 @@ class ChaosModel():
 				self.applyNewMod( newMod )
 				if self.gotNewMods:
 					self.gotNewMods = False
-					self.allModsDb = self.newAllMods
-					self.allMods = [x["name"] for x in self.allModsDb]
+					self.modsFromControllerProgram = self.newAllMods
+					self.allMods = [x["name"] for x in self.modsFromControllerProgram]
 #					while True:
 #						try:
 #							relay.set_allMods(self.allMods)
 #							break
 #						except Exception as e:
 #							logging.info(e)
-					self.resetSoftMax()
+#					self.resetSoftMax()
+					
+					self.verifySoftmaxIntegrity()
+					self.validData = True
+#					self.allMods = list(self.modifierData.keys())
 #				self.allMods = relay.allMods
 
+				if not self.validData:
+					logging.info("Waiting for controller sync...")
+					continue
 				
-				# update softmax
-				if newMod in self.winTracker:
-					self.winTracker[newMod]["count"] += 1
-					self.winTracker[newMod]["contribution"] = math.exp(self.winTracker[newMod]["count"] * -2.0)
-					softMaxDivisor = 0
-					for key in self.winTracker:
-						softMaxDivisor += self.winTracker[key]["contribution"]
-					for key in self.winTracker:
-						self.winTracker[key]["probablity"] = self.winTracker[key]["contribution"]/softMaxDivisor
-					#print("Update Probs:")
-					#for key in self.winTracker:
-					#	print( key + ": " + str(100*self.winTracker[key]["probablity"]))
-				
+#				# update softmax
+#				if newMod in self.modifierData:
+#					self.modifierData[newMod]["count"] += 1
+##					self.modifierData[newMod]["contribution"] = math.exp(self.modifierData[newMod]["count"] * -2.0)
+#					self.modifierData[newMod]["contribution"] = math.exp(self.modifierData[newMod]["count"] * math.log(float(relay.softmaxFactor)/100.0))
+#					softMaxDivisor = 0
+#					for key in self.modifierData:
+#						softMaxDivisor += self.modifierData[key]["contribution"]
+#					for key in self.modifierData:
+#						self.modifierData[key]["p"] = self.modifierData[key]["contribution"]/softMaxDivisor
+#					#print("Update Probs:")
+#					#for key in self.modifierData:
+#					#	print( key + ": " + str(100*self.modifierData[key]["p"]))
+				try:
+					self.updateSoftMax(newMod)
+				except Exception as e:
+					logging.info(e)
+					continue
 				
 				logString = ""
 				for j in range(self.totalVoteOptions):
@@ -299,44 +434,44 @@ class ChaosModel():
 				self.votingLog.write(logString)
 				
 				# Update view:
-						
 				if not (newMod.isdigit() and 0 < int(newMod) and int(newMod) < 7):
 					finishedModIndex = self.activeModTimes.index(min(self.activeModTimes))
 					self.activeMods[finishedModIndex] = newMod
 					self.activeModTimes[finishedModIndex] = 1.0
 				
-				# Select new mods
-				inactiveMods = set(np.setdiff1d(self.allMods, self.activeMods))
-				
-				self.currentMods = []
-				for k in range(self.totalVoteOptions):
-					# build a list of contributor for this sleection:
-					votableTracker = {}
-					for mod in inactiveMods:
-#						try:
-						votableTracker[mod] = self.winTracker[mod]
-#						except Exception as e:
-#							logging.info(e)
-							
-					# Calculate the softmax probablities:
-					softMaxDivisor = 0
-					for mod in votableTracker:
-						softMaxDivisor += votableTracker[mod]["contribution"]
-					for mod in votableTracker:
-						votableTracker[mod]["probablity"] = votableTracker[mod]["contribution"]/softMaxDivisor
-					#print("Votables:")
-					# make a decision:
-					theChoice = np.random.uniform(0,1)
-					selectionTracker = 0
-					#print("Choice: " + str(theChoice))
-					for mod in votableTracker:
-						selectionTracker += votableTracker[mod]["probablity"]
-						#print("Checking " + str(selectionTracker) + ">" + str(theChoice))
-						if selectionTracker > theChoice:
-							#print("Using mod: " + mod)
-							self.currentMods.append(mod)
-							inactiveMods.remove(mod)	#remove this to prevent a repeat
-							break
+#				# Select new mods
+#				inactiveMods = set(np.setdiff1d(self.allMods, self.activeMods))
+#
+#				self.currentMods = []
+#				for k in range(self.totalVoteOptions):
+#					# build a list of contributor for this selection:
+#					votableTracker = {}
+#					for mod in inactiveMods:
+##						try:
+#						votableTracker[mod] = self.modifierData[mod]
+##						except Exception as e:
+##							logging.info(e)
+#
+#					# Calculate the softmax probablities:
+#					softMaxDivisor = 0
+#					for mod in votableTracker:
+#						softMaxDivisor += votableTracker[mod]["contribution"]
+#					for mod in votableTracker:
+#						votableTracker[mod]["p"] = votableTracker[mod]["contribution"]/softMaxDivisor
+#					#print("Votables:")
+#					# make a decision:
+#					theChoice = np.random.uniform(0,1)
+#					selectionTracker = 0
+#					#print("Choice: " + str(theChoice))
+#					for mod in votableTracker:
+#						selectionTracker += votableTracker[mod]["p"]
+#						#print("Checking " + str(selectionTracker) + ">" + str(theChoice))
+#						if selectionTracker > theChoice:
+#							#print("Using mod: " + mod)
+#							self.currentMods.append(mod)
+#							inactiveMods.remove(mod)	#remove this to prevent a repeat
+#							break
+				self.getNewVotingPool()
 					
 				#self.currentMods = random.sample(inactiveMods, k=self.totalVoteOptions)
 				#relay.newMods(self.currentMods, self.activeMods)
@@ -346,8 +481,8 @@ class ChaosModel():
 				except Exception as e:
 					logging.info(e)
 				
-				# Reset votes
-				self.votes = [0.0] * self.totalVoteOptions
+#				# Reset votes
+#				self.votes = [0.0] * self.totalVoteOptions
 				#relay.newVotes(self.votes)
 				try:
 					relay.set_votes( self.votes )
@@ -403,12 +538,15 @@ class ChaosModel():
 						continue
 					argument = command[1]
 					message = "!mod: Unrecognized mod :("
-					for x in self.allModsDb:
-						if x["name"].lower() == argument.lower():
-							if x["desc"] == "":
-								message = "!mod " + x["name"] + ": No Description :("
+#					for x in self.modsFromControllerProgram:
+#						if x["name"].lower() == argument.lower():
+					for key in self.modifierData.keys():
+						if key.lower() == argument.lower():
+							mod = self.modifierData[key]
+							if mod["desc"] == "":
+								message = "!mod " + key + ": No Description :("
 							else:
-								message = "!mod " + x["name"] + ": " + x["desc"]
+								message = "!mod " + key + ": " + mod["desc"]
 							break
 					message += " @" + notice["user"]
 					self.chatbot.sendReply( message );
