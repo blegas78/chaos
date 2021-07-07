@@ -12,6 +12,7 @@ import asyncio
 import logging
 import random
 import json
+import copy
 from datetime import datetime
 import math
 
@@ -46,23 +47,15 @@ import pprint
 class ChaosModel():
 	def __init__(self, chatbot):
 		self.chatbot = chatbot
-		#self.parser = argparse.ArgumentParser()
-		#super(ImageScroller, self).__init__(*args, **kwargs)
-		#self.parser.add_argument("-s", "--size", help="Scale of twitch emotes, 1,2, or 3", default="1")
-		#self.parser.add_argument("-g", "--reward", help="Whether to display messages or emotes on gift (1 or 0)", default=False)
 		
 		self.context = zmq.Context()
 		self.firstTime = True
 
 		#  Socket to talk to server
-		print("Connecting to chaos: c++ based server…")
+		logging.info("Connecting to chaos: c++ based server…")
 		self.chaosCommunicator = chaoscommunicator.ChaosCommunicator()
 		self.chaosCommunicator.attach(self)
 		self.chaosCommunicator.start()
-		
-		
-#		self.socket = self.context.socket(zmq.REQ)
-#		self.socket.connect("tcp://localhost:5555")
 		
 		now = datetime.now()
 		currentTime = now.strftime("%Y-%m-%d_%H:%M:%S")
@@ -73,8 +66,6 @@ class ChaosModel():
 		
 		self.pause = True
 #		relay.set_paused(True)
-#		self.chaosListener = ChaosListener()
-#		self.chaosListener.start()
 
 	def openDatabase(self, modifierDataFile):
 		self.modifierDataFile = modifierDataFile
@@ -129,25 +120,14 @@ class ChaosModel():
 		if "pause" in y:
 			logging.info("Got a pause command of: " + str(y["pause"]))
 			self.pause = y["pause"]
-#			try:
-#				relay.set_paused(y["pause"])
-#			except Exception as e:
-#				logging.info(e)
 				
 		
 	def applyNewMod(self, mod):
 #		print("Winning mod: " + mod)
-		#self.socket.send(mod)
 		toSend = {}
 		toSend["winner"] = mod
 		toSend["timePerModifier"] = relay.timePerModifier
-#		message = self.chaosCommunicator.sendMessage(mod)
 		message = self.chaosCommunicator.sendMessage(json.dumps(toSend))
-#		self.socket.send_string(mod)
-#		    #  Get the reply.
-#		message = self.socket.recv()
-		#print(f"Received reply [ {message} ]")
-		#self.allMods = message.decode("utf-8").split(',')
 	
 	def initializeData(self):
 		logging.info("Initializing modifierData")
@@ -159,14 +139,9 @@ class ChaosModel():
 		self.resetSoftMax()
 	
 	def resetSoftMax(self):
-		logging.info("Resetting SoftMax!!!")
-#		self.modifierData = {}
+		logging.info("Resetting SoftMax!")
 		for mod in self.modifierData:
-#			modName = mod["name"]
-#			self.modifierData[modName] = {}
 			self.modifierData[mod]["count"] = 0
-#			mod["contribution"] = math.exp(0)
-#			self.modifierData[modName]["desc"] = mod["desc"]
 			
 	def verifySoftmaxIntegrity(self):
 		if len(self.allMods) != len(self.modifierData):
@@ -196,17 +171,9 @@ class ChaosModel():
 	def updateSoftMax(self, newMod):
 		if newMod in self.modifierData:
 			self.modifierData[newMod]["count"] += 1
-#			self.modifierData[newMod]["contribution"] = math.exp(self.modifierData[newMod]["count"] * -2.0)
-#			self.modifierData[newMod]["contribution"] = math.exp(self.modifierData[newMod]["count"] * math.log(float(relay.softmaxFactor)/100.0))
 				
 			# update all probabilities:
-#			softMaxDivisor = self.getSoftmaxDivisor(self.modifierData)
-#			for key in self.modifierData:
-#				self.modifierData[key]["p"] = self.modifierData[key]["contribution"]/softMaxDivisor
 			self.updateSoftmaxProbabilities(self.modifierData)
-			#print("Update Probs:")
-			#for key in self.modifierData:
-			#	print( key + ": " + str(100*self.modifierData[key]["p"]))
 			self.saveDatabase()
 		
 	def getNewVotingPool(self):
@@ -219,7 +186,7 @@ class ChaosModel():
 			votableTracker = {}
 			for mod in inactiveMods:
 #				try:
-				votableTracker[mod] = self.modifierData[mod]
+				votableTracker[mod] = copy.deepcopy(self.modifierData[mod])
 #				except Exception as e:
 #					logging.info(e)
 							
@@ -278,6 +245,19 @@ class ChaosModel():
 		self.chatbot.setBotCredentials(relay.bot_name, relay.bot_oauth)
 		self.chatbot.setIrcInfo(relay.ircHost, relay.ircPort)
 
+	def flashPause(self):
+		if self.pausedFlashingTimer > 0.5 and relay.pausedBrightBackground == True:
+			try:
+				relay.set_pausedBrightBackground(False)
+			except Exception as e:
+				logging.info(e)
+		elif self.pausedFlashingTimer > 1.0 and relay.pausedBrightBackground == False:
+			try:
+				relay.set_pausedBrightBackground(True)
+				self.pausedFlashingTimer = 0.0
+			except Exception as e:
+				logging.info(e)
+	
 	
 	def _loop(self):
 		beginTime = time.time() #0.0
@@ -301,27 +281,12 @@ class ChaosModel():
 		self.proportionalVoting = True
 		
 		# allMods will be set by thte C program
-		#self.allMods = ["1", "2", "3", "4", "5", "6"]
-		#self.allMods = relay.allMods
-#		self.modsFromControllerProgram = [{"name":"1","desc":""},{"name":"2","desc":""},{"name":"3","desc":""},{"name":"4","desc":""},{"name":"5","desc":""},{"name":"6","desc":""}]
-#		self.allMods = [x["name"] for x in self.modsFromControllerProgram]
 		self.allMods = list(self.modifierData.keys())
-#		pprint.pprint([x["name"] for x in self.modsFromControllerProgram])
-#		pprint.pprint(self.allMods)
-#		self.resetSoftMax()
 		self.verifySoftmaxIntegrity()
 		
 		#self.allMods = [ "No Run/Dodge", "Disable Crouch/Prone", "Drunk Control"]
 		self.currentMods = random.sample(self.allMods, k=self.totalVoteOptions)
 
-		
-		#relay.newMods(self.currentMods, self.activeMods)
-		try:
-			relay.set_mods( self.currentMods )
-			relay.set_activeMods( self.activeMods )
-		except Exception as e:
-			logging.info(e)
-					
 		self.pausedFlashingTimer = 0.0
 		self.pausedFlashingToggle = True
 		while True:
@@ -329,7 +294,6 @@ class ChaosModel():
 			time.sleep(1.0/relay.ui_rate)
 			priorTime = now
 			now = time.time()
-			self.voteTime =  now - beginTime
 			dTime = now - priorTime
 			self.pausedFlashingTimer += dTime
 			
@@ -344,19 +308,10 @@ class ChaosModel():
 			if self.pause:	# hack implementation of pausing
 				beginTime += dTime
 				dTime = 0
-				if self.pausedFlashingTimer > 0.5 and relay.pausedBrightBackground == True:
-					try:
-						relay.set_pausedBrightBackground(False)
-					except Exception as e:
-						logging.info(e)
-				elif self.pausedFlashingTimer > 1.0 and relay.pausedBrightBackground == False:
-					try:
-						relay.set_pausedBrightBackground(True)
-						self.pausedFlashingTimer = 0.0
-					except Exception as e:
-						logging.info(e)
-					
-#				continue
+				self.flashPause()
+							
+			self.voteTime =  now - beginTime
+				
 			
 			if not self.timePerVote == (relay.timePerModifier/3.0 - 0.5):
 				self.timePerVote = relay.timePerModifier/3.0 - 0.5
@@ -391,36 +346,14 @@ class ChaosModel():
 					self.gotNewMods = False
 					self.modsFromControllerProgram = self.newAllMods
 					self.allMods = [x["name"] for x in self.modsFromControllerProgram]
-#					while True:
-#						try:
-#							relay.set_allMods(self.allMods)
-#							break
-#						except Exception as e:
-#							logging.info(e)
-#					self.resetSoftMax()
 					
 					self.verifySoftmaxIntegrity()
 					self.validData = True
-#					self.allMods = list(self.modifierData.keys())
-#				self.allMods = relay.allMods
 
 				if not self.validData:
 					logging.info("Waiting for controller sync...")
 					continue
 				
-#				# update softmax
-#				if newMod in self.modifierData:
-#					self.modifierData[newMod]["count"] += 1
-##					self.modifierData[newMod]["contribution"] = math.exp(self.modifierData[newMod]["count"] * -2.0)
-#					self.modifierData[newMod]["contribution"] = math.exp(self.modifierData[newMod]["count"] * math.log(float(relay.softmaxFactor)/100.0))
-#					softMaxDivisor = 0
-#					for key in self.modifierData:
-#						softMaxDivisor += self.modifierData[key]["contribution"]
-#					for key in self.modifierData:
-#						self.modifierData[key]["p"] = self.modifierData[key]["contribution"]/softMaxDivisor
-#					#print("Update Probs:")
-#					#for key in self.modifierData:
-#					#	print( key + ": " + str(100*self.modifierData[key]["p"]))
 				try:
 					self.updateSoftMax(newMod)
 				except Exception as e:
@@ -439,126 +372,75 @@ class ChaosModel():
 					self.activeMods[finishedModIndex] = newMod
 					self.activeModTimes[finishedModIndex] = 1.0
 				
-#				# Select new mods
-#				inactiveMods = set(np.setdiff1d(self.allMods, self.activeMods))
-#
-#				self.currentMods = []
-#				for k in range(self.totalVoteOptions):
-#					# build a list of contributor for this selection:
-#					votableTracker = {}
-#					for mod in inactiveMods:
-##						try:
-#						votableTracker[mod] = self.modifierData[mod]
-##						except Exception as e:
-##							logging.info(e)
-#
-#					# Calculate the softmax probablities:
-#					softMaxDivisor = 0
-#					for mod in votableTracker:
-#						softMaxDivisor += votableTracker[mod]["contribution"]
-#					for mod in votableTracker:
-#						votableTracker[mod]["p"] = votableTracker[mod]["contribution"]/softMaxDivisor
-#					#print("Votables:")
-#					# make a decision:
-#					theChoice = np.random.uniform(0,1)
-#					selectionTracker = 0
-#					#print("Choice: " + str(theChoice))
-#					for mod in votableTracker:
-#						selectionTracker += votableTracker[mod]["p"]
-#						#print("Checking " + str(selectionTracker) + ">" + str(theChoice))
-#						if selectionTracker > theChoice:
-#							#print("Using mod: " + mod)
-#							self.currentMods.append(mod)
-#							inactiveMods.remove(mod)	#remove this to prevent a repeat
-#							break
 				self.getNewVotingPool()
-					
-				#self.currentMods = random.sample(inactiveMods, k=self.totalVoteOptions)
-				#relay.newMods(self.currentMods, self.activeMods)
-				try:
-					relay.set_mods( self.currentMods )
-					relay.set_activeMods( self.activeMods )
-				except Exception as e:
-					logging.info(e)
-				
-#				# Reset votes
-#				self.votes = [0.0] * self.totalVoteOptions
-				#relay.newVotes(self.votes)
-				try:
-					relay.set_votes( self.votes )
-				except Exception as e:
-					logging.info(e)
 					
 				self.votedUsers = []
 			
-			
-			#relay.newTime( self.voteTime/self.timePerVote, self.activeModTimes )
-			timeToSend = self.voteTime/self.timePerVote
-			
-			try:
-				relay.set_voteTime( timeToSend )
-				relay.set_modTimes( self.activeModTimes )
-			except Exception as e:
-				logging.info(e)
-				
-			#if q.qsize() > 0:
-			needToUpdateVotes = False
-#			while q.qsize() > 0:
-			while chatbot.messageQueue.qsize() > 0:
-				# q.empty(), q.get(), q.qsize()
-#				notice = q.get();
-				notice = chatbot.messageQueue.get();
-					
-				message = notice["message"]
-				if message.isdigit():
-					messageAsInt = int(message) - 1
-					if messageAsInt >= 0 and messageAsInt < self.totalVoteOptions and not notice["user"] in self.votedUsers:
-						self.votedUsers.append(notice["user"])
-						self.votes[messageAsInt] += 1
-						needToUpdateVotes = True
-						continue
-								
-				command = message.split(" ",1)
-				firstWord = command[0]
-				if firstWord == "!mods":
-#					response = str(str(self.allMods) + " @" + notice["user"]).replace('\'', '').replace('[','').replace(']','')
-#					splitMessage = [response[i:i+484] for i in range(0, len(response), 484)]
-#					print("number of elements in splitMessage: " + str(len(splitMessage)))
-#					for message in splitMessage:
-#						#response =	"!mods: " + message
-#
-#						qResponse.put( "!mods: " + message );
-					self.chatbot.sendReply( "!mods: There are currently " + str(len(self.allMods)) + " modifiers!  See them all with descriptions here: https://github.com/blegas78/chaos/tree/main/docs/TLOU2 @" + notice["user"] );
-					continue
-							
-				if firstWord == "!mod":
-					if len(command) == 1:
-						message = "Usage: !mod <mod name>"
-						self.chatbot.sendReply( message );
-						continue
-					argument = command[1]
-					message = "!mod: Unrecognized mod :("
-#					for x in self.modsFromControllerProgram:
-#						if x["name"].lower() == argument.lower():
-					for key in self.modifierData.keys():
-						if key.lower() == argument.lower():
-							mod = self.modifierData[key]
-							if mod["desc"] == "":
-								message = "!mod " + key + ": No Description :("
-							else:
-								message = "!mod " + key + ": " + mod["desc"]
-							break
-					message += " @" + notice["user"]
-					self.chatbot.sendReply( message );
-				
-			if needToUpdateVotes:
-				#relay.newVotes(self.votes)
-				try:
-					relay.set_votes( self.votes )
-								
-				except Exception as e:
-					logging.info(e)
+			self.timeToSend = self.voteTime/self.timePerVote
 
+			self.checkMessages()
+			self.updateUI()
+	
+	def updateUI(self):
+		try:
+			relay.set_mods( self.currentMods )
+			relay.set_activeMods( self.activeMods )
+		except Exception as e:
+			logging.info(e)
+		try:
+			relay.set_votes( self.votes )
+		except Exception as e:
+			logging.info(e)
+		try:
+			relay.set_voteTime( self.timeToSend )
+			relay.set_modTimes( self.activeModTimes )
+		except Exception as e:
+			logging.info(e)
+		
+			
+	def checkMessages(self):
+		#if q.qsize() > 0:
+		needToUpdateVotes = False
+#		while q.qsize() > 0:
+		while self.chatbot.messageQueue.qsize() > 0:
+			# q.empty(), q.get(), q.qsize()
+#			notice = q.get();
+			notice = self.chatbot.messageQueue.get();
+					
+			message = notice["message"]
+			if message.isdigit():
+				messageAsInt = int(message) - 1
+				if messageAsInt >= 0 and messageAsInt < self.totalVoteOptions and not notice["user"] in self.votedUsers:
+					self.votedUsers.append(notice["user"])
+					self.votes[messageAsInt] += 1
+					needToUpdateVotes = True
+					continue
+								
+			command = message.split(" ",1)
+			firstWord = command[0]
+			if firstWord == "!mods":
+				self.chatbot.sendReply( "!mods: There are currently " + str(len(self.allMods)) + " modifiers!  See them all with descriptions here: https://github.com/blegas78/chaos/tree/main/docs/TLOU2 @" + notice["user"] );
+				continue
+							
+			if firstWord == "!mod":
+				if len(command) == 1:
+					message = "Usage: !mod <mod name>"
+					self.chatbot.sendReply( message );
+					continue
+				argument = command[1]
+				message = "!mod: Unrecognized mod :("
+				
+				for key in self.modifierData.keys():
+					if key.lower() == argument.lower():
+						mod = self.modifierData[key]
+						if mod["desc"] == "":
+							message = "!mod " + key + ": No Description :("
+						else:
+							message = "!mod " + key + ": " + mod["desc"]
+						break
+				message += " @" + notice["user"]
+				self.chatbot.sendReply( message );
+				
 
 #  This is how Flexx API states that data passing should work
 relay = chaosRelay.ChaosRelay()
@@ -687,11 +569,8 @@ class Interface(flx.PyWidget):
 		
 def startFlexx():
 	flx.App(ActiveMods, relay).serve()
-#	flx.App(StreamerInterface, relay).serve()
 	flx.App(VoteTimer, relay).serve()
 	flx.App(Votes, relay).serve()
-#	flx.App(BotSetup, relay).serve()
-#	flx.App(Settings, relay).serve()
 	flx.App(Interface, relay).serve()
 #	flx.App(GamepadServer).serve()
 	
@@ -702,11 +581,7 @@ if __name__ == "__main__":
 	# for chat
 	chatbot = chatbot.Chatbot()
 	chatbot.setIrcInfo(relay.ircHost, relay.ircPort)
-	
 	chatbot.start()
-	
-#	chaosListener = ChaosListener()
-#	chaosListener.start()
 	
 	#startFlexx()
 	flexxThread = threading.Thread(target=startFlexx)
@@ -717,13 +592,6 @@ if __name__ == "__main__":
 #	chaosModel.start()
 	if (not chaosModel.process()):
 			chaosModel.print_help()
-
-#	while True:
-#		chatbot.setChatRate(relay.chat_rate)
-#		chatbot.setChannelName(relay.channel_name)
-#		chatbot.setBotCredentials(relay.bot_name, relay.bot_oauth)
-#		chatbot.setIrcInfo(relay.chaosConfig["host"], relay.chaosConfig["port"])
-#		time.sleep(0.5)
 			
 	logging.info("Stopping threads...")
 	
