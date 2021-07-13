@@ -27,6 +27,8 @@ class ChaosRelay(flx.Component):
 	activeMods = flx.ListProp(["","",""], settable=True)
 	paused = flx.BoolProp(True, settable=True)
 	pausedBrightBackground = flx.BoolProp(True, settable=True)
+	connected = flx.BoolProp(True, settable=True)
+	connectedBrightBackground = flx.BoolProp(True, settable=True)
 	resetSoftmax = flx.BoolProp(False, settable=True)
 	
 	tmiResponse = flx.StringProp("", settable=True)
@@ -111,6 +113,16 @@ class ChaosRelay(flx.Component):
 		for ev in events:
 			self.updatePausedBrightBackground(ev.new_value)
 			
+	@flx.reaction('connected')
+	def on_connected(self, *events):
+		for ev in events:
+			self.updateConnected(ev.new_value)
+			
+	@flx.reaction('connectedBrightBackground')
+	def on_connectedBrightBackground(self, *events):
+		for ev in events:
+			self.updateConnectedBrightBackground(ev.new_value)
+			
 			
 	@flx.reaction('tmiResponse')
 	def on_tmiResponse(self, *events):
@@ -191,6 +203,14 @@ class ChaosRelay(flx.Component):
 		
 	@flx.emitter
 	def updatePausedBrightBackground(self, value):
+		return dict(value=value)
+		
+	@flx.emitter
+	def updateConnected(self, value):
+		return dict(value=value)
+		
+	@flx.emitter
+	def updateConnectedBrightBackground(self, value):
 		return dict(value=value)
 		
 	@flx.emitter

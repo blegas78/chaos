@@ -83,6 +83,8 @@ def responseToDictionary(response):
 
 	prefix = ""
 	command = response
+	arguments = ''
+	
 	if command[0] == ':':
 		splitResponse = command.split(" ", 2)
 		prefix = splitResponse[0]
@@ -92,6 +94,9 @@ def responseToDictionary(response):
 	commandArguments = []
 	i = 0
 	while True:
+		if len(arguments) == 0:
+			break
+			
 		if arguments[0] == ':':
 			notice["message"] = arguments.split(':', 1)[1]
 			break
@@ -104,9 +109,15 @@ def responseToDictionary(response):
 		arguments = splitargs[1]
 		i = i + 1
 
-	notice["command"] = command
-	notice["args"] = commandArguments
-	notice["user"] = re.search(r"\w+", prefix).group(0)
+	try:
+		notice["command"] = command
+		notice["args"] = commandArguments
+		if len(prefix) > 0:
+			notice["user"] = re.search(r"\w+", prefix).group(0)
+		else:
+			notice["user"] = ""
+	except Exception as e:
+		logging.info("Parsing error for response:" + str(response))
 	#message = CHAT_MSG.sub("", response)
 	#logging.info("Chat " + notice["user"] + ":" + notice["message"])
 	#if username == "tmi" or username == "see_bot":
