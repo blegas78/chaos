@@ -35,3 +35,6 @@ __pycache__
 *.exe
 *.out
 *.app
+
+# Emacs backup files
+*~

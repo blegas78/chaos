@@ -16,7 +16,6 @@ include_directories( zmqpp/src )
 add_subdirectory(usb-sniffify)
 include_directories( usb-sniffify/include )
 
-
 include_directories( include )
 
 add_library( chaos-engine src/interface.cpp
@@ -36,7 +35,6 @@ add_library( chaos-engine src/interface.cpp
 						include/modifier.h
 						src/sequence.cpp
 						include/sequence.h
-#						src/menuing.cpp
 						src/chaos-uhid.cpp
 						include/interface.h
 						include/device.h
@@ -51,11 +49,10 @@ add_library( chaos-engine src/interface.cpp
 
 set(LIBS ${LIBS} chaos-engine sniffify)
 
-#add_executable( chaos	src/main.cpp )
 add_executable( passthrough-hid	src/passthroughHID.cpp )
 
-add_executable( hid-example src/hid-example.c )
-add_executable( gadget src/gadget.c )
+#add_executable( hid-example src/hid-example.c )
+#add_executable( gadget src/gadget.c )
 
 find_package (Threads REQUIRED)
 
@@ -63,28 +60,16 @@ find_package (LibJsoncpp REQUIRED)
 include_directories(${LIBJSONCPP_INCLUDE_DIRS})
 set(LIBS ${LIBS} jsoncpp)
 
-#find_package (LibMogi REQUIRED)
-#include_directories(${LIBMOGI_INCLUDE_DIRS})
-#set(LIBS ${LIBS} ${LIBMOGI_LIBRARIES})
 set(LIBS ${LIBS} pthread mogi)
 
 find_package (Libusb1 REQUIRED)
 include_directories(${LIBUSB1_INCLUDE_DIRS})
 set(LIBS ${LIBS} ${LIBUSB1_LIBRARIES})
 
-#set(LIBS ${LIBS} pthread )
-
 if( NOT APPLE )
-	#set(LIBS ${LIBS} wiringPi crypt rt )
 	set(LIBS ${LIBS} crypt rt )
 endif()
 
-#target_link_libraries( chaos ${LIBS} zmqpp zmq )
 target_link_libraries( passthrough-hid ${LIBS} zmqpp zmq )
 						
-#add_executable( zmq_client src/zmq_client.cpp )
-#add_executable( zmq_server src/zmq_server.cpp )
-#target_link_libraries( zmq_client zmqpp zmq )
-#target_link_libraries( zmq_server zmqpp zmq )
-
-add_subdirectory(examples)
+add_subdirectory(games)
