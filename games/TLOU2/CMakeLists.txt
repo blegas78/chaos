@@ -9,5 +9,5 @@ add_executable( tlou2	src/main.cpp
 
 target_link_libraries( tlou2 ${LIBS} zmqpp zmq )
 
-
+install(TARGETS tlou2 DESTINATION bin)
 

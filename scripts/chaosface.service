@@ -4,9 +4,9 @@ After=network.target
 
 [Service]
 Type=simple
-Restart=always
+Restart=on-abnormal
 RestartSec=2
-ExecStart=/usr/bin/python3 /home/pi/chaos/python/main.py
+ExecStart=/usr/bin/python3 /usr/local/bin/chaos/main.py
 #User=pi
 
 [Install]

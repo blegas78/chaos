@@ -4,9 +4,9 @@ After=network.target
 
 [Service]
 Type=simple
-Restart=always
+Restart=on-abnormal
 RestartSec=1
-ExecStart=/bin/bash /home/pi/chaos/start.sh
+ExecStart=/bin/bash /usr/local/bin/chaos/start.sh
 
 [Install]
 WantedBy=multi-user.target
