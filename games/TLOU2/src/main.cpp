@@ -3068,6 +3068,15 @@ public:
 		}
 	}
 	
+	void finish() {
+		if( state != DOUBLE_TAP_IDLE ) {
+			DeviceEvent fakeEvent = {0, 0, TYPE_BUTTON, BUTTON_R2};
+			dualshock->applyEvent(&fakeEvent);
+			fakeEvent = {0, JOYSTICK_MIN, TYPE_AXIS, AXIS_R2};
+			dualshock->applyEvent(&fakeEvent);
+		}
+	}
+	
 	bool tweak( DeviceEvent* event ) {
 		
 		if (event->type == TYPE_BUTTON &&
@@ -3160,7 +3169,7 @@ public:
 		sequence.addAxisPress(AXIS_DY, 1);
 		//		sequence.addTimeDelay(1000);
 		//		sequence.addButtonHold(BUTTON_L2);
-		sequence.addTimeDelay(2500);
+		sequence.addTimeDelay(3000);
 		sequence.addButtonHold(BUTTON_R2);
 		sequence.addAxisHold(AXIS_R2, JOYSTICK_MAX);
 		sequence.addTimeDelay(500);
@@ -3267,7 +3276,7 @@ public:
 		sequence.disablejoysticks();
 		sequence.addAxisPress(AXIS_DY, -1);
 		sequence.addAxisPress(AXIS_DY, -1);
-		sequence.addTimeDelay(2000);
+		sequence.addTimeDelay(3000);
 		//		sequence.addButtonHold(BUTTON_L2);
 		//		sequence.addTimeDelay(1000);
 		sequence.addButtonHold(BUTTON_R2);
@@ -3375,8 +3384,8 @@ public:
 class ReducedEnemyAccuracy : public Chaos::Modifier {
 	bool busy;
 public:
-	static void regist() { Chaos::Modifier::factory["Reduced Enemy Accuracy"] = [](){return new ReducedEnemyAccuracy();}; };
-	const char* description() { return "Does not work on melee"; };
+	static void regist() { Chaos::Modifier::factory["Potato Enemies"] = [](){return new ReducedEnemyAccuracy();}; };
+	const char* description() { return "Does not work on melee.  Turns on Reduced Enemy Accuracy"; };
 	
 	void begin() {
 		busy = true;
@@ -3397,7 +3406,7 @@ class EnhancedDodge : public Chaos::Modifier {
 	bool busy;
 public:
 	static void regist() { Chaos::Modifier::factory["Enhanced Dodge"] = [](){return new EnhancedDodge();}; };
-	const char* description() { return "I wish I knew what this does (built-in)"; };
+	const char* description() { return "I wish I knew what this does (built-in option)"; };
 	
 	void begin() {
 		busy = true;
@@ -3586,8 +3595,8 @@ public:
 class TraversalAudioCues : public Chaos::Modifier {
 	bool busy;
 public:
-	static void regist() { Chaos::Modifier::factory["Traversal Audio Cues"] = [](){return new TraversalAudioCues();}; };
-	const char* description() { return "Add some music to climbable objects"; };
+	static void regist() { Chaos::Modifier::factory["Musical Traversal"] = [](){return new TraversalAudioCues();}; };
+	const char* description() { return "Add some music to climbable objects with Traversal Audio Cues"; };
 	
 	void begin() {
 		busy = true;
@@ -3607,8 +3616,8 @@ public:
 class CombatAudioCues : public Chaos::Modifier {
 	bool busy;
 public:
-	static void regist() { Chaos::Modifier::factory["Combat Audio Cues"] = [](){return new CombatAudioCues();}; };
-	const char* description() { return "Add some music to combat prompts"; };
+	static void regist() { Chaos::Modifier::factory["Musical Combat"] = [](){return new CombatAudioCues();}; };
+	const char* description() { return "Add some music to combat prompts with Combat Audio Cues"; };
 	
 	void begin() {
 		busy = true;
@@ -4584,6 +4593,7 @@ int main(int argc, char** argv) {
 	// Alternative Controls:
 	CameraAssist::regist();	// new
 	LockOnAim::regist();
+	ThrowableLockOnAim::regist();	// new
 	AutoPickUp::regist();
 
 	// Framerate (PS5 only)

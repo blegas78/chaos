@@ -31,6 +31,7 @@ import chaosPausedView
 import chaosVoteView
 import chaosConfigurationView
 import chaosSettingsView
+import chaosConnectionView
 
 import chaoscommunicator
 #import sys
@@ -212,7 +213,10 @@ class ChaosModel():
 					break
 		logging.info("New Voting Round:")
 		for mod in self.currentMods:
-			logging.info(" - %0.2f%% %s" % (self.modifierData[mod]["p"]*100.0, mod))
+			if "p" in self.modifierData[mod]:
+				logging.info(" - %0.2f%% %s" % (self.modifierData[mod]["p"]*100.0, mod))
+			else:
+				logging.info(" - %0.2f%% %s" % (0, mod))
 		# Reset votes since there is a new voting pool
 		self.votes = [0.0] * self.totalVoteOptions
         
@@ -259,6 +263,19 @@ class ChaosModel():
 				self.pausedFlashingTimer = 0.0
 			except Exception as e:
 				logging.info(e)
+				
+	def flashDisconnected(self):
+		if self.disconnectedFlashingTimer > 0.5 and relay.connectedBrightBackground == True:
+			try:
+				relay.set_connectedBrightBackground(False)
+			except Exception as e:
+				logging.info(e)
+		elif self.disconnectedFlashingTimer > 1.0 and relay.connectedBrightBackground == False:
+			try:
+				relay.set_connectedBrightBackground(True)
+				self.disconnectedFlashingTimer = 0.0
+			except Exception as e:
+				logging.info(e)
 	
 	
 	def _loop(self):
@@ -291,6 +308,9 @@ class ChaosModel():
 
 		self.pausedFlashingTimer = 0.0
 		self.pausedFlashingToggle = True
+		
+		self.disconnectedFlashingTimer = 0.0
+		self.disconnectedFlashingToggle = True
 		while True:
 #			time.sleep(1.0/self.rate)
 			time.sleep(1.0/relay.ui_rate)
@@ -298,6 +318,7 @@ class ChaosModel():
 			now = time.time()
 			dTime = now - priorTime
 			self.pausedFlashingTimer += dTime
+			self.disconnectedFlashingTimer += dTime
 			
 			self.updateChatCredentials()
 			
@@ -311,6 +332,18 @@ class ChaosModel():
 				beginTime += dTime
 				dTime = 0
 				self.flashPause()
+					
+
+			if not relay.connected == self.chatbot.isConnected():
+				try:
+					relay.set_connected(self.chatbot.isConnected())
+				except Exception as e:
+					logging.info(e)
+					
+			if not self.chatbot.isConnected():	# hack implementation of pausing
+#				beginTime += dTime
+#				dTime = 0
+				self.flashDisconnected()
 							
 			self.voteTime =  now - beginTime
 				
@@ -439,11 +472,14 @@ class ChaosModel():
 					message = "Usage: !mod <mod name>"
 					self.chatbot.sendReply( message );
 					continue
-				argument = command[1]
+#				argument = command[1]
+				argument = (''.join(c for c in command[1] if c.isalnum())).lower()
 				message = "!mod: Unrecognized mod :("
 				
 				for key in self.modifierData.keys():
-					if key.lower() == argument.lower():
+#					if key.lower() == argument.lower():
+					keyReduced = (''.join(c for c in key if c.isalnum())).lower()
+					if keyReduced == argument:
 						mod = self.modifierData[key]
 						if mod["desc"] == "":
 							message = "!mod " + key + ": No Description :("
@@ -490,6 +526,7 @@ class StreamerInterface(flx.PyWidget):
 		with StreamerInterfaceLayout() as self.s:
 			self.voteTimerView = chaosVoteTimerView.ChaosVoteTimerView(self)
 			self.chaosActiveView = chaosActiveView.ChaosActiveView(self)
+			self.chaosConnectionView = chaosConnectionView.ChaosConnectionView(self)
 			self.chaosPausedView = chaosPausedView.ChaosPausedView(self)
 			
 	@relay.reaction('updateVoteTime')
@@ -516,6 +553,16 @@ class StreamerInterface(flx.PyWidget):
 	def _updatePausedBrightBackground(self, *events):
 		for ev in events:
 			self.chaosPausedView.updatePausedBrightBackground(ev.value)
+			
+	@relay.reaction('updateConnected')
+	def _updateConnected(self, *events):
+		for ev in events:
+			self.chaosConnectionView.updateConnected(ev.value)
+			
+	@relay.reaction('updateConnectedBrightBackground')
+	def _updateConnectedBrightBackground(self, *events):
+		for ev in events:
+			self.chaosConnectionView.updateConnectedBrightBackground(ev.value)
 			
 
 class VoteTimer(flx.PyWidget):

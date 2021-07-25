@@ -16,8 +16,9 @@ class Chatbot():
 
 	def __init__(self):
 		self.connected = False
-		self.heartbeatPingPong = 0.0
-		self.heartbeatTimeout = 5
+		self.fullyConnected = False
+		self.heartbeatPingPong = 0
+		self.heartbeatTimeout = 1
 		self.reconfigured = True
 		
 		self.verbose = False
@@ -70,13 +71,16 @@ class Chatbot():
 		self.chatResponseThread.join()
 		self.chatThread.kill = True
 		self.chatThread.join()
+		
+	def isConnected(self):
+		return self.fullyConnected
 	
 	def _chatLoop(self):
 		
 		thread = threading.currentThread()
 
 		self.connected = False
-		heartbeatPingPong = 0.0
+#		heartbeatPingPong = 0
 #		heartbeatTimeout = 5
 		self.reconnectTimeFalloff = 0
 		self.reconfigured = False
@@ -86,13 +90,14 @@ class Chatbot():
 #			self.bot_name = relay.bot_name
 #			self.channel_name = relay.channel_name.lower()
 #			self.reconnectTimeFalloff = 0
+			self.fullyConnected = False
 			while not self.connected and not getattr(thread, "kill", False):
 				try:
 					logging.info("Chatbot: Waiting " + str(self.reconnectTimeFalloff) + " seconds before reconnection attempt")
 					time.sleep(self.reconnectTimeFalloff)
 					if self.reconnectTimeFalloff == 0:
 						self.reconnectTimeFalloff = 1
-					else:
+					elif self.reconnectTimeFalloff < 5:
 						self.reconnectTimeFalloff *= 2
 					
 					self.s = socket.socket()
@@ -102,13 +107,13 @@ class Chatbot():
 					
 					logging.info("Attempting to connect to " + self.channel_name + " as " + self.bot_name )
 
-					self.s.send("PASS {}\r\n".format( self.bot_oauth ).encode("utf-8"))
-					self.s.send("NICK {}\r\n".format( self.bot_name ).encode("utf-8"))
-					self.s.send("JOIN {}\r\n".format( self.channel_name ).encode("utf-8"))
+					self.s.sendall("PASS {}\r\n".format( self.bot_oauth ).encode("utf-8"))
+					self.s.sendall("NICK {}\r\n".format( self.bot_name ).encode("utf-8"))
+					self.s.sendall("JOIN {}\r\n".format( self.channel_name ).encode("utf-8"))
 
-					self.s.send("CAP REQ :twitch.tv/tags\r\n".encode("utf-8"))
-					self.s.send("CAP REQ :twitch.tv/commands\r\n".encode("utf-8"))
-					self.s.send("CAP REQ :twitch.tv/membership\r\n".encode("utf-8"))
+					self.s.sendall("CAP REQ :twitch.tv/tags\r\n".encode("utf-8"))
+					self.s.sendall("CAP REQ :twitch.tv/commands\r\n".encode("utf-8"))
+					self.s.sendall("CAP REQ :twitch.tv/membership\r\n".encode("utf-8"))
 					
 					
 
@@ -124,7 +129,7 @@ class Chatbot():
 			#self.chatResponseThread.start()
 		
 			#lastTime = 0;
-			self.heartbeatPingPong = 0.0
+			self.heartbeatPingPong = 0
 			self.waitingForWelcome = True
 			while self.connected and not getattr(thread, "kill", False):
 				time.sleep(1 / self.chat_rate)
@@ -140,22 +145,28 @@ class Chatbot():
 					self.reconnectTimeFalloff = 0
 					break
 				
-				self.heartbeatPingPong += (1.0 / self.chat_rate) #self.heartbeatTimeout
-				if self.heartbeatPingPong > (5.25*60):	# 5 minutes, 15 seconds
+				
+				if self.heartbeatPingPong >= 5:
+					logging.info("Pingpong failure, attempting to reconnect, message timeout = " + str(self.heartbeatPingPong))
 					self.connected = False
-					logging.info("Pingpong failure, attempting to reconnect, message timeout = " + str(self.heartbeatTimeout))
 					continue
 				
 				if self.s._closed:
 					logging.info("Socket is closed :(")
 					
 				response = ""
-				#try:
-#					count = self.s.send(b'a')
-				#	utility.chat(self.s, "test", self.channel_name);
-#					logging.info("Sent " + str(count) + " bytes")
-				#except Exception as e:
-				#	logging.info(str(e))
+				try:
+					if self.s.sendall("PING :tmi.twitch.tv\r\n".encode("utf-8")):
+						logging.info("Error sending a PING")
+					self.heartbeatPingPong += 1
+					#utility.chat(self.s, "test", self.channel_name);
+					if self.verbose:
+						logging.info("Sent PING")
+				except Exception as e:
+					logging.info("Error sending PING:")
+					self.connected = False
+					logging.info(str(e))
+					continue
 					
 				try:
 					response = self.s.recv(1024)
@@ -176,11 +187,17 @@ class Chatbot():
 				if self.verbose:
 					logging.info("Raw Response:" + response)
 					
-				if response == "PING :tmi.twitch.tv\r\n":
-					self.s.send("PONG :tmi.twitch.tv\r\n".encode("utf-8"))
-					logging.info("Pong")
-					self.heartbeatPingPong = 0.0
-					continue
+#				if response == "PING :tmi.twitch.tv\r\n":
+#					self.s.send("PONG :tmi.twitch.tv\r\n".encode("utf-8"))
+#					logging.info("Pong")
+#					self.heartbeatPingPong = 0.0
+#					continue
+					
+#				if response == "tmi.twitch.tv PONG tmi.twitch.tv :tmi.twitch.tv\r\n":
+##					self.s.send("PONG :tmi.twitch.tv\r\n".encode("utf-8"))
+#					logging.info("Pong recieved! Chat still connected!")
+#					self.heartbeatPingPong = 0.0
+#					continue
 					
 				if len(response) <= 0:
 					#logging.info("len(response) <= 0")
@@ -190,15 +207,15 @@ class Chatbot():
 					
 				try:
 					responses = response.split("\r\n")
-#					logging.info("# of Responses: " + str(len(responses)))
+#					logging.info("# of lines in Responses: " + str(len(responses)))
 					for response in responses:
-						self.handleChatLine(response)
+						self.handleResponseLine(response)
 
 				except Exception as e:
 					logging.info(str(e))
 					continue
 						
-	def handleChatLine(self, line):
+	def handleResponseLine(self, line):
 		#giftMessage = irc.getRewardMessage(notice)
 		if len(line) == 0:
 			return
@@ -206,25 +223,51 @@ class Chatbot():
 
 		if "message" in notice.keys():
 			notice["message"] = notice["message"].split("\r\n",1)[0]
-			logging.info("Chat " + notice["user"] + ":" + notice["message"])
+			if self.verbose and notice["command"] == "PRIVMSG":
+				logging.info("Chat " + notice["user"] + ":" + notice["message"])
 			#q.put( (str(emoteId),img) )
 			#chatRelay.create_message(notice["user"], notice["message"])
 			
 			#chatRelay.create_message(notice["user"], notice["message"])
 					
 			#q.put( notice )
-			self.messageQueue.put( notice )
+			
+			if notice["command"] == "PONG":
+				if self.verbose:
+					logging.info("Recieved PONG after pinging server!")
+				self.heartbeatPingPong = 0
+				return
+				
+			if notice["command"] == "PING":
+				if self.verbose:
+					logging.info("Recieved PING, sending PONG...")
+				self.s.sendall("PONG :tmi.twitch.tv\r\n".encode("utf-8"))
+				self.heartbeatPingPong = 0
+				return
 					
+			# The following is definitely not good to check for a valid conenction:
 			if self.waitingForWelcome and notice["user"] == "tmi":
 				if notice["message"] == "Welcome, GLHF!":
-					logging.info("Connection successful!")
+#					logging.info("Connection successful!")
+					self.fullyConnected = True
 					self.waitingForWelcome = False
 					self.reconnectTimeFalloff = 0
 				else:
 					logging.info("Need to attempt a reconnect")
 					self.connected = False
+								
+			self.messageQueue.put( notice )
 	
-				
+#	def pingThread(self):
+#		self.heartbeatPingPong = 0
+#		while not getattr(thread, "kill", False):
+#			time.sleep(2)
+#
+#			if self.heartbeatPingPong >= 2:
+#				self.connected = False
+#				logging.info("Pingpong failure, attempting to reconnect, message timeout = " + str(self.heartbeatTimeout))
+#				continue
+			
 				
 	def chatResponseLoop(self):
 		thread = threading.currentThread()
@@ -233,6 +276,8 @@ class Chatbot():
 
 		while not getattr(thread, "kill", False):
 			time.sleep(1 / self.chat_rate)
+			if not self.connected:
+				continue
 			timeSinceLastResponse += (1.0 / self.chat_rate)
 			if timeSinceLastResponse < cooldownInSeconds:
 				if self.qResponse.qsize() > 0:
@@ -255,7 +300,7 @@ class Chatbot():
 						err = e.args[0]
 						if err == 'timed out':
 							logging.info('utility.chat() timed out, retry later')
-							logging.info("response = " + str(result))
+#							logging.info("response = " + str(result))
 							#time.sleep(heartbeatTimeout)
 						else:
 							logging.info(str(e))
@@ -269,7 +314,7 @@ if __name__ == "__main__":
 	logging.basicConfig(level="INFO")
 	
 	chatbot = Chatbot()
-	chatbot.verbose = True
+	chatbot.verbose = False
 	
 	chatbot.setChatRate(0.2)
 	if len(sys.argv) == 3:
@@ -278,12 +323,18 @@ if __name__ == "__main__":
 	
 	chatbot.start()
 	count = 0
+	timeCount = 0
 	while True:
-		time.sleep(10)
-		
-		while chatbot.messageQueue.qsize() > 0:
-			logging.info("Read: " + str(chatbot.messageQueue.get()))
-#		chatbot.sendReply("Counter: " + str(count))
+		time.sleep(1)
+		timeCount +=1
+		if timeCount >= 10:
+			timeCount = 0
+			while chatbot.messageQueue.qsize() > 0:
+				logging.info("Chat client example read: " + str(chatbot.messageQueue.get()))
+				
+		if not chatbot.isConnected():
+			logging.info("Chatbot disconnected!")
+##		chatbot.sendReply("Counter: " + str(count))
 		chatbot.sendReply(str(count))
 		count += 1
 		if count > 4:
