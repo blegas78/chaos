@@ -657,7 +657,7 @@ def startFlexx():
 	flx.create_server(host='0.0.0.0', port=relay.uiPort, loop=asyncio.new_event_loop())
 	flx.start()
 
-if __name__ == "__main__":
+def main():
 	# for chat
 	chatbot = chatbot.Chatbot()
 	chatbot.setIrcInfo(relay.ircHost, relay.ircPort)
@@ -680,3 +680,5 @@ if __name__ == "__main__":
 	chatThread.kill = True
 	chatThread.join()
 
+if __name__ == "__main__":
+        main()

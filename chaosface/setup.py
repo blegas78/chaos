@@ -1,4 +1,7 @@
+#!/usr/bin/env python
 # The real configuration is in setup.cfg. This stub allows development
-# mode (pip install --editable)
+# mode, i.e., editable installs.
 import setuptools
-setuptools.setup()
+
+if __name__ == "__main__":
+    setuptools.setup()

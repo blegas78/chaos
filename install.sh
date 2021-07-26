@@ -37,12 +37,13 @@ make -j4
 make install
 cd ..
 
-
 # add dwc2 to /boot/config.txt
 sudo -s eval "grep -qxF 'dtoverlay=dwc2' /boot/config.txt  || echo 'dtoverlay=dwc2' >> /boot/config.txt "
 
-
+# Python required packages
 sudo -s eval "pip3 install setuptools flexx pyzmq numpy pygame --system"
+# For now, at least, install chaosface in developer mode. Consider formal packaging for actual releases.
+sudo -s eval "pip3 install -e chaosface"
 
 if [ ! -f "/home/pi/chaosConfig.json" ];
 then
@@ -54,6 +55,7 @@ then
 	mkdir /home/pi/chaosLogs
 fi
 
+# Install chaos and chaosface as systemd services
 cd scripts/
 sudo bash install.sh
 cd ..

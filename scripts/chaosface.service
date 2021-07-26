@@ -6,8 +6,7 @@ After=network.target
 Type=simple
 Restart=on-abnormal
 RestartSec=2
-ExecStart=/usr/bin/python3 /usr/local/bin/chaos/main.py
-#User=pi
+ExecStart=/usr/bin/python3 chaosface
 
 [Install]
 WantedBy=multi-user.target
