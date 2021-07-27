@@ -26,9 +26,9 @@ class ChaosActiveView(flx.PyWidget):
 		self.label = []
 		self.progress = []
 		
-		styleModText = "color:white;text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;text-align:left;font-weight: bold; vertical-align: middle; line-height: 1.5; min-width:250px;"
-		styleTitleText = "color:white;text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;text-align:center;font-weight: bold; vertical-align: bottom; line-height: 1.5; min-width:250px;"
-		styleModProgress = " background-color:#808080; foreground-color:#808080; color:#FFFFFF; border-color:#000000; border-radius:5px; width:1050px;"
+		styleModText = self.model.textFormat + ";text-align:left; vertical-align: middle; line-height: 1.5; min-width:250px;"
+		styleTitleText = self.model.textFormat + ";text-align:center; vertical-align: bottom; line-height: 1.5; min-width:250px;"
+		styleModProgress = "background:" + self.model.modTimePBColor + "; foreground-color:#808080; color:#FFFFFF; border-color:#000000; border-radius:5px; width:1050px;"
 		
 		with flx.VBox(flex=0):
 			with flx.HFix(flex=1):

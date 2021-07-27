@@ -41,7 +41,7 @@ cd ..
 sudo -s eval "grep -qxF 'dtoverlay=dwc2' /boot/config.txt  || echo 'dtoverlay=dwc2' >> /boot/config.txt "
 
 # Python required packages
-sudo -s eval "pip3 install setuptools flexx pyzmq numpy pygame --system"
+sudo -s eval "pip3 install setuptools flexx pyzmq numpy pygame matplotlib --system"
 # For now, at least, install chaosface in developer mode. Consider formal packaging for actual releases.
 sudo -s eval "pip3 install -e chaosface"
 

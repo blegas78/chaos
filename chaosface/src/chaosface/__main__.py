@@ -60,7 +60,6 @@ logging.basicConfig(level="INFO")
 
 import pprint
 
-
 class ChaosModel():
 	def __init__(self, chatbot):
 		self.chatbot = chatbot
@@ -77,12 +76,10 @@ class ChaosModel():
 		now = datetime.now()
 		currentTime = now.strftime("%Y-%m-%d_%H:%M:%S")
 		self.votingLog = open("/home/pi/chaosLogs/votes-" + currentTime + ".log","a", buffering=1)
-		#self.modifierDataFile = open("/home/pi/chaosLogs/chaosModifierData.json","a", buffering=1)
 		
 		self.openDatabase("/home/pi/chaosLogs/chaosModifierData.json")
 		
 		self.pause = True
-#		relay.set_paused(True)
 
 		self.tmiChatText = ""
 
@@ -108,8 +105,6 @@ class ChaosModel():
 		self.thread.start()
 
 	def process(self):
-		#self.args = self.parser.parse_args()
-		
 		try:
 			# Start loop
 			print("Press CTRL-C to stop sample")
@@ -139,7 +134,6 @@ class ChaosModel():
 		if "pause" in y:
 			logging.info("Got a pause command of: " + str(y["pause"]))
 			self.pause = y["pause"]
-				
 		
 	def applyNewMod(self, mod):
 #		print("Winning mod: " + mod)
@@ -171,7 +165,6 @@ class ChaosModel():
 				self.initializeData()
 				return
 #		logging.info("verifySoftmaxIntegrity() Passed")
-		
 		
 	def getSoftmaxDivisor(self, data):
 		# determine the sum for the softmax divisor:
@@ -235,8 +228,6 @@ class ChaosModel():
 				logging.info(" - %0.2f%% %s" % (0, mod))
 		# Reset votes since there is a new voting pool
 		self.votes = [0.0] * self.totalVoteOptions
-        
-        
         
 	def selectWinningModifier(self):
 		if self.proportionalVoting:
@@ -531,13 +522,15 @@ class StreamerInterfaceLayout(ui.HVLayout):
 		self.apply_style('background:#000000;')
 
 class StreamerInterface(flx.PyWidget):
-
-#	CSS = """
-#    .flx-Widget {
-#        background: #0C0C0C;
-#    }
-#    """
 	def init(self, relay):
+                # Default color/font settings
+                self.textColor = "white"
+                self.textBold = True
+                self.textItalic = False
+                self.outlineText = True
+                self.voteTimePBColor = "#8be"
+                self.voteCountPBColor = "#8be"
+                self.modTimePBColor = "#8be"
 		self.relay = relay
 		with StreamerInterfaceLayout() as self.s:
 			self.voteTimerView = chaosVoteTimerView.ChaosVoteTimerView(self)
