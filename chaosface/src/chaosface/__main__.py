@@ -524,16 +524,16 @@ class StreamerInterfaceLayout(ui.HVLayout):
 
 class StreamerInterface(flx.PyWidget):
 	def init(self, relay):
-		# Default color/font settings
-		self.textColor = "white"
-		self.textBold = True
-		self.textItalic = False
-		self.outlineText = True
-		self.voteTimePBColor = "#8be"
-		self.voteCountPBColor = "#8be"
-		self.modTimePBColor = "#8be"
-		self.textFormat = "color: white;font-weight: bold; text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black"
 		self.relay = relay
+		# Default color/font settings
+		self.relay.textColor = "white"
+		self.relay.textBold = True
+		self.relay.textItalic = False
+		self.relay.outlineText = True
+		self.relay.voteTimePBColor = "#8be"
+		self.relay.voteCountPBColor = "#8be"
+		self.relay.modTimePBColor = "#8be"
+		self.relay.textFormat = "color: white;font-weight: bold; text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black"
 		with StreamerInterfaceLayout() as self.s:
 			self.voteTimerView = chaosVoteTimerView.ChaosVoteTimerView(self)
 			self.chaosActiveView = chaosActiveView.ChaosActiveView(self)

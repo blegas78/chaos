@@ -55,15 +55,15 @@ class ConfigurationView(flx.PyWidget):
 				with flx.VBox(flex=1):
 					flx.Widget(flex=1)
 				with flx.VBox():
-					self.textColor = flx.LineEdit(title="Text Color:", placeholder_text=self.model.textColor)
+					self.textColor = flx.LineEdit(title="Text Color:", placeholder_text=self.model.relay.textColor)
 					self.textBold = flx.CheckBox(text="Bold Text")
-					self.textBold.set_checked(self.model.textBold)
+					self.textBold.set_checked(self.model.relay.textBold)
 					self.textItalic = flx.CheckBox(text="Italic Text")
-					self.textItalic.set_checked(self.model.textItalics)
+					self.textItalic.set_checked(self.model.relay.textItalics)
 					self.outlineText = flx.CheckBox(text="Outline Text")
-					self.voteTimePBColor = flx.LineEdit(title="Color of progress bar for voting time:", placeholder_text=self.model.voteTimePBColor)
-					self.voteCountPBColor = flx.LineEdit(title="Color of progress bar for vote counts:", placeholder_text=self.model.voteCountPBColor)
-					self.modTimePBColor = flx.LineEdit(title="Color of progress bar for mod time:", placeholder_text=self.model.modTimePBColor)
+					self.voteTimePBColor = flx.LineEdit(title="Color of progress bar for voting time:", placeholder_text=self.model.relay.voteTimePBColor)
+					self.voteCountPBColor = flx.LineEdit(title="Color of progress bar for vote counts:", placeholder_text=self.model.relay.voteCountPBColor)
+					self.modTimePBColor = flx.LineEdit(title="Color of progress bar for mod time:", placeholder_text=self.model.relay.modTimePBColor)
 					
 				with flx.VBox(flex=1):
 					flx.Widget(flex=1)					
@@ -98,41 +98,41 @@ class ConfigurationView(flx.PyWidget):
 			self.model.relay.set_channel_name('#' + self.channel_name.text)
 		if not is_color_like(self.textColor.text):
 			self.textColor.set_text("white")
-		if valueChange(self.textColor.text, self.model.textColor):
+		if valueChange(self.textColor.text, self.model.relay.textColor):
 			newData = True
-			self.model.textColor = self.textColor.text.strip()
+			self.model.relay.textColor = self.textColor.text.strip()
 		if not is_color_like(self.voteTimePBColor.text):
 			self.voteTimePBColor.set_text("white")
-		if valueChange(self.voteTimePBColor.text, self.model.voteTimePBColor):
+		if valueChange(self.voteTimePBColor.text, self.model.relay.voteTimePBColor):
 			newData = True
-			self.model.voteTimePBColor = self.voteTimePBColor.text.strip()
+			self.model.relay.voteTimePBColor = self.voteTimePBColor.text.strip()
 		if not is_color_like(self.voteCountPBColor.text):
 			self.voteCountPBColor.set_text("white")
-		if valueChange(self.voteCountPBColor.text, self.model.voteCountPBColor):
+		if valueChange(self.voteCountPBColor.text, self.model.relay.voteCountPBColor):
 			newData = True
-			self.model.voteCountPBColor = self.voteCountPBColor.text.strip()
+			self.model.relay.voteCountPBColor = self.voteCountPBColor.text.strip()
 		if not is_color_like(self.modTimePBColor.text):
 			self.modTimePBColor.set_text("white")
-		if valueChange(self.modTimePBColor.text, self.model.modTimePBColor):
+		if valueChange(self.modTimePBColor.text, self.model.relay.modTimePBColor):
 			newData = True
-			self.model.modTimePBColor = self.modTimePBColor.text.strip()
-		if self.textBold.checked != self.model.textBold:
-			self.model.textBold = self.textBold.checked
+			self.model.relay.modTimePBColor = self.modTimePBColor.text.strip()
+		if self.textBold.checked != self.model.relay.textBold:
+			self.model.relay.textBold = self.textBold.checked
 			newData = True
-		if self.textItalic.checked != self.model.textItalic:
-			self.model.textItalic = self.textItalic.checked
+		if self.textItalic.checked != self.model.relay.textItalic:
+			self.model.relay.textItalic = self.textItalic.checked
 			newData = True
-		if self.outlineText.checked != self.model.outlineText:
-			self.model.outlineText = self.outlineText.checked
+		if self.outlineText.checked != self.model.relay.outlineText:
+			self.model.relay.outlineText = self.outlineText.checked
 			newData = True
 
-		self.model.textFormat = "color: " + self.model.textColor
+		self.model.relay.textFormat = "color: " + self.model.relay.textColor
 		if (self.textBold.checked):
-			";".join(self.model.textFormat,"font-weight: bold")
+			";".join(self.model.relay.textFormat,"font-weight: bold")
 		if (self.textItalic.checked):
-			";".join(self.model.textFormat,"font-style: italic")
+			";".join(self.model.relay.textFormat,"font-style: italic")
 		if (self.outlineText.checked):
-			";".join(self.model.textFormat,"text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black")
+			";".join(self.model.relay.textFormat,"text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black")
 
 		if newData:
 			self.successLabel.set_text('Saved!')
