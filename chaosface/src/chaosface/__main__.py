@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 #-----------------------------------------------------------------------------
 # This file is part of Twitch Controls Chaos (TCC).
 # Copyright 2021 blegas78
@@ -228,7 +229,7 @@ class ChaosModel():
 				logging.info(" - %0.2f%% %s" % (0, mod))
 		# Reset votes since there is a new voting pool
 		self.votes = [0.0] * self.totalVoteOptions
-        
+	
 	def selectWinningModifier(self):
 		if self.proportionalVoting:
 			totalVotes = sum(self.votes)
@@ -523,14 +524,15 @@ class StreamerInterfaceLayout(ui.HVLayout):
 
 class StreamerInterface(flx.PyWidget):
 	def init(self, relay):
-                # Default color/font settings
-                self.textColor = "white"
-                self.textBold = True
-                self.textItalic = False
-                self.outlineText = True
-                self.voteTimePBColor = "#8be"
-                self.voteCountPBColor = "#8be"
-                self.modTimePBColor = "#8be"
+		# Default color/font settings
+		self.textColor = "white"
+		self.textBold = True
+		self.textItalic = False
+		self.outlineText = True
+		self.voteTimePBColor = "#8be"
+		self.voteCountPBColor = "#8be"
+		self.modTimePBColor = "#8be"
+		self.textFormat = "color: white;font-weight: bold; text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black"
 		self.relay = relay
 		with StreamerInterfaceLayout() as self.s:
 			self.voteTimerView = chaosVoteTimerView.ChaosVoteTimerView(self)
@@ -619,7 +621,7 @@ class Interface(flx.PyWidget):
 
 #	CSS = """
 #    .flx-Widget {
-#        background: #0C0C0C;
+#	background: #0C0C0C;
 #    }
 #    """
 	def init(self, relay):
@@ -650,7 +652,7 @@ def startFlexx():
 	flx.create_server(host='0.0.0.0', port=relay.uiPort, loop=asyncio.new_event_loop())
 	flx.start()
 
-def main():
+if __name__ == "__main__":
 	# for chat
 	chatbot = chatbot.Chatbot()
 	chatbot.setIrcInfo(relay.ircHost, relay.ircPort)
@@ -673,5 +675,3 @@ def main():
 	chatThread.kill = True
 	chatThread.join()
 
-if __name__ == "__main__":
-        main()

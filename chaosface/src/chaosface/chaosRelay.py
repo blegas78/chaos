@@ -233,7 +233,7 @@ class ChaosRelay(flx.Component):
 	@flx.emitter
 	def updateTmiResponse(self, value):
 		return dict(value=value)
-        
+	
 # Create global relay object, shared by all connections
 #relay = Relay()
 #chatRelay = ChatRelay()

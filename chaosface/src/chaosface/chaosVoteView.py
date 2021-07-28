@@ -26,7 +26,7 @@ class ChaosVoteView(flx.PyWidget):
 		self.label = []
 		self.progress = []
 
-                styleModText   = self.model.textFormat + ";text-align:left; vertical-align: middle; line-height: 1.5; min-width:250px;"
+		styleModText   = self.model.textFormat + ";text-align:left; vertical-align: middle; line-height: 1.5; min-width:250px;"
 		styleTitleText = self.model.textFormat + ";text-align:center; vertical-align: bottom; line-height: 1.5; min-width:250px;"
 		styleVoteProgress = "background:" + self.model.voteCountPBColor + "; foreground-color:#808080; border-color:#000000; border-radius:5px;" + self.model.textFormat
 

@@ -33,7 +33,7 @@ class ChaosVoteTimerView(flx.PyWidget):
 		super().init()
 		self.model = model
 		
-		styleTime = " background:" + self.model.voteTimePBColer + "; foreground-color:#808080; color:#000000; border-color:#000000; border-radius:5px"
+		styleTime = " background:" + self.model.voteTimePBColor + "; foreground-color:#808080; color:#000000; border-color:#000000; border-radius:5px"
 		self.progressTime = flx.ProgressBar(flex=1, value=self.model.relay.voteTime, text='', style=styleTime)
 		
 	@flx.action
