@@ -25,10 +25,18 @@ class ChaosActiveView(flx.PyWidget):
 		
 		self.label = []
 		self.progress = []
+
+		textFormat = "color: " + self.model.relay.text_color
+		if self.model.relay.text_bold:
+			";".join(testFormat,"font-weight: bold")
+		if self.model.relay.text_italic:
+			";".join(textFormat,"font-style: italic")
+		if self.model.relay.text_outline:
+			";".join(self.model.relay.textFormat,"text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black")
 		
-		styleModText = self.model.textFormat + ";text-align:left; vertical-align: middle; line-height: 1.5; min-width:250px;"
-		styleTitleText = self.model.textFormat + ";text-align:center; vertical-align: bottom; line-height: 1.5; min-width:250px;"
-		styleModProgress = "background:" + self.model.modTimePBColor + "; foreground-color:#808080; color:#FFFFFF; border-color:#000000; border-radius:5px; width:1050px;"
+		styleModText = textFormat + ";text-align:left; vertical-align: middle; line-height: 1.5; min-width:250px;"
+		styleTitleText = textFormat + ";text-align:center; vertical-align: bottom; line-height: 1.5; min-width:250px;"
+		styleModProgress = "background:" + self.model.relay.mod_time_color + "; foreground-color:#808080; color:#FFFFFF; border-color:#000000; border-radius:5px; width:1050px;"
 		
 		with flx.VBox(flex=0):
 			with flx.HFix(flex=1):

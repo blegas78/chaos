@@ -26,9 +26,17 @@ class ChaosVoteView(flx.PyWidget):
 		self.label = []
 		self.progress = []
 
-		styleModText   = self.model.textFormat + ";text-align:left; vertical-align: middle; line-height: 1.5; min-width:250px;"
-		styleTitleText = self.model.textFormat + ";text-align:center; vertical-align: bottom; line-height: 1.5; min-width:250px;"
-		styleVoteProgress = "background:" + self.model.voteCountPBColor + "; foreground-color:#808080; border-color:#000000; border-radius:5px;" + self.model.textFormat
+		textFormat = "color: " + self.model.relay.text_color
+		if self.model.relay.text_bold:
+			";".join(testFormat,"font-weight: bold")
+		if self.model.relay.text_italic:
+			";".join(textFormat,"font-style: italic")
+		if self.model.relay.text_outline:
+			";".join(self.model.relay.textFormat,"text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black")
+		
+		styleModText   = textFormat + ";text-align:left; vertical-align: middle; line-height: 1.5; min-width:250px;"
+		styleTitleText = textFormat + ";text-align:center; vertical-align: bottom; line-height: 1.5; min-width:250px;"
+		styleVoteProgress = "background:" + self.model.relay.vote_count_color + "; foreground-color:#808080; border-color:#000000; border-radius:5px;" + textFormat
 
 		totalVotes = sum(self.model.relay.votes)
 		with flx.VBox(flex=0):
