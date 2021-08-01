@@ -28,7 +28,7 @@ class ChaosVoteView(flx.PyWidget):
 
 		textFormat = "color: " + self.model.relay.text_color
 		if self.model.relay.text_bold:
-			";".join(testFormat,"font-weight: bold")
+			";".join(textFormat,"font-weight: bold")
 		if self.model.relay.text_italic:
 			";".join(textFormat,"font-style: italic")
 		if self.model.relay.text_outline:
