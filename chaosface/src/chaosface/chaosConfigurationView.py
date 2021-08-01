@@ -17,15 +17,6 @@
 #-----------------------------------------------------------------------------
 
 from flexx import flx
-from matplotlib.colors import is_color_like
-
-def valueChanged(newtext, origtext):
-	return (newtext and newtext.strip() and newtext.strip() != origtext)
-
-def validateColor(newcolor, origcolor):
-	if not is_color_like(newcolor):
-		newcolor = "white"
-	return (valueChanged(newcolor, origcolor), newcolor)
 
 class ConfigurationView(flx.PyWidget):
 	def init(self, model):
@@ -52,22 +43,6 @@ class ConfigurationView(flx.PyWidget):
 				with flx.VBox(flex=1):
 					flx.Widget(flex=1)
 			with flx.HBox():
-				with flx.VBox(flex=1):
-					flx.Widget(flex=1)
-				with flx.VBox():
-					self.textColor = flx.LineEdit(title="Text Color:", placeholder_text=self.model.relay.text_color)
-					self.textBold = flx.CheckBox(text="Bold Text")
-					self.textBold.set_checked(self.model.relay.textBold)
-					self.textItalic = flx.CheckBox(text="Italic Text")
-					self.textItalic.set_checked(self.model.relay.textItalics)
-					self.outlineText = flx.CheckBox(text="Outline Text")
-					self.voteTimePBColor = flx.LineEdit(title="Color of progress bar for voting time:", placeholder_text=self.model.relay.voteTimePBColor)
-					self.voteCountPBColor = flx.LineEdit(title="Color of progress bar for vote counts:", placeholder_text=self.model.relay.voteCountPBColor)
-					self.modTimePBColor = flx.LineEdit(title="Color of progress bar for mod time:", placeholder_text=self.model.relay.modTimePBColor)
-					
-				with flx.VBox(flex=1):
-					flx.Widget(flex=1)					
-			with flx.HBox():
 				flx.Widget(flex=1)
 				self.submitButton = flx.Button(flex=0,text="Submit")
 				flx.Widget(flex=1)
@@ -87,45 +62,15 @@ class ConfigurationView(flx.PyWidget):
 	def _button_clicked(self, *events):
 		ev = events[-1]
 		newData = False
-		if valueChange(self.bot_oauth.text, self.model.relay.bot_oauth):
+		if valueChanged(self.bot_oauth.text, self.model.relay.bot_oauth):
 			newData = True
 			self.model.relay.set_bot_oauth(self.bot_oauth.text)
-		if valueChange(self.bot_name.text, self.model.relay.bot_name):
+		if valueChanged(self.bot_name.text, self.model.relay.bot_name):
 			newData = True
 			self.model.relay.set_bot_name(self.bot_name.text)
-		if valueChange(self.channel_name.text, self.model.relay.channel_name):
+		if valueChanged(self.channel_name.text, self.model.relay.channel_name):
 			newData = True
 			self.model.relay.set_channel_name('#' + self.channel_name.text)
-		if not is_color_like(self.textColor.text):
-			self.textColor.set_text("white")
-		if valueChange(self.textColor.text, self.model.relay.text_color):
-			newData = True
-			self.model.relay.text_color = self.textColor.text.strip()
-		if not is_color_like(self.voteTimePBColor.text):
-			self.voteTimePBColor.set_text("white")
-		if valueChange(self.voteTimePBColor.text, self.model.relay.vote_time_color):
-			newData = True
-			self.model.relay.vote_time_Color = self.voteTimePBColor.text.strip()
-		if not is_color_like(self.voteCountPBColor.text):
-			self.voteCountPBColor.set_text("white")
-		if valueChange(self.voteCountPBColor.text, self.model.relay.vote_count_Color):
-			newData = True
-			self.model.relay.vote_count_Color = self.voteCountPBColor.text.strip()
-		if not is_color_like(self.modTimePBColor.text):
-			self.modTimePBColor.set_text("white")
-		if valueChange(self.modTimePBColor.text, self.model.relay.mod_time_color):
-			newData = True
-			self.model.relay.mod_time_Color = self.modTimePBColor.text.strip()
-		if self.textBold.checked != self.model.relay.text_bold:
-			self.model.relay.text_bold = self.textBold.checked
-			newData = True
-		if self.textItalic.checked != self.model.relay.text_italic:
-			self.model.relay.text_italic = self.textItalic.checked
-			newData = True
-		if self.outlineText.checked != self.model.relay.text_outline:
-			self.model.relay.text_outline = self.outlineText.checked
-			newData = True
-
 		if newData:
 			self.successLabel.set_text('Saved!')
 			#saveConfig()

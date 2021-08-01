@@ -185,32 +185,32 @@ class ChaosRelay(flx.Component):
 			self.chaosConfig["text_color"] = ev.new_value
 	
 	@flx.reaction('text_bold')
-	def on_text_color(self, *events):
+	def on_text_bold(self, *events):
 		for ev in events:
 			self.chaosConfig["text_bold"] = ev.new_value
 	
 	@flx.reaction('text_italic')
-	def on_text_color(self, *events):
+	def on_text_italic(self, *events):
 		for ev in events:
 			self.chaosConfig["text_italic"] = ev.new_value
 	
 	@flx.reaction('text_outline')
-	def on_text_color(self, *events):
+	def on_text_outline(self, *events):
 		for ev in events:
 			self.chaosConfig["text_outline"] = ev.new_value
 	
 	@flx.reaction('vote_time_color')
-	def on_text_color(self, *events):
+	def on_vote_time_color(self, *events):
 		for ev in events:
 			self.chaosConfig["vote_time_color"] = ev.new_value
 	
 	@flx.reaction('vote_count_color')
-	def on_text_color(self, *events):
+	def on_vote_count_color(self, *events):
 		for ev in events:
 			self.chaosConfig["vote_count_color"] = ev.new_value
 	
 	@flx.reaction('mod_time_color')
-	def on_text_color(self, *events):
+	def on_mod_time_color(self, *events):
 		for ev in events:
 			self.chaosConfig["mod_time_color"] = ev.new_value
 	
