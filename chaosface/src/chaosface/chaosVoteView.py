@@ -28,11 +28,11 @@ class ChaosVoteView(flx.PyWidget):
 
 		textFormat = "color: " + self.model.relay.text_color
 		if self.model.relay.text_bold:
-			";".join(textFormat,"font-weight: bold")
+			";".join([textFormat,"font-weight: bold"])
 		if self.model.relay.text_italic:
-			";".join(textFormat,"font-style: italic")
+			";".join([textFormat,"font-style: italic"])
 		if self.model.relay.text_outline:
-			";".join(self.model.relay.textFormat,"text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black")
+			";".join([textFormat,"text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black"])
 		
 		styleModText   = textFormat + ";text-align:left; vertical-align: middle; line-height: 1.5; min-width:250px;"
 		styleTitleText = textFormat + ";text-align:center; vertical-align: bottom; line-height: 1.5; min-width:250px;"
