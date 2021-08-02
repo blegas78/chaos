@@ -1,22 +1,5 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-#-----------------------------------------------------------------------------
-# This file is part of Twitch Controls Chaos (TCC).
-# Copyright 2021 blegas78
-#
-# TCC is free software: you can redistribute it and/or modify it under the
-# terms of the GNU General Public License as published by the Free Software
-# Foundation, either version 3 of the License, or (at your option) any later
-# version.
-#
-# TCC is distributed in the hope that it will be useful, but WITHOUT ANY
-# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-# FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
-# details.
-#
-# You should have received a copy of the GNU General Public License along
-# with TCC.  If not, see <https://www.gnu.org/licenses/>.
-#-----------------------------------------------------------------------------
+
 #import argparse
 import sys
 #import fcntl, os
@@ -61,6 +44,7 @@ logging.basicConfig(level="INFO")
 
 import pprint
 
+
 class ChaosModel():
 	def __init__(self, chatbot):
 		self.chatbot = chatbot
@@ -77,10 +61,12 @@ class ChaosModel():
 		now = datetime.now()
 		currentTime = now.strftime("%Y-%m-%d_%H:%M:%S")
 		self.votingLog = open("/home/pi/chaosLogs/votes-" + currentTime + ".log","a", buffering=1)
+		#self.modifierDataFile = open("/home/pi/chaosLogs/chaosModifierData.json","a", buffering=1)
 		
 		self.openDatabase("/home/pi/chaosLogs/chaosModifierData.json")
 		
 		self.pause = True
+#		relay.set_paused(True)
 
 		self.tmiChatText = ""
 
@@ -106,6 +92,8 @@ class ChaosModel():
 		self.thread.start()
 
 	def process(self):
+		#self.args = self.parser.parse_args()
+		
 		try:
 			# Start loop
 			print("Press CTRL-C to stop sample")
@@ -122,11 +110,11 @@ class ChaosModel():
 
 		if "mods" in y:
 #			logging.info("Got new mods!")
-#			oldModLength = len(self.allMods)	# HACK
-#			if not oldModLength == len(y["mods"]):
-#				self.resetSoftMax()
+			#oldModLength = len(self.allMods)	# HACK
+			#if not oldModLength == len(y["mods"]):
 			self.newAllMods = y["mods"]
 			self.gotNewMods = True
+				#self.resetSoftMax()
 		
 #		if "voteTime" in y:
 #			logging.info("Got new voteTime: " + str(y["voteTime"]))
@@ -135,6 +123,7 @@ class ChaosModel():
 		if "pause" in y:
 			logging.info("Got a pause command of: " + str(y["pause"]))
 			self.pause = y["pause"]
+				
 		
 	def applyNewMod(self, mod):
 #		print("Winning mod: " + mod)
@@ -166,6 +155,7 @@ class ChaosModel():
 				self.initializeData()
 				return
 #		logging.info("verifySoftmaxIntegrity() Passed")
+		
 		
 	def getSoftmaxDivisor(self, data):
 		# determine the sum for the softmax divisor:
@@ -229,7 +219,9 @@ class ChaosModel():
 				logging.info(" - %0.2f%% %s" % (0, mod))
 		# Reset votes since there is a new voting pool
 		self.votes = [0.0] * self.totalVoteOptions
-	
+        
+        
+        
 	def selectWinningModifier(self):
 		if self.proportionalVoting:
 			totalVotes = sum(self.votes)
@@ -523,9 +515,14 @@ class StreamerInterfaceLayout(ui.HVLayout):
 		self.apply_style('background:#000000;')
 
 class StreamerInterface(flx.PyWidget):
+
+#	CSS = """
+#    .flx-Widget {
+#        background: #0C0C0C;
+#    }
+#    """
 	def init(self, relay):
 		self.relay = relay
-		self.relay.textFormat = "color: white;font-weight: bold; text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black"
 		with StreamerInterfaceLayout() as self.s:
 			self.voteTimerView = chaosVoteTimerView.ChaosVoteTimerView(self)
 			self.chaosActiveView = chaosActiveView.ChaosActiveView(self)
@@ -613,7 +610,7 @@ class Interface(flx.PyWidget):
 
 #	CSS = """
 #    .flx-Widget {
-#	background: #0C0C0C;
+#        background: #0C0C0C;
 #    }
 #    """
 	def init(self, relay):
@@ -656,8 +653,9 @@ if __name__ == "__main__":
 
 	# Voting model:
 	chaosModel = ChaosModel(chatbot)
+#	chaosModel.start()
 	if (not chaosModel.process()):
-		chaosModel.print_help()
+			chaosModel.print_help()
 			
 	logging.info("Stopping threads...")
 	

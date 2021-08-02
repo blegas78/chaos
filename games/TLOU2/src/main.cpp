@@ -31,2057 +31,1897 @@
 using namespace Chaos;
 
 inline short joystickLimit( int input ) {
-	return fmin( fmax( input, JOYSTICK_MIN), JOYSTICK_MAX);
+  return fmin( fmax( input, JOYSTICK_MIN), JOYSTICK_MAX);
 }
 
 class Inverted : public Chaos::Modifier {
 public:
-	static void regist() { Chaos::Modifier::factory["Inverted"] = [](){return new Inverted();}; };
-	const char* description() { return "Inverts the Y-axis on the right joystick (aim inversion)"; };
+  static void regist() { Chaos::Modifier::factory["Inverted"] = [](){return new Inverted();}; };
+  const char* description() { return "Inverts the Y-axis on the right joystick (aim inversion)"; };
 	
-	bool tweak( DeviceEvent* event ) {
-		if ((event->id == AXIS_RY ) && event->type == TYPE_AXIS) {
-			event->value = -((int)event->value+1) ;
-		}
-		return true;
-	}
+  bool tweak( DeviceEvent* event ) {
+    invert_axis(event, AXIS_RY);
+    return true;
+  }
 };
 
 // Suggestion from protoxin:
 class Moonwalk : public Chaos::Modifier {
 public:
-	static void regist() { Chaos::Modifier::factory["Moonwalk"] = [](){return new Moonwalk();}; };
-	const char* description() { return "Be like Michael Jackson!  Trying to walk forward will actually make you go backward"; };
+  static void regist() { Chaos::Modifier::factory["Moonwalk"] = [](){return new Moonwalk();}; };
+  const char* description() { return "Be like Michael Jackson!  Trying to walk forward will actually make you go backward"; };
 	
-	bool tweak( DeviceEvent* event ) {
-		if ((event->id == AXIS_LY ) && event->type == TYPE_AXIS) {
-			event->value = -((int)event->value+1) ;
-		}
-		return true;
-	}
+  bool tweak( DeviceEvent* event ) {
+    invert_axis(event, AXIS_LY);
+    return true;
+  }
 };
 
 class SidewaysMoonwalk : public Chaos::Modifier {
 public:
-	static void regist() { Chaos::Modifier::factory["Sideways Moonwalk"] = [](){return new SidewaysMoonwalk();}; };
-	const char* description() { return "Go left to go right and go right to go left"; };
+  static void regist() { Chaos::Modifier::factory["Sideways Moonwalk"] = [](){return new SidewaysMoonwalk();}; };
+  const char* description() { return "Go left to go right and go right to go left"; };
 	
-	bool tweak( DeviceEvent* event ) {
-		if ((event->id == AXIS_LX ) && event->type == TYPE_AXIS) {
-			event->value = -((int)event->value+1) ;
-		}
-		return true;
-	}
+  bool tweak( DeviceEvent* event ) {
+    invert_axis(event, AXIS_LX);
+    return true;
+  }
 };
 
 class MeleeOnly : public Chaos::Modifier {
 public:
-	static void regist() { Chaos::Modifier::factory["Melee Only"] = [](){return new MeleeOnly();}; };
-	const char* description() { return "No shooting and no throwables"; };
+  static void regist() { Chaos::Modifier::factory["Melee Only"] = [](){return new MeleeOnly();}; };
+  const char* description() { return "No shooting and no throwables"; };
 	
-	bool tweak( DeviceEvent* event ) {
-		if (event->id == BUTTON_R2 && event->type == TYPE_BUTTON) {
-			event->value = 0;
-		}
-		if (event->id == AXIS_R2 && event->type == TYPE_AXIS) {
-			event->value = JOYSTICK_MIN;
-		}
-		return true;
-	}
+  bool tweak(DeviceEvent* event) {
+    button_off(event, BUTTON_R2);
+    minimize_axis(event, AXIS_R2);
+    return true;
+  }
 };
 
 class NoMelee : public Chaos::Modifier {
 public:
-	static void regist() { Chaos::Modifier::factory["No Melee"] = [](){return new NoMelee();}; };
-	const char* description() { return "Square presses are feeble"; };
+  static void regist() { Chaos::Modifier::factory["No Melee"] = [](){return new NoMelee();}; };
+  const char* description() { return "Square presses are feeble"; };
 	
-	bool tweak( DeviceEvent* event ) {
-		if (event->id == BUTTON_SQUARE && event->type == TYPE_BUTTON) {
-			event->value = 0;
-		}
-		return true;
-	}
+  bool tweak(DeviceEvent* event) {
+    button_off(event, BUTTON_SQUARE);
+    return true;
+  }
 };
 
 class Pacifist: public Chaos::Modifier {
 public:
-	static void regist() { Chaos::Modifier::factory["Pacifist%"] = [](){return new Pacifist();}; };
-	const char* description() { return "No shooting, throwing, nor melee. Good luck NPC friends!"; };
-	bool tweak( DeviceEvent* event ) {
-		if (event->type == TYPE_BUTTON &&
-			(event->id == BUTTON_SQUARE ||	// disable Melee
-			 event->id == BUTTON_R2) ) {	// Disable Shooting, blind fire
-			event->value = 0;
-		} else if(event->type == TYPE_AXIS &&
-				  event->id == AXIS_R2) {
-			event->value = JOYSTICK_MIN;
-		}
-		return true;
-	}
+  static void regist() { Chaos::Modifier::factory["Pacifist%"] = [](){return new Pacifist();}; };
+  const char* description() { return "No shooting, throwing, nor melee. Good luck NPC friends!"; };
+  bool tweak( DeviceEvent* event ) {
+    button_off(event, BUTTON_SQUARE);   // Disable melee
+    button_off(event,BUTTON_R2);        // Disable shooting, blind fire
+    minimize_axis(event, AXIS_R2);
+    return true;
+  }
 };
 
 class NoTriangle : public Chaos::Modifier {
 public:
-	static void regist() { Chaos::Modifier::factory["No Triangle"] = [](){return new NoTriangle();}; };
-	const char* description() { return "No looting, stealth grabbing, opening doors. Say goodbye to the everything button"; };
-	bool tweak( DeviceEvent* event ) {
-		if (event->id == BUTTON_TRIANGLE && event->type == TYPE_BUTTON) {
-			event->value = 0;
-		}
-		return true;
-	}
+  static void regist() { Chaos::Modifier::factory["No Triangle"] = [](){return new NoTriangle();}; };
+  const char* description() { return "No looting, stealth grabbing, opening doors. Say goodbye to the everything button"; };
+  bool tweak( DeviceEvent* event ) {
+    button_off(event, BUTTON_TRIANGLE);
+    return true;
 };
 
 class NoClimbJump : public Chaos::Modifier {
 public:
-	static void regist() { Chaos::Modifier::factory["No Climbing/Jumping"] = [](){return new NoClimbJump();}; };
-	const char* description() { return "No X presses"; };
-	bool tweak( DeviceEvent* event ) {
-		if (event->id == BUTTON_X && event->type == TYPE_BUTTON) {
-			event->value = 0;
-		}
-		return true;
-	}
+  static void regist() { Chaos::Modifier::factory["No Climbing/Jumping"] = [](){return new NoClimbJump();}; };
+  const char* description() { return "No X presses"; };
+  bool tweak( DeviceEvent* event ) {
+    button_off(event, BUTTON_X);
+    return true;
+  }
 };
 
 class NoAiming : public Chaos::Modifier {
 public:
-	static void regist() { Chaos::Modifier::factory["No Aiming"] = [](){return new NoAiming();}; };
-	const char* description() { return "At least reloading is still possible, along with throwables and melee"; };
-	bool tweak( DeviceEvent* event ) {
-		if (event->id == BUTTON_L2 && event->type == TYPE_BUTTON) {
-			event->value = 0;
-		}
-		return true;
-	}
+  static void regist() { Chaos::Modifier::factory["No Aiming"] = [](){return new NoAiming();}; };
+  const char* description() { return "At least reloading is still possible, along with throwables and melee"; };
+  bool tweak( DeviceEvent* event ) {
+    button_off(event, BUTTON_L2);
+    return true;
+  }
 };
 
 class NoScoping : public Chaos::Modifier {
 public:
-	static void regist() { Chaos::Modifier::factory["No Scoping"] = [](){return new NoScoping();}; };
-	const char* description() { return "No scopes! Aiming is still allowed"; };
-	bool tweak( DeviceEvent* event ) {
-		if (event->id == BUTTON_X && event->type == TYPE_BUTTON) {
-			if (dualshock->getState(BUTTON_L2, TYPE_BUTTON)) {	// only disable X when aiming
-				event->value = 0;
-			}
-		}
-		return true;
-	}
+  static void regist() { Chaos::Modifier::factory["No Scoping"] = [](){return new NoScoping();}; };
+  const char* description() { return "No scopes! Aiming is still allowed"; };
+  bool tweak( DeviceEvent* event ) {
+    // only disable X when aiming
+    if (is_pressed(BUTTON_L2)) {
+      button_off(event, BUTTON_X);
+    }
+    return true;
+  }
 };
 
 class NoShoulderSwap : public Chaos::Modifier {
 public:
-	static void regist() { Chaos::Modifier::factory["No Shoulder Swap"] = [](){return new NoShoulderSwap();}; };
-	const char* description() { return "While aiming, Square is disabled"; };
-	bool tweak( DeviceEvent* event ) {
-		if (event->id == BUTTON_SQUARE && event->type == TYPE_BUTTON) {
-			if (dualshock->getState(BUTTON_L2, TYPE_BUTTON)) {	// only disable X when aiming
-				event->value = 0;
-			}
-		}
-		return true;
-	}
+  static void regist() { Chaos::Modifier::factory["No Shoulder Swap"] = [](){return new NoShoulderSwap();}; };
+  const char* description() { return "While aiming, Square is disabled"; };
+  bool tweak( DeviceEvent* event ) {
+    // only disable square when aiming    
+    if (is_pressed(BUTTON_L2)) {
+      button_off(event, BUTTON_SQUARE);
+    }
+    return true;
+  }
 };
 
 class NoReloading : public Chaos::Modifier {
-	bool dxLastPessed = true;
-	bool aimHeld = false;
+  bool dxLastPessed = true;
+  bool aimHeld = false;
 public:
-	static void regist() { Chaos::Modifier::factory["No Reloading"] = [](){return new NoReloading();}; };
-	const char* description() { return "If guns were last selected, R2 is disabled without L2"; };
-	bool tweak( DeviceEvent* event ) {
-		if (event->id == AXIS_DX && event->type == TYPE_AXIS && event->id != 0) {
-			dxLastPessed = true;
-		} else if (event->id == AXIS_DY && event->type == TYPE_AXIS && event->id != 0) {
-			dxLastPessed = false;
-		} else if (event->id == BUTTON_L2 && event->type == TYPE_BUTTON ) {
-			aimHeld = event->value;
-		} else if (!aimHeld && event->id == BUTTON_R2 && event->type == TYPE_BUTTON && dxLastPessed) {
-			event->value = 0;
-		}
-		return true;
-	}
+  static void regist() { Chaos::Modifier::factory["No Reloading"] = [](){return new NoReloading();}; };
+  const char* description() { return "If guns were last selected, R2 is disabled without L2"; };
+  bool tweak( DeviceEvent* event ) {
+    if (event->id == AXIS_DX && event->type == TYPE_AXIS && event->id != 0) {
+      dxLastPessed = true;
+    } else if (event->id == AXIS_DY && event->type == TYPE_AXIS && event->id != 0) {
+      dxLastPessed = false;
+    } else if (event->id == BUTTON_L2 && event->type == TYPE_BUTTON ) {
+      aimHeld = event->value;
+    } else if (!aimHeld && event->id == BUTTON_R2 && event->type == TYPE_BUTTON && dxLastPessed) {
+      event->value = 0;
+    }
+    return true;
+  }
 };
 
 class DisableCircle : public Chaos::Modifier {
 public:
-	static void regist() { Chaos::Modifier::factory["No Crouch/Prone"] = [](){return new DisableCircle();}; };
-	const char* description() { return "Circle is disabled"; };
-	void begin() {
-		DeviceEvent event = {0,0,TYPE_BUTTON, BUTTON_CIRCLE};
-		dualshock->applyEvent(&event);
-	}
-	bool tweak( DeviceEvent* event ) {
-		if (event->id == BUTTON_CIRCLE && event->type == TYPE_BUTTON) {
-			//return false;
-			event->value = 0;
-		}
-		return true;
-	}
+  static void regist() { Chaos::Modifier::factory["No Crouch/Prone"] = [](){return new DisableCircle();}; };
+  const char* description() { return "Circle is disabled"; };
+  void begin() {
+    DeviceEvent event = {0,0,TYPE_BUTTON, BUTTON_CIRCLE};
+    dualshock->applyEvent(&event);
+  }
+  bool tweak( DeviceEvent* event ) {
+    button_off(event, BUTTON_CIRCLE);
+    return true;
+  }
 };
 
 class ForceProne : public Chaos::Modifier {
 public:
-	static void regist() { Chaos::Modifier::factory["Keep Proning"] = [](){return new ForceProne();}; };
-	const char* description() { return "Proning at inconvenient times"; };
-	double pressTime;
-	void begin() {
-		DeviceEvent event = {0,1,TYPE_BUTTON, BUTTON_CIRCLE};
-		dualshock->applyEvent(&event);
-		pressTime = 0;
-	}
-	void update() {
-		pressTime += timer.dTime();
-		if ( pressTime > 2.0  && dualshock->getState(BUTTON_CIRCLE, TYPE_BUTTON) ) {
-			DeviceEvent event = {0,0,TYPE_BUTTON, BUTTON_CIRCLE};
-			dualshock->applyEvent(&event);
-			pressTime = 0;
-		} else if( pressTime > 2.0 && !dualshock->getState(BUTTON_CIRCLE, TYPE_BUTTON) ) {
-			DeviceEvent event = {0,1,TYPE_BUTTON, BUTTON_CIRCLE};
-			dualshock->applyEvent(&event);
-			pressTime = 0;
-		}
-	}
-	void finish() {
-		DeviceEvent event = {0,0,TYPE_BUTTON, BUTTON_CIRCLE};
-		dualshock->applyEvent(&event);
-	}
-	bool tweak( DeviceEvent* event ) {
-		if (event->id == BUTTON_CIRCLE && event->type == TYPE_BUTTON) {
-			//event->value = 1;
-		}
-		return true;
-	}
+  static void regist() { Chaos::Modifier::factory["Keep Proning"] = [](){return new ForceProne();}; };
+  const char* description() { return "Proning at inconvenient times"; };
+  double pressTime;
+  void begin() {
+    DeviceEvent event = {0,1,TYPE_BUTTON, BUTTON_CIRCLE};
+    dualshock->applyEvent(&event);
+    pressTime = 0;
+  }
+  void update() {
+    pressTime += timer.dTime();
+    if ( pressTime > 2.0  && dualshock->getState(BUTTON_CIRCLE, TYPE_BUTTON) ) {
+      DeviceEvent event = {0,0,TYPE_BUTTON, BUTTON_CIRCLE};
+      dualshock->applyEvent(&event);
+      pressTime = 0;
+    } else if( pressTime > 2.0 && !dualshock->getState(BUTTON_CIRCLE, TYPE_BUTTON) ) {
+      DeviceEvent event = {0,1,TYPE_BUTTON, BUTTON_CIRCLE};
+      dualshock->applyEvent(&event);
+      pressTime = 0;
+    }
+  }
+  void finish() {
+    DeviceEvent event = {0,0,TYPE_BUTTON, BUTTON_CIRCLE};
+    dualshock->applyEvent(&event);
+  }
+  bool tweak( DeviceEvent* event ) {
+    return true;
+  }
 };
 
 class FactionsPro : public Chaos::Modifier {
 public:
-	static void regist() { Chaos::Modifier::factory["Factions Pro"] = [](){return new FactionsPro();}; };
-	const char* description() { return "Keeping things toxic with teabagging"; };
-	double pressTime;
-	void begin() {
-		DeviceEvent event = {0,1,TYPE_BUTTON, BUTTON_CIRCLE};
-		dualshock->applyEvent(&event);
-		pressTime = 0;
-	}
-	void update() {
-		pressTime += timer.dTime();
-		if ( pressTime > 0.1  && dualshock->getState(BUTTON_CIRCLE, TYPE_BUTTON) ) {
-			DeviceEvent event = {0,0,TYPE_BUTTON, BUTTON_CIRCLE};
-			dualshock->applyEvent(&event);
-			pressTime = 0;
-		} else if( pressTime > 0.6 && !dualshock->getState(BUTTON_CIRCLE, TYPE_BUTTON) ) {
-			DeviceEvent event = {0,1,TYPE_BUTTON, BUTTON_CIRCLE};
-			dualshock->applyEvent(&event);
-			pressTime = 0;
-		}
-	}
-	void finish() {
-		DeviceEvent event = {0,0,TYPE_BUTTON, BUTTON_CIRCLE};
-		dualshock->applyEvent(&event);
-	}
-	bool tweak( DeviceEvent* event ) {
-		if (event->id == BUTTON_CIRCLE && event->type == TYPE_BUTTON) {
-			//event->value = 1;
-		}
-		return true;
-	}
+  static void regist() { Chaos::Modifier::factory["Factions Pro"] = [](){return new FactionsPro();}; };
+  const char* description() { return "Keeping things toxic with teabagging"; };
+  double pressTime;
+  void begin() {
+    DeviceEvent event = {0,1,TYPE_BUTTON, BUTTON_CIRCLE};
+    dualshock->applyEvent(&event);
+    pressTime = 0;
+  }
+  void update() {
+    pressTime += timer.dTime();
+    if ( pressTime > 0.1  && dualshock->getState(BUTTON_CIRCLE, TYPE_BUTTON) ) {
+      DeviceEvent event = {0,0,TYPE_BUTTON, BUTTON_CIRCLE};
+      dualshock->applyEvent(&event);
+      pressTime = 0;
+    } else if( pressTime > 0.6 && !dualshock->getState(BUTTON_CIRCLE, TYPE_BUTTON) ) {
+      DeviceEvent event = {0,1,TYPE_BUTTON, BUTTON_CIRCLE};
+      dualshock->applyEvent(&event);
+      pressTime = 0;
+    }
+  }
+  void finish() {
+    DeviceEvent event = {0,0,TYPE_BUTTON, BUTTON_CIRCLE};
+    dualshock->applyEvent(&event);
+  }
+  bool tweak( DeviceEvent* event ) {
+    return true;
+  }
 };
 
 class Disco : public Chaos::Modifier {
-	// Rename/tuning from HeHathYought
+  // Rename/tuning from HeHathYought
 public:
-	static void regist() { Chaos::Modifier::factory["Anthony Caliber"] = [](){return new Disco();}; };
-	const char* description() { return "Flashlight flickering"; };
-	double pressTime;
-	int toggleCount;
-	void begin() {
-		DeviceEvent event = {0,1,TYPE_BUTTON, BUTTON_R3};
-		dualshock->applyEvent(&event);
-		pressTime = 0;
-		toggleCount = 0;
-	}
-	void update() {
-		pressTime += timer.dTime();
-		if (toggleCount < 8) {
-			if ( pressTime > 0.2/3.0  && dualshock->getState(BUTTON_R3, TYPE_BUTTON) ) {
-				DeviceEvent event = {0,0,TYPE_BUTTON, BUTTON_R3};
-				dualshock->applyEvent(&event);
-				pressTime = 0;
-				toggleCount++;
-			} else if( pressTime > 0.26875/3.0 && !dualshock->getState(BUTTON_R3, TYPE_BUTTON) ) {
-				DeviceEvent event = {0,1,TYPE_BUTTON, BUTTON_R3};
-				dualshock->applyEvent(&event);
-				pressTime = 0;
-			}
-		} else if (pressTime > 4.0) {
-			toggleCount = 0;
-			pressTime = 0;
-		}
-	}
-	void finish() {
-		DeviceEvent event = {0,0,TYPE_BUTTON, BUTTON_R3};
-		dualshock->applyEvent(&event);
-	}
-	bool tweak( DeviceEvent* event ) {
-		return true;
-	}
+  static void regist() { Chaos::Modifier::factory["Anthony Caliber"] = [](){return new Disco();}; };
+  const char* description() { return "Flashlight flickering"; };
+  double pressTime;
+  int toggleCount;
+  void begin() {
+    DeviceEvent event = {0,1,TYPE_BUTTON, BUTTON_R3};
+    dualshock->applyEvent(&event);
+    pressTime = 0;
+    toggleCount = 0;
+  }
+  void update() {
+    pressTime += timer.dTime();
+    if (toggleCount < 8) {
+      if ( pressTime > 0.2/3.0  && dualshock->getState(BUTTON_R3, TYPE_BUTTON) ) {
+	DeviceEvent event = {0,0,TYPE_BUTTON, BUTTON_R3};
+	dualshock->applyEvent(&event);
+	pressTime = 0;
+	toggleCount++;
+      } else if( pressTime > 0.26875/3.0 && !dualshock->getState(BUTTON_R3, TYPE_BUTTON) ) {
+	DeviceEvent event = {0,1,TYPE_BUTTON, BUTTON_R3};
+	dualshock->applyEvent(&event);
+	pressTime = 0;
+      }
+    } else if (pressTime > 4.0) {
+      toggleCount = 0;
+      pressTime = 0;
+    }
+  }
+  void finish() {
+    DeviceEvent event = {0,0,TYPE_BUTTON, BUTTON_R3};
+    dualshock->applyEvent(&event);
+  }
+  bool tweak( DeviceEvent* event ) {
+    return true;
+  }
 };
 
 class KeepJumping : public Chaos::Modifier {
 public:
-	static void regist() { Chaos::Modifier::factory["Keep Jumping"] = [](){return new KeepJumping();}; };
-	const char* description() { return "Repeated presses of X"; };
-	double pressTime;
-	void begin() {
-		DeviceEvent event = {0,1,TYPE_BUTTON, BUTTON_X};
-		dualshock->applyEvent(&event);
-		pressTime = 0;
-	}
-	void update() {
-		pressTime += timer.dTime();
-		if ( pressTime > 0.1  && dualshock->getState(BUTTON_X, TYPE_BUTTON) ) {
-			DeviceEvent event = {0,0,TYPE_BUTTON, BUTTON_X};
-			dualshock->applyEvent(&event);
-			pressTime = 0;
-		} else if( pressTime > 2.0 && !dualshock->getState(BUTTON_X, TYPE_BUTTON) ) {
-			DeviceEvent event = {0,1,TYPE_BUTTON, BUTTON_X};
-			dualshock->applyEvent(&event);
-			pressTime = 0;
-		}
-	}
-	void finish() {
-		DeviceEvent event = {0,0,TYPE_BUTTON, BUTTON_X};
-		dualshock->applyEvent(&event);
-	}
-	bool tweak( DeviceEvent* event ) {
-		return true;
-	}
+  static void regist() { Chaos::Modifier::factory["Keep Jumping"] = [](){return new KeepJumping();}; };
+  const char* description() { return "Repeated presses of X"; };
+  double pressTime;
+  void begin() {
+    DeviceEvent event = {0,1,TYPE_BUTTON, BUTTON_X};
+    dualshock->applyEvent(&event);
+    pressTime = 0;
+  }
+  void update() {
+    pressTime += timer.dTime();
+    if ( pressTime > 0.1  && dualshock->getState(BUTTON_X, TYPE_BUTTON) ) {
+      DeviceEvent event = {0,0,TYPE_BUTTON, BUTTON_X};
+      dualshock->applyEvent(&event);
+      pressTime = 0;
+    } else if( pressTime > 2.0 && !dualshock->getState(BUTTON_X, TYPE_BUTTON) ) {
+      DeviceEvent event = {0,1,TYPE_BUTTON, BUTTON_X};
+      dualshock->applyEvent(&event);
+      pressTime = 0;
+    }
+  }
+  void finish() {
+    DeviceEvent event = {0,0,TYPE_BUTTON, BUTTON_X};
+    dualshock->applyEvent(&event);
+  }
+  bool tweak( DeviceEvent* event ) {
+    return true;
+  }
 };
 
 class RachyFlail : public Chaos::Modifier {
 public:
-	static void regist() { Chaos::Modifier::factory["Rachy Flail"] = [](){return new RachyFlail();}; };
-	const char* description() { return "The only way to melee is to follow the master techniques of RachyMonster"; };
-	double pressTime;
-	void begin() {
-		DeviceEvent event = {0,1,TYPE_BUTTON, BUTTON_SQUARE};
-		dualshock->applyEvent(&event);
-		pressTime = 0;
-	}
-	void update() {
-		pressTime += timer.dTime();
-		if ( pressTime > 0.1  && dualshock->getState(BUTTON_SQUARE, TYPE_BUTTON) ) {
-			DeviceEvent event = {0,0,TYPE_BUTTON, BUTTON_SQUARE};
-			dualshock->applyEvent(&event);
-			pressTime = 0;
-		} else if( pressTime > 1.1 && !dualshock->getState(BUTTON_SQUARE, TYPE_BUTTON) ) {
-			DeviceEvent event = {0,1,TYPE_BUTTON, BUTTON_SQUARE};
-			dualshock->applyEvent(&event);
-			pressTime = 0;
-		}
-	}
-	void finish() {
-		DeviceEvent event = {0,0,TYPE_BUTTON, BUTTON_SQUARE};
-		dualshock->applyEvent(&event);
-	}
-	bool tweak( DeviceEvent* event ) {
-		return true;
-	}
+  static void regist() { Chaos::Modifier::factory["Rachy Flail"] = [](){return new RachyFlail();}; };
+  const char* description() { return "The only way to melee is to follow the master techniques of RachyMonster"; };
+  double pressTime;
+  void begin() {
+    DeviceEvent event = {0,1,TYPE_BUTTON, BUTTON_SQUARE};
+    dualshock->applyEvent(&event);
+    pressTime = 0;
+  }
+  void update() {
+    pressTime += timer.dTime();
+    if ( pressTime > 0.1  && dualshock->getState(BUTTON_SQUARE, TYPE_BUTTON) ) {
+      DeviceEvent event = {0,0,TYPE_BUTTON, BUTTON_SQUARE};
+      dualshock->applyEvent(&event);
+      pressTime = 0;
+    } else if( pressTime > 1.1 && !dualshock->getState(BUTTON_SQUARE, TYPE_BUTTON) ) {
+      DeviceEvent event = {0,1,TYPE_BUTTON, BUTTON_SQUARE};
+      dualshock->applyEvent(&event);
+      pressTime = 0;
+    }
+  }
+  void finish() {
+    DeviceEvent event = {0,0,TYPE_BUTTON, BUTTON_SQUARE};
+    dualshock->applyEvent(&event);
+  }
+  bool tweak( DeviceEvent* event ) {
+    return true;
+  }
 };
 
 class KeepDodging : public Chaos::Modifier {
 public:
-	static void regist() { Chaos::Modifier::factory["Keep Dodging"] = [](){return new KeepDodging();}; };
-	const char* description() { return "Repeated presses of Circle"; };
-	double pressTime;
-	void begin() {
-		DeviceEvent event = {0,1,TYPE_BUTTON, BUTTON_L1};
-		dualshock->applyEvent(&event);
-		pressTime = 0;
-	}
-	void update() {
-		pressTime += timer.dTime();
-		if ( pressTime > 0.1  && dualshock->getState(BUTTON_L1, TYPE_BUTTON) ) {
-			DeviceEvent event = {0,0,TYPE_BUTTON, BUTTON_L1};
-			dualshock->applyEvent(&event);
-			pressTime = 0;
-		} else if( pressTime > 2.0 && !dualshock->getState(BUTTON_L1, TYPE_BUTTON) ) {
-			DeviceEvent event = {0,1,TYPE_BUTTON, BUTTON_L1};
-			dualshock->applyEvent(&event);
-			pressTime = 0;
-		}
-	}
-	void finish() {
-		DeviceEvent event = {0,0,TYPE_BUTTON, BUTTON_L1};
-		dualshock->applyEvent(&event);
-	}
-	bool tweak( DeviceEvent* event ) {
-		return true;
-	}
+  static void regist() { Chaos::Modifier::factory["Keep Dodging"] = [](){return new KeepDodging();}; };
+  const char* description() { return "Repeated presses of Circle"; };
+  double pressTime;
+  void begin() {
+    DeviceEvent event = {0,1,TYPE_BUTTON, BUTTON_L1};
+    dualshock->applyEvent(&event);
+    pressTime = 0;
+  }
+  void update() {
+    pressTime += timer.dTime();
+    if ( pressTime > 0.1  && dualshock->getState(BUTTON_L1, TYPE_BUTTON) ) {
+      DeviceEvent event = {0,0,TYPE_BUTTON, BUTTON_L1};
+      dualshock->applyEvent(&event);
+      pressTime = 0;
+    } else if( pressTime > 2.0 && !dualshock->getState(BUTTON_L1, TYPE_BUTTON) ) {
+      DeviceEvent event = {0,1,TYPE_BUTTON, BUTTON_L1};
+      dualshock->applyEvent(&event);
+      pressTime = 0;
+    }
+  }
+  void finish() {
+    DeviceEvent event = {0,0,TYPE_BUTTON, BUTTON_L1};
+    dualshock->applyEvent(&event);
+  }
+  bool tweak( DeviceEvent* event ) {
+    return true;
+  }
 };
 
 class PeriodicListenMode : public Chaos::Modifier {
 public:
-	static void regist() { Chaos::Modifier::factory["Periodic Listen Mode"] = [](){return new PeriodicListenMode();}; };
-	const char* description() { return "Repeated holds of R1"; };
-	double pressTime;
-	void begin() {
-		DeviceEvent event = {0,1,TYPE_BUTTON, BUTTON_R1};
-		dualshock->applyEvent(&event);
-		pressTime = 0;
-	}
-	void update() {
-		pressTime += timer.dTime();
-		if ( pressTime > 3.0  && dualshock->getState(BUTTON_R1, TYPE_BUTTON) ) {
-			DeviceEvent event = {0,0,TYPE_BUTTON, BUTTON_R1};
-			dualshock->applyEvent(&event);
-			pressTime = 0;
-		} else if( pressTime > 8.0 && !dualshock->getState(BUTTON_R1, TYPE_BUTTON) ) {
-			DeviceEvent event = {0,1,TYPE_BUTTON, BUTTON_R1};
-			dualshock->applyEvent(&event);
-			pressTime = 0;
-		}
-	}
-	void finish() {
-		DeviceEvent event = {0,0,TYPE_BUTTON, BUTTON_R1};
-		dualshock->applyEvent(&event);
-	}
-	bool tweak( DeviceEvent* event ) {
-		return true;
-	}
+  static void regist() { Chaos::Modifier::factory["Periodic Listen Mode"] = [](){return new PeriodicListenMode();}; };
+  const char* description() { return "Repeated holds of R1"; };
+  double pressTime;
+  void begin() {
+    DeviceEvent event = {0,1,TYPE_BUTTON, BUTTON_R1};
+    dualshock->applyEvent(&event);
+    pressTime = 0;
+  }
+  void update() {
+    pressTime += timer.dTime();
+    if ( pressTime > 3.0  && dualshock->getState(BUTTON_R1, TYPE_BUTTON) ) {
+      DeviceEvent event = {0,0,TYPE_BUTTON, BUTTON_R1};
+      dualshock->applyEvent(&event);
+      pressTime = 0;
+    } else if( pressTime > 8.0 && !dualshock->getState(BUTTON_R1, TYPE_BUTTON) ) {
+      DeviceEvent event = {0,1,TYPE_BUTTON, BUTTON_R1};
+      dualshock->applyEvent(&event);
+      pressTime = 0;
+    }
+  }
+  void finish() {
+    DeviceEvent event = {0,0,TYPE_BUTTON, BUTTON_R1};
+    dualshock->applyEvent(&event);
+  }
+  bool tweak( DeviceEvent* event ) {
+    return true;
+  }
 };
 
 class NoRun : public Chaos::Modifier {
 public:
-	static void regist() { Chaos::Modifier::factory["No Run/Dodge"] = [](){return new NoRun();}; };
-	const char* description() { return "L1 is disabled"; };
-	void begin() {
-		DeviceEvent event = {0,0,TYPE_BUTTON, BUTTON_L1};
-		dualshock->applyEvent(&event);
-	}
-	bool tweak( DeviceEvent* event ) {
-		if (event->id == BUTTON_L1 && event->type == TYPE_BUTTON) {
-			//return false;
-			event->value = 0;
-		}
-		return true;
-	}
+  static void regist() { Chaos::Modifier::factory["No Run/Dodge"] = [](){return new NoRun();}; };
+  const char* description() { return "L1 is disabled"; };
+  void begin() {
+    DeviceEvent event = {0,0,TYPE_BUTTON, BUTTON_L1};
+    dualshock->applyEvent(&event);
+  }
+  bool tweak( DeviceEvent* event ) {
+    button_off(event, BUTTON_L1);
+    return true;
+  }
 };
 
 class ForceRun : public Chaos::Modifier {
 public:
-	static void regist() { Chaos::Modifier::factory["Force Running"] = [](){return new ForceRun();}; };
-	const char* description() { return "L1 is held down (mostly)"; };
-	double pressTime;
-	void begin() {
-		DeviceEvent event = {0,1,TYPE_BUTTON, BUTTON_L1};
-		dualshock->applyEvent(&event);
-	}
-	void update() {
-		pressTime += timer.dTime();
-		if (pressTime > 4 && dualshock->getState(BUTTON_L1, TYPE_BUTTON)) {
-			DeviceEvent event = {0,0,TYPE_BUTTON, BUTTON_L1};
-			dualshock->applyEvent(&event);
-			pressTime = 0;
-		} else if ( pressTime > 0.1 && !dualshock->getState(BUTTON_L1, TYPE_BUTTON)) {
-			DeviceEvent event = {0,1,TYPE_BUTTON, BUTTON_L1};
-			dualshock->applyEvent(&event);
-			pressTime = 0;
-		}
-	}
-	void finish() {
-		DeviceEvent event = {0,0,TYPE_BUTTON, BUTTON_L1};
-		dualshock->applyEvent(&event);
-	}
-	bool tweak( DeviceEvent* event ) {
-		if (event->id == BUTTON_L1 && event->type == TYPE_BUTTON) {
-			event->value = 1;
-		}
-		return true;
-	}
+  static void regist() { Chaos::Modifier::factory["Force Running"] = [](){return new ForceRun();}; };
+  const char* description() { return "L1 is held down (mostly)"; };
+  double pressTime;
+  void begin() {
+    DeviceEvent event = {0,1,TYPE_BUTTON, BUTTON_L1};
+    dualshock->applyEvent(&event);
+  }
+  void update() {
+    pressTime += timer.dTime();
+    if (pressTime > 4 && dualshock->getState(BUTTON_L1, TYPE_BUTTON)) {
+      DeviceEvent event = {0,0,TYPE_BUTTON, BUTTON_L1};
+      dualshock->applyEvent(&event);
+      pressTime = 0;
+    } else if ( pressTime > 0.1 && !dualshock->getState(BUTTON_L1, TYPE_BUTTON)) {
+      DeviceEvent event = {0,1,TYPE_BUTTON, BUTTON_L1};
+      dualshock->applyEvent(&event);
+      pressTime = 0;
+    }
+  }
+  void finish() {
+    DeviceEvent event = {0,0,TYPE_BUTTON, BUTTON_L1};
+    dualshock->applyEvent(&event);
+  }
+  bool tweak( DeviceEvent* event ) {
+    button_on(event, BUTTON_L1);
+    return true;
+  }
 };
 
 class BadStamina : public Chaos::Modifier {
 public:
-	static void regist() { Chaos::Modifier::factory["Bad Stamina"] = [](){return new BadStamina();}; };
-	const char* description() { return "Running gets disabled after 2 seconds and takes 4 seconds to recharge"; };
-	double stateTime;
-	bool pressedState;
-	double stamina;
+  static void regist() { Chaos::Modifier::factory["Bad Stamina"] = [](){return new BadStamina();}; };
+  const char* description() { return "Running gets disabled after 2 seconds and takes 4 seconds to recharge"; };
+  double stateTime;
+  bool pressedState;
+  double stamina;
 	
-	enum {
-		STAMINA_GOOD,
-		STAMINA_BAD
-	} state;
+  enum {
+    STAMINA_GOOD,
+    STAMINA_BAD
+  } state;
 	
-	void begin() {
-		pressedState = dualshock->getState(BUTTON_L1, TYPE_BUTTON);
-		stamina = 0.0;
-		state = STAMINA_GOOD;
-		stateTime = 0.0;
-	}
-	void update() {
-		stateTime = timer.dTime();
+  void begin() {
+    pressedState = dualshock->getState(BUTTON_L1, TYPE_BUTTON);
+    stamina = 0.0;
+    state = STAMINA_GOOD;
+    stateTime = 0.0;
+  }
+  void update() {
+    stateTime = timer.dTime();
 		
-		if (state == STAMINA_GOOD) {
-			if (dualshock->getState(BUTTON_L1, TYPE_BUTTON)) {
-				stamina += stateTime;
-				if (stamina > 2.0) {
-					stamina = 2.0;
-					state = STAMINA_BAD;
-					DeviceEvent event = {0, 0, TYPE_BUTTON, BUTTON_L1};
-					chaosEngine->fakePipelinedEvent(&event, me);
-				}
-			} else {
-				stamina -= stateTime/2.0;
-				if (stamina < 0.0) {
-					stamina = 0;
-				}
-			}
-		} else if (state == STAMINA_BAD) {
-			stamina -= stateTime/2.0;
-			if (stamina < 0.0) {
-				stamina = 0;
-				state = STAMINA_GOOD;
-			}
-		}
+    if (state == STAMINA_GOOD) {
+      if (dualshock->getState(BUTTON_L1, TYPE_BUTTON)) {
+	stamina += stateTime;
+	if (stamina > 2.0) {
+	  stamina = 2.0;
+	  state = STAMINA_BAD;
+	  DeviceEvent event = {0, 0, TYPE_BUTTON, BUTTON_L1};
+	  chaosEngine->fakePipelinedEvent(&event, me);
 	}
-	bool tweak( DeviceEvent* event ) {
-		if (event->id == BUTTON_L1 && event->type == TYPE_BUTTON) {
-			return state == STAMINA_GOOD;
-		}
-		return true;
+      } else {
+	stamina -= stateTime/2.0;
+	if (stamina < 0.0) {
+	  stamina = 0;
 	}
+      }
+    } else if (state == STAMINA_BAD) {
+      stamina -= stateTime/2.0;
+      if (stamina < 0.0) {
+	stamina = 0;
+	state = STAMINA_GOOD;
+      }
+    }
+  }
+  bool tweak( DeviceEvent* event ) {
+    if (event->id == BUTTON_L1 && event->type == TYPE_BUTTON) {
+      return state == STAMINA_GOOD;
+    }
+    return true;
+  }
 };
 
 class LeeroyJenkins : public Chaos::Modifier {
 public:
-	static void regist() { Chaos::Modifier::factory["Leeroy Jenkins"] = [](){return new LeeroyJenkins();}; };
-	const char* description() { return "Alright let's do this! LEEEEROOOOOY NNNJEEEENNKIINNS!!! (Holds forward and sprint)"; };
-	double pressTime;
-	void begin() {
-		DeviceEvent event = {0,1,TYPE_BUTTON, BUTTON_L1};
-		dualshock->applyEvent(&event);
-		event = {0,JOYSTICK_MIN,TYPE_AXIS, AXIS_LY};
-		dualshock->applyEvent(&event);
-	}
-	void update() {
-		pressTime += timer.dTime();
-		DeviceEvent event = {0,JOYSTICK_MIN,TYPE_AXIS, AXIS_LY};
-		dualshock->applyEvent(&event);
-		if (pressTime > 4 && dualshock->getState(BUTTON_L1, TYPE_BUTTON)) {
-			event = {0,0,TYPE_BUTTON, BUTTON_L1};
-			dualshock->applyEvent(&event);
-			pressTime = 0;
-		} else if ( pressTime > 0.1 && !dualshock->getState(BUTTON_L1, TYPE_BUTTON)) {
-			event = {0,1,TYPE_BUTTON, BUTTON_L1};
-			dualshock->applyEvent(&event);
-			pressTime = 0;
-		}
-	}
-	void finish() {
-		DeviceEvent event = {0,0,TYPE_BUTTON, BUTTON_L1};
-		dualshock->applyEvent(&event);
-		event = {0,0,TYPE_AXIS, AXIS_LY};
-		dualshock->applyEvent(&event);
-	}
-	bool tweak( DeviceEvent* event ) {
-		if (event->id == BUTTON_L1 && event->type == TYPE_BUTTON) {
-			event->value = 1;
-		}
-		if (event->id == AXIS_LY && event->type == TYPE_AXIS) {
-//			event->value = JOYSTICK_MIN;
-			return false;
-		}
-		return true;
-	}
+  static void regist() { Chaos::Modifier::factory["Leeroy Jenkins"] = [](){return new LeeroyJenkins();}; };
+  const char* description() { return "Alright let's do this! LEEEEROOOOOY NNNJEEEENNKIINNS!!! (Holds forward and sprint)"; };
+  double pressTime;
+  void begin() {
+    DeviceEvent event = {0,1,TYPE_BUTTON, BUTTON_L1};
+    dualshock->applyEvent(&event);
+    event = {0,JOYSTICK_MIN,TYPE_AXIS, AXIS_LY};
+    dualshock->applyEvent(&event);
+  }
+  void update() {
+    pressTime += timer.dTime();
+    DeviceEvent event = {0,JOYSTICK_MIN,TYPE_AXIS, AXIS_LY};
+    dualshock->applyEvent(&event);
+    if (pressTime > 4 && dualshock->getState(BUTTON_L1, TYPE_BUTTON)) {
+      event = {0,0,TYPE_BUTTON, BUTTON_L1};
+      dualshock->applyEvent(&event);
+      pressTime = 0;
+    } else if ( pressTime > 0.1 && !dualshock->getState(BUTTON_L1, TYPE_BUTTON)) {
+      event = {0,1,TYPE_BUTTON, BUTTON_L1};
+      dualshock->applyEvent(&event);
+      pressTime = 0;
+    }
+  }
+  void finish() {
+    DeviceEvent event = {0,0,TYPE_BUTTON, BUTTON_L1};
+    dualshock->applyEvent(&event);
+    event = {0,0,TYPE_AXIS, AXIS_LY};
+    dualshock->applyEvent(&event);
+  }
+  bool tweak( DeviceEvent* event ) {
+    button_on(event, BUTTON_L1);
+    return drop_axis(AXIS_LY);
+  }
 };
 
 class ForceAim : public Chaos::Modifier {
-	//Prototoxin187
+  //Prototoxin187
 public:
-	static void regist() { Chaos::Modifier::factory["Force Aiming"] = [](){return new ForceAim();}; };
-	const char* description() { return "L2 is held"; };
-	double pressTime;
-	void begin() {
-		DeviceEvent event = {0,1,TYPE_BUTTON, BUTTON_L2};
-		dualshock->applyEvent(&event);
-	}
-	void update() {
-		pressTime += timer.dTime();
-		if (pressTime > 4 && dualshock->getState(BUTTON_L2, TYPE_BUTTON)) {
-			DeviceEvent event = {0,0,TYPE_BUTTON, BUTTON_L2};
-			dualshock->applyEvent(&event);
-			event = {0,JOYSTICK_MIN,TYPE_AXIS, AXIS_L2};
-			dualshock->applyEvent(&event);
-			pressTime = 0;
-		} else if ( pressTime > 0.1 && !dualshock->getState(BUTTON_L2, TYPE_BUTTON)) {
-			DeviceEvent event = {0,1,TYPE_BUTTON, BUTTON_L2};
-			dualshock->applyEvent(&event);
-			event = {0,JOYSTICK_MAX,TYPE_AXIS, AXIS_L2};
-			dualshock->applyEvent(&event);
-			pressTime = 0;
-		}
-	}
-	void finish() {
-		DeviceEvent event = {0,0,TYPE_BUTTON, BUTTON_L2};
-		dualshock->applyEvent(&event);
-		event = {0,JOYSTICK_MIN,TYPE_AXIS, AXIS_L2};
-		dualshock->applyEvent(&event);
-	}
-	bool tweak( DeviceEvent* event ) {
-		if (event->id == BUTTON_L2 && event->type == TYPE_BUTTON) {
-			event->value = 1;
-		} else if (event->id == AXIS_L2 && event->type == TYPE_AXIS) {
-			event->value = JOYSTICK_MAX;
-		}
-		return true;
-	}
+  static void regist() { Chaos::Modifier::factory["Force Aiming"] = [](){return new ForceAim();}; };
+  const char* description() { return "L2 is held"; };
+  double pressTime;
+  void begin() {
+    DeviceEvent event = {0,1,TYPE_BUTTON, BUTTON_L2};
+    dualshock->applyEvent(&event);
+  }
+  void update() {
+    pressTime += timer.dTime();
+    if (pressTime > 4 && dualshock->getState(BUTTON_L2, TYPE_BUTTON)) {
+      DeviceEvent event = {0,0,TYPE_BUTTON, BUTTON_L2};
+      dualshock->applyEvent(&event);
+      event = {0,JOYSTICK_MIN,TYPE_AXIS, AXIS_L2};
+      dualshock->applyEvent(&event);
+      pressTime = 0;
+    } else if ( pressTime > 0.1 && !dualshock->getState(BUTTON_L2, TYPE_BUTTON)) {
+      DeviceEvent event = {0,1,TYPE_BUTTON, BUTTON_L2};
+      dualshock->applyEvent(&event);
+      event = {0,JOYSTICK_MAX,TYPE_AXIS, AXIS_L2};
+      dualshock->applyEvent(&event);
+      pressTime = 0;
+    }
+  }
+  void finish() {
+    DeviceEvent event = {0,0,TYPE_BUTTON, BUTTON_L2};
+    dualshock->applyEvent(&event);
+    event = {0,JOYSTICK_MIN,TYPE_AXIS, AXIS_L2};
+    dualshock->applyEvent(&event);
+  }
+  bool tweak( DeviceEvent* event ) {
+    button_on(event, BUTTON_L2);
+    max_axis(event, AXIS_L2);
+    return true;
+  }
 };
 
 class DisableJoystick : public Chaos::Modifier {
 public:
-	static void regist() { Chaos::Modifier::factory["Disable Right Joystick"] = [](){return new DisableJoystick();}; };
-	const char* description() { return "Good luck with aiming and looking around!"; };
-	bool tweak( DeviceEvent* event ) {
-		if ( (event->id == AXIS_RX || event->id == AXIS_RY) && event->type == TYPE_AXIS) {
-			event->value = 0;
-		}
-		return true;
-	}
+  static void regist() { Chaos::Modifier::factory["Disable Right Joystick"] = [](){return new DisableJoystick();}; };
+  const char* description() { return "Good luck with aiming and looking around!"; };
+  bool tweak( DeviceEvent* event ) {
+    axis_off(event, AXIS_RX);
+    axis_off(event, AXIS_RY);
+    return true;
+  }
 };
 
 class DisableJoystickHorizontal : public Chaos::Modifier {
 public:
-	static void regist() { Chaos::Modifier::factory["No Horizontal Aim"] = [](){return new DisableJoystickHorizontal();}; };
-	const char* description() { return "The right joystick right/left is disabled"; };
-	bool tweak( DeviceEvent* event ) {
-		if ( (event->id == AXIS_RX) && event->type == TYPE_AXIS) {
-			event->value = 0;
-		}
-		return true;
-	}
+  static void regist() { Chaos::Modifier::factory["No Horizontal Aim"] = [](){return new DisableJoystickHorizontal();}; };
+  const char* description() { return "The right joystick right/left is disabled"; };
+  bool tweak( DeviceEvent* event ) {
+    axis_off(event, AXIS_RX);
+    return true;
+  }
 };
 
 class DisableDpad : public Chaos::Modifier {
-	// JustSaft
+  // JustSaft
 public:
-	static void regist() { Chaos::Modifier::factory["Disable D-pad"] = [](){return new DisableDpad();}; };
-	const char* description() { return "Inventory selection is disabled"; };
-	bool tweak( DeviceEvent* event ) {
-		if ( (event->id == AXIS_DX || event->id == AXIS_DY) && event->type == TYPE_AXIS) {
-			event->value = 0;
-		}
-		return true;
-	}
+  static void regist() { Chaos::Modifier::factory["Disable D-pad"] = [](){return new DisableDpad();}; };
+  const char* description() { return "Inventory selection is disabled"; };
+  bool tweak( DeviceEvent* event ) {
+    axis_off(event, AXIS_DX);
+    axis_off(event, AXIS_DY);
+    return true;
+  }
 };
 
 class DpadRotate : public Chaos::Modifier {
 public:
-	static void regist() { Chaos::Modifier::factory["D-pad Rotate"] = [](){return new DpadRotate();}; };
-	const char* description() { return "Rotates the D-pad inputs clockwise"; };
-	bool tweak( DeviceEvent* event ) {
-		if (event->type == TYPE_AXIS) {
-			if (event->id == AXIS_DX) {
-				event->id = AXIS_DY;
-			} else if (event->id == AXIS_DY) {
-				event->id = AXIS_DX;
-				event->value = joystickLimit( -event->value );
-			}
-		}
-		
-		return true;
-	}
+  static void regist() { Chaos::Modifier::factory["D-pad Rotate"] = [](){return new DpadRotate();}; };
+  const char* description() { return "Rotates the D-pad inputs clockwise"; };
+  bool tweak( DeviceEvent* event ) {
+    if (event->type == TYPE_AXIS) {
+      if (event->id == AXIS_DX) {
+	event->id = AXIS_DY;
+      } else if (event->id == AXIS_DY) {
+	event->id = AXIS_DX;
+	event->value = joystickLimit( -event->value );
+      }
+    }		
+    return true;
+  }
 };
 
 class Moose : public Chaos::Modifier {
 public:
-	static void regist() { Chaos::Modifier::factory["Moose"] = [](){return new Moose();}; };
-	const char* description() { return "The moose is dead.  The moose does not move.  (Disables Left Joystick)"; };
-	bool tweak( DeviceEvent* event ) {
-		if ( (event->id == AXIS_LX || event->id == AXIS_LY) && event->type == TYPE_AXIS) {
-			event->value = 0;
-		}
-		return true;
-	}
+  static void regist() { Chaos::Modifier::factory["Moose"] = [](){return new Moose();}; };
+  const char* description() { return "The moose is dead.  The moose does not move.  (Disables Left Joystick)"; };
+  bool tweak( DeviceEvent* event ) {
+    axis_off(event, AXIS_LX);
+    axis_off(event, AXIS_LY);
+    return true;
+  }
 };
 
 class StrafeOnly : public Chaos::Modifier {
-	//Prototoxin187
+  //Prototoxin187
 public:
-	static void regist() { Chaos::Modifier::factory["Only Strafe Movement"] = [](){return new StrafeOnly();}; };
-	const char* description() { return "X-axis on the left joystick is disabled.  Only forward/back motion is allowed."; };
-	bool tweak( DeviceEvent* event ) {
-		if ( event->id == AXIS_LY && event->type == TYPE_AXIS) {
-			event->value = 0;
-		}
-		return true;
-	}
+  static void regist() { Chaos::Modifier::factory["Only Strafe Movement"] = [](){return new StrafeOnly();}; };
+  const char* description() { return "Y-axis on the left joystick is disabled.  Only left/right motion is allowed."; };
+
+  bool tweak( DeviceEvent* event ) {
+    axis_off(event, AXIS_LY);
+    return true;
+  }
 };
 
 class NoStrafe : public Chaos::Modifier {
 public:
-	static void regist() { Chaos::Modifier::factory["No Strafing"] = [](){return new NoStrafe();}; };
-	const char* description() { return "Y-axis on the left joystick is disabled.  Only left/right motion is allowed."; };
-	bool tweak( DeviceEvent* event ) {
-		if ( event->id == AXIS_LX && event->type == TYPE_AXIS) {
-			event->value = 0;
-		}
-		return true;
-	}
+  static void regist() { Chaos::Modifier::factory["No Strafing"] = [](){return new NoStrafe();}; };
+  const char* description() { return "X-axis on the left joystick is disabled.  Only forward/back motion is allowed."; };
+
+  bool tweak( DeviceEvent* event ) {
+    axis_off(event, AXIS_LX);
+    return true;
+  }
 };
 
 class AimMovement : public Chaos::Modifier {
 public:
-	static void regist() { Chaos::Modifier::factory["Only Aim Movement"] = [](){return new AimMovement();}; };
-	const char* description() { return "Left joystick is disabled if not aiming"; };
+  static void regist() { Chaos::Modifier::factory["Only Aim Movement"] = [](){return new AimMovement();}; };
+  const char* description() { return "Left joystick is disabled if not aiming"; };
 	
-	bool tweak( DeviceEvent* event ) {
-		if ((event->id == AXIS_LX || event->id == AXIS_LY) &&
-			event->type == TYPE_AXIS &&
-			!dualshock->getState(BUTTON_L2, TYPE_BUTTON) ) {
-			event->value = 0;
-		}
-		return true;
-	}
+  bool tweak( DeviceEvent* event ) {
+    if (!is_pressed(BUTTON_L2) {
+	axis_off(event, AXIS_LX);
+	axis_off(event, AXIS_LY);
+    }
+    return true;
+  }
 };
 
 class SwapSticks : public Chaos::Modifier {
 public:
-	static void regist() { Chaos::Modifier::factory["Swap Joysticks"] = [](){return new SwapSticks();}; };
-	const char* description() { return "You may want to cross your thumbs to work with your muscle memory"; };
-	bool tweak( DeviceEvent* event ) {
-		if( event->type == TYPE_AXIS ) {
-			switch (event->id) {
-				case AXIS_RX: event->id = AXIS_LX; break;
-				case AXIS_RY: event->id = AXIS_LY; break;
-				case AXIS_LX: event->id = AXIS_RX; break;
-				case AXIS_LY: event->id = AXIS_RY; break;
-				default: break;
-			}
-		}
-		return true;
-	}
+  static void regist() { Chaos::Modifier::factory["Swap Joysticks"] = [](){return new SwapSticks();}; };
+  const char* description() { return "You may want to cross your thumbs to work with your muscle memory"; };
+  bool tweak( DeviceEvent* event ) {
+    if( event->type == TYPE_AXIS ) {
+      switch (event->id) {
+      case AXIS_RX: event->id = AXIS_LX; break;
+      case AXIS_RY: event->id = AXIS_LY; break;
+      case AXIS_LX: event->id = AXIS_RX; break;
+      case AXIS_LY: event->id = AXIS_RY; break;
+      default: break;
+      }
+    }
+    return true;
+  }
 };
 
+//JustForSaft, joshuatimes7
 class SwapStickDpad : public Chaos::Modifier {
-	//JustForSaft, joshuatimes7
 public:
-	static void regist() { Chaos::Modifier::factory["Swap D-Pad/Left Joystick"] = [](){return new SwapStickDpad();}; };
-	const char* description() { return "Retro style motion, and an odd analog inventory selector"; };
-	void begin() {
-		DeviceEvent event = {0,0,TYPE_AXIS, AXIS_LY};
-		dualshock->applyEvent(&event);
-		event = {0,0,TYPE_AXIS, AXIS_LX};
-		dualshock->applyEvent(&event);
-	}
-	bool tweak( DeviceEvent* event ) {
-		if( event->type == TYPE_AXIS ) {
-			switch (event->id) {
-				case AXIS_DX: event->id = AXIS_LX; event->value = joystickLimit(JOYSTICK_MAX*event->value); break;
-				case AXIS_DY: event->id = AXIS_LY; event->value = joystickLimit(JOYSTICK_MAX*event->value); break;
-				case AXIS_LX:
-					event->id = AXIS_DX;
-					event->value = event->value > JOYSTICK_MAX/2 ? 1 : event->value < JOYSTICK_MIN/2 ? -1 : 0;
-					break;
-				case AXIS_LY:
-					event->id = AXIS_DY;
-					event->value = event->value > JOYSTICK_MAX/2 ? 1 : event->value < JOYSTICK_MIN/2 ? -1 : 0;
-					break;
-				default: break;
-			}
-		}
-		return true;
-	}
+  static void regist() { Chaos::Modifier::factory["Swap D-Pad/Left Joystick"] = [](){return new SwapStickDpad();}; };
+  const char* description() { return "Retro style motion, and an odd analog inventory selector"; };
+  void begin() {
+    DeviceEvent event = {0,0,TYPE_AXIS, AXIS_LY};
+    dualshock->applyEvent(&event);
+    event = {0,0,TYPE_AXIS, AXIS_LX};
+    dualshock->applyEvent(&event);
+  }
+  bool tweak( DeviceEvent* event ) {
+    if( event->type == TYPE_AXIS ) {
+      switch (event->id) {
+      case AXIS_DX:
+	event->id = AXIS_LX;
+	event->value = joystickLimit(JOYSTICK_MAX*event->value);
+	break;
+      case AXIS_DY:
+	event->id = AXIS_LY;
+	event->value = joystickLimit(JOYSTICK_MAX*event->value);
+	break;
+      case AXIS_LX:
+	event->id = AXIS_DX;
+	event->value = event->value > JOYSTICK_MAX/2 ? 1 : event->value < JOYSTICK_MIN/2 ? -1 : 0;
+	break;
+      case AXIS_LY:
+	event->id = AXIS_DY;
+	event->value = event->value > JOYSTICK_MAX/2 ? 1 : event->value < JOYSTICK_MIN/2 ? -1 : 0;
+	break;
+      default: break;
+      }
+    }
+    return true;
+  }
 };
 
 class SwapStickShapes : public Chaos::Modifier {
 public:
-	DeviceEvent fakeEvent;
-	static void regist() { Chaos::Modifier::factory["Swap Shapes/Right Joystick"] = [](){return new SwapStickShapes();}; };
-	const char* description() { return "Analog actions, and digital camera movement"; };
-	void begin() {
-		DeviceEvent event = {0,0,TYPE_AXIS, AXIS_RY};
-		dualshock->applyEvent(&event);
-		event = {0,0,TYPE_AXIS, AXIS_RX};
-		dualshock->applyEvent(&event);
+  DeviceEvent fakeEvent;
+  static void regist() { Chaos::Modifier::factory["Swap Shapes/Right Joystick"] = [](){return new SwapStickShapes();}; };
+  const char* description() { return "Analog actions, and digital camera movement"; };
+  void begin() {
+    DeviceEvent event = {0,0,TYPE_AXIS, AXIS_RY};
+    dualshock->applyEvent(&event);
+    event = {0,0,TYPE_AXIS, AXIS_RX};
+    dualshock->applyEvent(&event);
+  }
+  bool tweak( DeviceEvent* event ) {
+    if( event->type == TYPE_AXIS ) {
+      switch (event->id) {
+	//case AXIS_DX: event->id = AXIS_LX; event->value = joystickLimit(JOYSTICK_MAX*event->value); break;
+	//case AXIS_DY: event->id = AXIS_LY; event->value = joystickLimit(JOYSTICK_MAX*event->value); break;
+      case AXIS_RX:
+	event->type = TYPE_BUTTON;// AXIS_DX;
+	if (event->value < JOYSTICK_MIN/2) {
+	  event->id = BUTTON_SQUARE;
+	  event->value = 1;
+	} else if (event->value > JOYSTICK_MAX/2) {
+	  event->id = BUTTON_CIRCLE;
+	  event->value = 1;
+	} else {
+	  event->id = BUTTON_CIRCLE;
+	  event->value = 0;
+	  
+	  fakeEvent.id = BUTTON_SQUARE;
+	  fakeEvent.value = 0;
+	  chaosEngine->fakePipelinedEvent(&fakeEvent, me);
 	}
-	bool tweak( DeviceEvent* event ) {
-		if( event->type == TYPE_AXIS ) {
-			switch (event->id) {
-//				case AXIS_DX: event->id = AXIS_LX; event->value = joystickLimit(JOYSTICK_MAX*event->value); break;
-//				case AXIS_DY: event->id = AXIS_LY; event->value = joystickLimit(JOYSTICK_MAX*event->value); break;
-				case AXIS_RX:
-					event->type = TYPE_BUTTON;// AXIS_DX;
-					if (event->value < JOYSTICK_MIN/2) {
-						event->id = BUTTON_SQUARE;
-						event->value = 1;
-					} else if (event->value > JOYSTICK_MAX/2) {
-						event->id = BUTTON_CIRCLE;
-						event->value = 1;
-					} else {
-						event->id = BUTTON_CIRCLE;
-						event->value = 0;
-						
-						fakeEvent.id = BUTTON_SQUARE;
-						fakeEvent.value = 0;
-						chaosEngine->fakePipelinedEvent(&fakeEvent, me);
-					}
-					//event->value = event->value > JOYSTICK_MAX/2 ? 1 : event->value < JOYSTICK_MIN/2 ? -1 : 0;
-					break;
-				case AXIS_RY:
-						event->type = TYPE_BUTTON;// AXIS_DX;
-						if (event->value < JOYSTICK_MIN/2) {
-							event->id = BUTTON_TRIANGLE;
-							event->value = 1;
-						} else if (event->value > JOYSTICK_MAX/2) {
-							event->id = BUTTON_X;
-							event->value = 1;
-						} else {
-							event->id = BUTTON_TRIANGLE;
-							event->value = 0;
-							
-							fakeEvent.id = BUTTON_X;
-							fakeEvent.value = 0;
-							chaosEngine->fakePipelinedEvent(&fakeEvent, me);
-						}
-					break;
-				default: break;
-			}
-		} else if (event->type == TYPE_BUTTON) {
-			switch (event->id) {
-				case BUTTON_SQUARE:
-					event->type = TYPE_AXIS;
-					event->id = AXIS_RX;
-					event->value = event->value ? JOYSTICK_MIN : 0;
-					break;
-				case BUTTON_CIRCLE:
-					event->type = TYPE_AXIS;
-					event->id = AXIS_RX;
-					event->value = event->value ? JOYSTICK_MAX : 0;
-					break;
-				case BUTTON_TRIANGLE:
-					event->type = TYPE_AXIS;
-					event->id = AXIS_RY;
-					event->value = event->value ? JOYSTICK_MIN : 0;
-					break;
-				case BUTTON_X:
-					event->type = TYPE_AXIS;
-					event->id = AXIS_RY;
-					event->value = event->value ? JOYSTICK_MAX : 0;
-					break;
+	break;
+      case AXIS_RY:
+	event->type = TYPE_BUTTON;// AXIS_DX;
+	if (event->value < JOYSTICK_MIN/2) {
+	  event->id = BUTTON_TRIANGLE;
+	  event->value = 1;
+	} else if (event->value > JOYSTICK_MAX/2) {
+	  event->id = BUTTON_X;
+	  event->value = 1;
+	} else {
+	  event->id = BUTTON_TRIANGLE;
+	  event->value = 0;
+	  
+	  fakeEvent.id = BUTTON_X;
+	  fakeEvent.value = 0;
+	  chaosEngine->fakePipelinedEvent(&fakeEvent, me);
+	}
+	break;
+      default: break;
+      }
+    } else if (event->type == TYPE_BUTTON) {
+      switch (event->id) {
+      case BUTTON_SQUARE:
+	event->type = TYPE_AXIS;
+	event->id = AXIS_RX;
+	event->value = event->value ? JOYSTICK_MIN : 0;
+	break;
+      case BUTTON_CIRCLE:
+	event->type = TYPE_AXIS;
+	event->id = AXIS_RX;
+	event->value = event->value ? JOYSTICK_MAX : 0;
+	break;
+      case BUTTON_TRIANGLE:
+	event->type = TYPE_AXIS;
+	event->id = AXIS_RY;
+	event->value = event->value ? JOYSTICK_MIN : 0;
+	break;
+      case BUTTON_X:
+	event->type = TYPE_AXIS;
+	event->id = AXIS_RY;
+	event->value = event->value ? JOYSTICK_MAX : 0;
+	break;
 					
-				default:
-					break;
-			}
-		}
-		
-		return true;
-	}
+      default:
+	break;
+      }
+    }  
+    return true;
+  }
 };
 
 class MotionControls : public Chaos::Modifier {
 public:
-	static void regist() { Chaos::Modifier::factory["Motion Control Movement"] = [](){return new MotionControls();}; };
-	const char* description() { return "No more left joystick, tilt the controller to move instead"; };
-	bool tweak( DeviceEvent* event ) {
-		if( event->type == TYPE_AXIS ) {
-			DeviceEvent newEvent;
-			switch (event->id) {
-				case AXIS_ACCX:
-					newEvent = *event;
-					newEvent.id = AXIS_LX;
-					newEvent.value = joystickLimit(-event->value/20);
-					chaosEngine->fakePipelinedEvent(&newEvent, me);
-					break;
-				case AXIS_ACCZ:
-					newEvent = *event;
-					newEvent.id = AXIS_LY;
-					newEvent.value = joystickLimit(-event->value/20);
-					chaosEngine->fakePipelinedEvent(&newEvent, me);
-					break;
-				case AXIS_LX: return false;
-				case AXIS_LY: return false;
-				default: break;
-			}
-		}
-		return true;
-	}
+  static void regist() { Chaos::Modifier::factory["Motion Control Movement"] = [](){return new MotionControls();}; };
+  const char* description() { return "No more left joystick, tilt the controller to move instead"; };
+  bool tweak( DeviceEvent* event ) {
+    if( event->type == TYPE_AXIS ) {
+      DeviceEvent newEvent;
+      switch (event->id) {
+      case AXIS_ACCX:
+	newEvent = *event;
+	newEvent.id = AXIS_LX;
+	newEvent.value = joystickLimit(-event->value/20);
+	chaosEngine->fakePipelinedEvent(&newEvent, me);
+	break;
+      case AXIS_ACCZ:
+	newEvent = *event;
+	newEvent.id = AXIS_LY;
+	newEvent.value = joystickLimit(-event->value/20);
+	chaosEngine->fakePipelinedEvent(&newEvent, me);
+	break;
+      case AXIS_LX: return false;
+      case AXIS_LY: return false;
+      default: break;
+      }
+    }
+    return true;
+  }
 };
 
 class MotionControlAiming : public Chaos::Modifier {
 public:
-	static void regist() { Chaos::Modifier::factory["Motion Control Aiming"] = [](){return new MotionControlAiming();}; };
-	const char* description() { return "No more right joystick, tilt the controller to aim/look instead"; };
-	bool tweak( DeviceEvent* event ) {
-		if( event->type == TYPE_AXIS ) {
-			DeviceEvent newEvent;
-			switch (event->id) {
-				case AXIS_ACCX:
-					newEvent = *event;
-					newEvent.id = AXIS_RX;
-					newEvent.value = joystickLimit(-event->value/24);
-					chaosEngine->fakePipelinedEvent(&newEvent, me);
-					break;
-				case AXIS_ACCZ:
-					newEvent = *event;
-					newEvent.id = AXIS_RY;
-					newEvent.value = joystickLimit(event->value/24);	// This makes sense to be inverted
-					chaosEngine->fakePipelinedEvent(&newEvent, me);
-					break;
-				case AXIS_RX: return false;
-				case AXIS_RY: return false;
-				default: break;
-			}
-		}
-		return true;
-	}
+  static void regist() { Chaos::Modifier::factory["Motion Control Aiming"] = [](){return new MotionControlAiming();}; };
+  const char* description() { return "No more right joystick, tilt the controller to aim/look instead"; };
+  bool tweak( DeviceEvent* event ) {
+    if( event->type == TYPE_AXIS ) {
+      DeviceEvent newEvent;
+      switch (event->id) {
+      case AXIS_ACCX:
+	newEvent = *event;
+	newEvent.id = AXIS_RX;
+	newEvent.value = joystickLimit(-event->value/24);
+	chaosEngine->fakePipelinedEvent(&newEvent, me);
+	break;
+      case AXIS_ACCZ:
+	newEvent = *event;
+	newEvent.id = AXIS_RY;
+	newEvent.value = joystickLimit(event->value/24);	// This makes sense to be inverted
+	chaosEngine->fakePipelinedEvent(&newEvent, me);
+	break;
+      case AXIS_RX: return false;
+      case AXIS_RY: return false;
+      default: break;
+      }
+    }
+    return true;
+  }
 };
 
 class TouchpadAiming : public Chaos::Modifier {
 public:
-	static void regist() { Chaos::Modifier::factory["Touchpad Aiming"] = [](){return new TouchpadAiming();}; };
-	const char* description() { return "No more right joystick, finally making use of the touchpad!"; };
+  static void regist() { Chaos::Modifier::factory["Touchpad Aiming"] = [](){return new TouchpadAiming();}; };
+  const char* description() { return "No more right joystick, finally making use of the touchpad!"; };
 	
-	short priorX[5];
-	short priorY[5];
-	double timestampPriorX[5];
-	double timestampPriorY[5];
-	bool priorActiveX;
-	bool priorActiveY;
+  short priorX[5];
+  short priorY[5];
+  double timestampPriorX[5];
+  double timestampPriorY[5];
+  bool priorActiveX;
+  bool priorActiveY;
 	
-	bool activeTouch;
+  bool activeTouch;
 	
-	void begin() {
-		priorActiveX = false;
-		priorActiveY = false;
-		activeTouch = false;
-	}
+  void begin() {
+    priorActiveX = false;
+    priorActiveY = false;
+    activeTouch = false;
+  }
 	
-	double derivativeX(short currentX, double timestampX) {
-		double ret = 0;
-		if (priorActiveX) {
-			if(timestampX != timestampPriorX[0]) {
-				ret = ((double)(currentX - priorX[0]))/(timestampX-timestampPriorX[0]);
-			}
-		} else {
-			priorActiveX = true;
-			priorX[1] = priorX[2] = priorX[3] = priorX[4] = currentX;
-			timestampPriorX[1] = timestampPriorX[2] =  timestampPriorX[3] =  timestampPriorX[4] = timestampX;
-		}
-		priorX[0] = priorX[1];
-		priorX[1] = priorX[2];
-		priorX[2] = priorX[3];
-		priorX[3] = priorX[4];
-		priorX[4] = currentX;
-		timestampPriorX[0] = timestampPriorX[1];
-		timestampPriorX[1] = timestampPriorX[2];
-		timestampPriorX[2] = timestampPriorX[3];
-		timestampPriorX[3] = timestampPriorX[4];
-		timestampPriorX[4] = timestampX;
-		return ret;
-	}
-	double derivativeY(short currentY, double timestampY) {
-		double ret = 0;
-		if (priorActiveY) {
-			if(timestampY != timestampPriorY[0]) {
-				ret = ((double)(currentY - priorY[0]))/(timestampY-timestampPriorY[0]);
-			}
-		} else {
-			priorActiveY = true;
-			priorY[1] = priorY[2] = priorY[3] = priorY[4] = currentY;
-			timestampPriorY[1] = timestampPriorY[2] = timestampPriorY[3] = timestampPriorY[4] = timestampY;
-		}
-		priorY[0] = priorY[1];
-		priorY[1] = priorY[2];
-		priorY[2] = priorY[3];
-		priorY[3] = priorY[4];
-		priorY[4] = currentY;
-		timestampPriorY[0] = timestampPriorY[1];
-		timestampPriorY[1] = timestampPriorY[2];
-		timestampPriorY[2] = timestampPriorY[3];
-		timestampPriorY[3] = timestampPriorY[4];
-		timestampPriorY[4] = timestampY;
-		return ret;
-	}
+  double derivativeX(short currentX, double timestampX) {
+    double ret = 0;
+    if (priorActiveX) {
+      if(timestampX != timestampPriorX[0]) {
+	ret = ((double)(currentX - priorX[0]))/(timestampX-timestampPriorX[0]);
+      }
+    } else {
+      priorActiveX = true;
+      priorX[1] = priorX[2] = priorX[3] = priorX[4] = currentX;
+      timestampPriorX[1] = timestampPriorX[2] =  timestampPriorX[3] =  timestampPriorX[4] = timestampX;
+    }
+    priorX[0] = priorX[1];
+    priorX[1] = priorX[2];
+    priorX[2] = priorX[3];
+    priorX[3] = priorX[4];
+    priorX[4] = currentX;
+    timestampPriorX[0] = timestampPriorX[1];
+    timestampPriorX[1] = timestampPriorX[2];
+    timestampPriorX[2] = timestampPriorX[3];
+    timestampPriorX[3] = timestampPriorX[4];
+    timestampPriorX[4] = timestampX;
+    return ret;
+  }
+  double derivativeY(short currentY, double timestampY) {
+    double ret = 0;
+    if (priorActiveY) {
+      if(timestampY != timestampPriorY[0]) {
+	ret = ((double)(currentY - priorY[0]))/(timestampY-timestampPriorY[0]);
+      }
+    } else {
+      priorActiveY = true;
+      priorY[1] = priorY[2] = priorY[3] = priorY[4] = currentY;
+      timestampPriorY[1] = timestampPriorY[2] = timestampPriorY[3] = timestampPriorY[4] = timestampY;
+    }
+    priorY[0] = priorY[1];
+    priorY[1] = priorY[2];
+    priorY[2] = priorY[3];
+    priorY[3] = priorY[4];
+    priorY[4] = currentY;
+    timestampPriorY[0] = timestampPriorY[1];
+    timestampPriorY[1] = timestampPriorY[2];
+    timestampPriorY[2] = timestampPriorY[3];
+    timestampPriorY[3] = timestampPriorY[4];
+    timestampPriorY[4] = timestampY;
+    return ret;
+  }
 	
-	bool tweak( DeviceEvent* event ) {
-		if ( event->type == TYPE_BUTTON && event->id == BUTTON_TOUCHPAD_ACTIVE) {
+  bool tweak( DeviceEvent* event ) {
+    if ( event->type == TYPE_BUTTON && event->id == BUTTON_TOUCHPAD_ACTIVE) {
 			
-			//printf("Touchpad activity: %d\n", event->value);
-			if (activeTouch == false && event->value == false) {	// rising edge
-				priorActiveX = false;
-				priorActiveY = false;
-				//printf("Rising Edge TOuch\n");
-			} else if (activeTouch == true && event->value == true) {	// falling edge
-				DeviceEvent newEvent;
-				newEvent.id = AXIS_RX;
-				newEvent.type = TYPE_AXIS;
-				newEvent.value = 0;
-				chaosEngine->fakePipelinedEvent(&newEvent, me);
-				newEvent.id = AXIS_RY;
-				newEvent.type = TYPE_AXIS;
-				newEvent.value = 0;
-				chaosEngine->fakePipelinedEvent(&newEvent, me);
-				//	printf("Falling Edge TOuch\n");
-			}
+      //printf("Touchpad activity: %d\n", event->value);
+      if (activeTouch == false && event->value == false) {	// rising edge
+	priorActiveX = false;
+	priorActiveY = false;
+	//printf("Rising Edge TOuch\n");
+      } else if (activeTouch == true && event->value == true) {	// falling edge
+	DeviceEvent newEvent;
+	newEvent.id = AXIS_RX;
+	newEvent.type = TYPE_AXIS;
+	newEvent.value = 0;
+	chaosEngine->fakePipelinedEvent(&newEvent, me);
+	newEvent.id = AXIS_RY;
+	newEvent.type = TYPE_AXIS;
+	newEvent.value = 0;
+	chaosEngine->fakePipelinedEvent(&newEvent, me);
+	//	printf("Falling Edge TOuch\n");
+      }
 			
-			activeTouch = !event->value;
-		}
-		if( event->type == TYPE_AXIS ) {
-			DeviceEvent newEvent;
-			double derivativeValue;
-			switch (event->id) {
-				case AXIS_TOUCHPAD_X:
-					if(activeTouch ) {
-						newEvent.id = AXIS_RX;
-						newEvent.type = TYPE_AXIS;
-						derivativeValue = (dualshock->getState(BUTTON_L2, TYPE_BUTTON) ? 0.04 : 0.12) * derivativeX(event->value, timer.runningTime());
-						if (derivativeValue > 0) {
-							newEvent.value = joystickLimit(derivativeValue + 30);
-						} else if(derivativeValue < 0) {
-							newEvent.value = joystickLimit(derivativeValue - 30);
-						} else  {
-							newEvent.value = 0;
-						}
-						chaosEngine->fakePipelinedEvent(&newEvent, me);
-					}
-					//printf("x derivative: %d\n", newEvent.value);
-					break;
-				case AXIS_TOUCHPAD_Y:
-					if(activeTouch ) {
-						newEvent.id = AXIS_RY;
-						newEvent.type = TYPE_AXIS;
-						derivativeValue = (dualshock->getState(BUTTON_L2, TYPE_BUTTON) ? 0.04 : 0.12) * derivativeY(event->value, timer.runningTime());
-						if (derivativeValue > 0) {
-							newEvent.value = joystickLimit(derivativeValue + 30);
-						} else if(derivativeValue < 0 ) {
-							newEvent.value = joystickLimit(derivativeValue - 30);
-						} else  {
-							newEvent.value = 0;
-						}
-						chaosEngine->fakePipelinedEvent(&newEvent, me);
-					}
-					break;
-				case AXIS_RX:
-					return false;
-				case AXIS_RY:
-					return false;
-				default: break;
-			}
-		}
-		
-		// This is a positional method, not very good:
-		//		if( event->type == TYPE_AXIS ) {
-		//			DeviceEvent newEvent;
-		//			switch (event->id) {
-		//				case AXIS_TOUCHPAD_X:
-		//					newEvent = *event;
-		//					newEvent.id = AXIS_RX;
-		//					newEvent.value = joystickLimit(((double)event->value/1000 - 1) * JOYSTICK_MAX * 2 * 1.1 );
-		//					chaosEngine->fakePipelinedEvent(&newEvent, me);
-		//					break;
-		//				case AXIS_TOUCHPAD_Y:
-		//					newEvent = *event;
-		//					newEvent.id = AXIS_RY;
-		//					newEvent.value = joystickLimit(((double)event->value/500 - 1) * JOYSTICK_MAX * 1.1 );
-		//					chaosEngine->fakePipelinedEvent(&newEvent, me);
-		//					break;
-		//				case AXIS_RX: return false;
-		//				case AXIS_RY: return false;
-		//				default: break;
-		//			}
-		//		}
-		return true;
+      activeTouch = !event->value;
+    }
+    if( event->type == TYPE_AXIS ) {
+      DeviceEvent newEvent;
+      double derivativeValue;
+      switch (event->id) {
+      case AXIS_TOUCHPAD_X:
+	if(activeTouch ) {
+	  newEvent.id = AXIS_RX;
+	  newEvent.type = TYPE_AXIS;
+	  derivativeValue = (dualshock->getState(BUTTON_L2, TYPE_BUTTON) ? 0.04 : 0.12) * derivativeX(event->value, timer.runningTime());
+	  if (derivativeValue > 0) {
+	    newEvent.value = joystickLimit(derivativeValue + 30);
+	  } else if(derivativeValue < 0) {
+	    newEvent.value = joystickLimit(derivativeValue - 30);
+	  } else  {
+	    newEvent.value = 0;
+	  }
+	  chaosEngine->fakePipelinedEvent(&newEvent, me);
 	}
+	//printf("x derivative: %d\n", newEvent.value);
+	break;
+      case AXIS_TOUCHPAD_Y:
+	if(activeTouch ) {
+	  newEvent.id = AXIS_RY;
+	  newEvent.type = TYPE_AXIS;
+	  derivativeValue = (dualshock->getState(BUTTON_L2, TYPE_BUTTON) ? 0.04 : 0.12) * derivativeY(event->value, timer.runningTime());
+	  if (derivativeValue > 0) {
+	    newEvent.value = joystickLimit(derivativeValue + 30);
+	  } else if(derivativeValue < 0 ) {
+	    newEvent.value = joystickLimit(derivativeValue - 30);
+	  } else  {
+	    newEvent.value = 0;
+	  }
+	  chaosEngine->fakePipelinedEvent(&newEvent, me);
+	}
+	break;
+      case AXIS_RX:
+	return false;
+      case AXIS_RY:
+	return false;
+      default: break;
+      }
+    }
+    
+    return true;
+  }
 };
 
 class Nascar : public Chaos::Modifier {
 public:
-	static void regist() { Chaos::Modifier::factory["Nascar"] = [](){return new Nascar();}; };
-	const char* description() { return "There is no going right in Nascar.  Right movement/camera disabled"; };
-	bool tweak( DeviceEvent* event ) {
-		if( event->type == TYPE_AXIS ) {
-			if (event->id == AXIS_RX || event->id == AXIS_LX) {
-				event->value = event->value <= 0 ? event->value : 0;
-			}
-		}
-		return true;
-	}
+  static void regist() { Chaos::Modifier::factory["Nascar"] = [](){return new Nascar();}; };
+  const char* description() { return "There is no going right in Nascar.  Right movement/camera disabled"; };
+  bool tweak( DeviceEvent* event ) {
+    only_negative(event, AXIS_RX);
+    only_negative(event, AXIS_LX);
+    return true;
+  }
 };
 
-
+// carnalgasyeah
 class Zoolander : public Chaos::Modifier {
-	// carnalgasyeah
 public:
-	static void regist() { Chaos::Modifier::factory["Zoolander"] = [](){return new Zoolander();}; };
-	const char* description() { return "We are not an ambiturner, but at least we can look right.  Left movement/camera disabled."; };
-	bool tweak( DeviceEvent* event ) {
-		if( event->type == TYPE_AXIS ) {
-			if (event->id == AXIS_RX || event->id == AXIS_LX) {
-				event->value = event->value >= 0 ? event->value : 0;
-			}
-		}
-		return true;
-	}
+  static void regist() { Chaos::Modifier::factory["Zoolander"] = [](){return new Zoolander();}; };
+  const char* description() { return "We are not an ambiturner, but at least we can look right.  Left movement/camera disabled."; };
+  bool tweak( DeviceEvent* event ) {
+    only_positive(event, AXIS_RX);
+    only_positive(event, AXIS_LX);
+    return true;
+  }
 };
 
 class NoBackward : public Chaos::Modifier {
 public:
-	static void regist() { Chaos::Modifier::factory["No Backward Movement"] = [](){return new NoBackward();}; };
-	const char* description() { return "Moving backwards is not allowed"; };
-	bool tweak( DeviceEvent* event ) {
-		if( event->type == TYPE_AXIS ) {
-			if (event->id == AXIS_LY) {
-				event->value = event->value <= 0 ? event->value : 0;
-			}
-		}
-		return true;
-	}
+  static void regist() { Chaos::Modifier::factory["No Backward Movement"] = [](){return new NoBackward();}; };
+  const char* description() { return "Moving backwards is not allowed"; };
+  bool tweak( DeviceEvent* event ) {
+    only_negative(event, AXIS_LY);
+    return true;
+  }
 };
 
 class NoForward : public Chaos::Modifier {
 public:
-	static void regist() { Chaos::Modifier::factory["No Forward Movement"] = [](){return new NoForward();}; };
-	const char* description() { return "Moving forward is not allowed"; };
-	bool tweak( DeviceEvent* event ) {
-		if( event->type == TYPE_AXIS ) {
-			if (event->id == AXIS_LY) {
-				event->value = event->value >= 0 ? event->value : 0;
-			}
-		}
-		return true;
-	}
+  static void regist() { Chaos::Modifier::factory["No Forward Movement"] = [](){return new NoForward();}; };
+  const char* description() { return "Moving forward is not allowed"; };
+  bool tweak( DeviceEvent* event ) {
+    only_positive(event, AXIS_LY);
+    return true;
+  }
 };
 
 class Drunk : public Chaos::Modifier {
 public:
-	static void regist() { Chaos::Modifier::factory["Drunk"] = [](){return new Drunk();}; };
-	const char* description() { return "Random joystick motion.  Also don't push things too far, you may stumble (go prone)"; };
+  static void regist() { Chaos::Modifier::factory["Drunk"] = [](){return new Drunk();}; };
+  const char* description() { return "Random joystick motion.  Also don't push things too far, you may stumble (go prone)"; };
 	
-	std::map<int,int> axisToValue;
-	std::map<int,int> offsetValue;
-	double buttonPressTime;
+  std::map<int,int> axisToValue;
+  std::map<int,int> offsetValue;
+  double buttonPressTime;
 	
-	void begin() {
-		axisToValue[AXIS_RX] = dualshock->getState(AXIS_RX, TYPE_AXIS);
-		axisToValue[AXIS_RY] = dualshock->getState(AXIS_RY, TYPE_AXIS);
-		axisToValue[AXIS_LX] = dualshock->getState(AXIS_LX, TYPE_AXIS);
-		axisToValue[AXIS_LY] = dualshock->getState(AXIS_LY, TYPE_AXIS);
-		offsetValue[AXIS_RX] = 0;
-		offsetValue[AXIS_RY] = 0;
-		offsetValue[AXIS_LX] = 0;
-		offsetValue[AXIS_LY] = 0;
-	}
+  void begin() {
+    axisToValue[AXIS_RX] = dualshock->getState(AXIS_RX, TYPE_AXIS);
+    axisToValue[AXIS_RY] = dualshock->getState(AXIS_RY, TYPE_AXIS);
+    axisToValue[AXIS_LX] = dualshock->getState(AXIS_LX, TYPE_AXIS);
+    axisToValue[AXIS_LY] = dualshock->getState(AXIS_LY, TYPE_AXIS);
+    offsetValue[AXIS_RX] = 0;
+    offsetValue[AXIS_RY] = 0;
+    offsetValue[AXIS_LX] = 0;
+    offsetValue[AXIS_LY] = 0;
+  }
 	
-	void update() {
-		DeviceEvent event;	// Event to inject
-		event.type = TYPE_AXIS;
+  void update() {
+    DeviceEvent event;	// Event to inject
+    event.type = TYPE_AXIS;
 		
-		double i = 0.0;
-		double newValue;
-		double t = timer.runningTime()*2.0;
-		for (std::map<int, int>::iterator it = axisToValue.begin(); it != axisToValue.end(); it++) {
-			event.id = it->first;
-			//newValue = it->second + JOYSTICK_MAX/3.0 * cos((t+i)/4.0)*sin(t*i/4.0);
-			//newValue = it->second + JOYSTICK_MAX/2.0 * (pow((cos(t+i) + cos(2*t)/2) * sin((t+i)*0.2), 3)/3);
-			offsetValue[event.id] = 78 * ( (cos(t+i) + cos(2*t)/2) * sin((t+i)*0.2)/2.0 );
+    double i = 0.0;
+    double newValue;
+    double t = timer.runningTime()*2.0;
+    for (std::map<int, int>::iterator it = axisToValue.begin(); it != axisToValue.end(); it++) {
+      event.id = it->first;
+      //newValue = it->second + JOYSTICK_MAX/3.0 * cos((t+i)/4.0)*sin(t*i/4.0);
+      //newValue = it->second + JOYSTICK_MAX/2.0 * (pow((cos(t+i) + cos(2*t)/2) * sin((t+i)*0.2), 3)/3);
+      offsetValue[event.id] = 78 * ( (cos(t+i) + cos(2*t)/2) * sin((t+i)*0.2)/2.0 );
 			
-			event.value = joystickLimit(offsetValue[event.id] + it->second);
-			if (event.value == JOYSTICK_MIN || event.value == JOYSTICK_MAX) {
-				DeviceEvent fallDown = {0,1,TYPE_BUTTON,BUTTON_CIRCLE};
-				dualshock->applyEvent(&fallDown);
-				buttonPressTime = timer.runningTime();
-			}
-			i += 4;
+      event.value = joystickLimit(offsetValue[event.id] + it->second);
+      if (event.value == JOYSTICK_MIN || event.value == JOYSTICK_MAX) {
+	DeviceEvent fallDown = {0,1,TYPE_BUTTON,BUTTON_CIRCLE};
+	dualshock->applyEvent(&fallDown);
+	buttonPressTime = timer.runningTime();
+      }
+      i += 4;
 			
-			//			dualshock->applyEvent(&event);
-			chaosEngine->fakePipelinedEvent(&event, me);
+      //			dualshock->applyEvent(&event);
+      chaosEngine->fakePipelinedEvent(&event, me);
 			
-		}
-		if (timer.runningTime()-buttonPressTime > 1.0) {
-			DeviceEvent fallDown = {0,0,TYPE_BUTTON,BUTTON_CIRCLE};
-			dualshock->applyEvent(&fallDown);
-			buttonPressTime += 10000;
-		}
-	}
+    }
+    if (timer.runningTime()-buttonPressTime > 1.0) {
+      DeviceEvent fallDown = {0,0,TYPE_BUTTON,BUTTON_CIRCLE};
+      dualshock->applyEvent(&fallDown);
+      buttonPressTime += 10000;
+    }
+  }
 	
-	void finish() {
-		DeviceEvent event = {0,(short)axisToValue[AXIS_LX],TYPE_AXIS,AXIS_LX};
-		chaosEngine->fakePipelinedEvent( &event, me);
-		event = {0,(short)axisToValue[AXIS_LY],TYPE_AXIS,AXIS_LY};
-		chaosEngine->fakePipelinedEvent( &event, me);
-		event = {0,(short)axisToValue[AXIS_RX],TYPE_AXIS,AXIS_RX};
-		chaosEngine->fakePipelinedEvent( &event, me);
-		event = {0,(short)axisToValue[AXIS_RY],TYPE_AXIS,AXIS_RY};
-		chaosEngine->fakePipelinedEvent( &event, me);
-	}
+  void finish() {
+    DeviceEvent event = {0,(short)axisToValue[AXIS_LX],TYPE_AXIS,AXIS_LX};
+    chaosEngine->fakePipelinedEvent( &event, me);
+    event = {0,(short)axisToValue[AXIS_LY],TYPE_AXIS,AXIS_LY};
+    chaosEngine->fakePipelinedEvent( &event, me);
+    event = {0,(short)axisToValue[AXIS_RX],TYPE_AXIS,AXIS_RX};
+    chaosEngine->fakePipelinedEvent( &event, me);
+    event = {0,(short)axisToValue[AXIS_RY],TYPE_AXIS,AXIS_RY};
+    chaosEngine->fakePipelinedEvent( &event, me);
+  }
 	
-	bool tweak( DeviceEvent* event ) {
-		if( event->type == TYPE_AXIS ) {
-			if (axisToValue.count(event->id) > 0) {
-				axisToValue[event->id] = event->value; // save the value for update() to use
-				event->value = joystickLimit( event->value + offsetValue[event->id] ); // apply the drunk offset
-			}
-		}
-		return true;
-	}
+  bool tweak( DeviceEvent* event ) {
+    if( event->type == TYPE_AXIS ) {
+      if (axisToValue.count(event->id) > 0) {
+	axisToValue[event->id] = event->value; // save the value for update() to use
+	event->value = joystickLimit( event->value + offsetValue[event->id] ); // apply the drunk offset
+      }
+    }
+    return true;
+  }
 };
 
 class SpeedrunGlitch : public Chaos::Modifier {
 	// HeHathYought
 public:
-	static void regist() { Chaos::Modifier::factory["TLOU1 Run Glitch"] = [](){return new SpeedrunGlitch();}; };
-	const char* description() { return "Is this an Any% speedrun of TLOU1? Rapid D-pad circular presses. Try moving while prone."; };
+  static void regist() { Chaos::Modifier::factory["TLOU1 Run Glitch"] = [](){return new SpeedrunGlitch();}; };
+  const char* description() { return "Is this an Any% speedrun of TLOU1? Rapid D-pad circular presses. Try moving while prone."; };
 	
-	void update() {
-		DeviceEvent event;	// Event to inject
-		event.type = TYPE_AXIS;
+  void update() {
+    DeviceEvent event;	// Event to inject
+    event.type = TYPE_AXIS;
 		
-		double i = 0.0;
-		double newValue;
-		double t = timer.runningTime()*8.0*MOGI_PI;
+    double i = 0.0;
+    double newValue;
+    double t = timer.runningTime()*8.0*MOGI_PI;
 		
-		event.value = 1.5*cos(t);
-		event.id = AXIS_DX;
-		chaosEngine->fakePipelinedEvent( &event, me);
+    event.value = 1.5*cos(t);
+    event.id = AXIS_DX;
+    chaosEngine->fakePipelinedEvent( &event, me);
 		
-		event.value = 1.5*sin(t);
-		event.id = AXIS_DY;
-		chaosEngine->fakePipelinedEvent( &event, me);
+    event.value = 1.5*sin(t);
+    event.id = AXIS_DY;
+    chaosEngine->fakePipelinedEvent( &event, me);
 		
-	}
+  }
 	
-	void finish() {
-		DeviceEvent event = {0,0,TYPE_AXIS,AXIS_DX};
-		chaosEngine->fakePipelinedEvent( &event, me);
-		event = {0,0,TYPE_AXIS,AXIS_DY};
-		chaosEngine->fakePipelinedEvent( &event, me);
-	}
+  void finish() {
+    DeviceEvent event = {0,0,TYPE_AXIS,AXIS_DX};
+    chaosEngine->fakePipelinedEvent( &event, me);
+    event = {0,0,TYPE_AXIS,AXIS_DY};
+    chaosEngine->fakePipelinedEvent( &event, me);
+  }
 	
-	bool tweak( DeviceEvent* event ) {
-		if( event->type == TYPE_AXIS &&
-		   (event->id == AXIS_DY || event->id == AXIS_DX)) {
-			return false;
-		}
-		return true;
-	}
+  bool tweak( DeviceEvent* event ) {
+    return drop_axis_events(event, AXIS_DY, AXIS_DX);
+  }
 };
 
 class MegaScopeSway : public Chaos::Modifier {
 public:
-	static void regist() { Chaos::Modifier::factory["Mega Scope Sway"] = [](){ return new MegaScopeSway();}; };
-	const char* description() { return "Good luck landing shots"; };
+  static void regist() { Chaos::Modifier::factory["Mega Scope Sway"] = [](){ return new MegaScopeSway();}; };
+  const char* description() { return "Good luck landing shots"; };
 	
-	std::map<int,int> axisToValue;
-	std::map<int,int> offsetValue;
+  std::map<int,int> axisToValue;
+  std::map<int,int> offsetValue;
 	
-	void begin() {
-		axisToValue[AXIS_RX] = dualshock->getState(AXIS_RX, TYPE_AXIS);
-		axisToValue[AXIS_RY] = dualshock->getState(AXIS_RY, TYPE_AXIS);
-		offsetValue[AXIS_RX] = 0;
-		offsetValue[AXIS_RY] = 0;
-	}
+  void begin() {
+    axisToValue[AXIS_RX] = dualshock->getState(AXIS_RX, TYPE_AXIS);
+    axisToValue[AXIS_RY] = dualshock->getState(AXIS_RY, TYPE_AXIS);
+    offsetValue[AXIS_RX] = 0;
+    offsetValue[AXIS_RY] = 0;
+  }
 	
-	void update() {
-		DeviceEvent event;	// Event to inject
-		event.type = TYPE_AXIS;
+  void update() {
+    DeviceEvent event;	// Event to inject
+    event.type = TYPE_AXIS;
 		
-		bool applySway = dualshock->getState( BUTTON_L2, TYPE_BUTTON) != 0;
+    bool applySway = dualshock->getState( BUTTON_L2, TYPE_BUTTON) != 0;
 		
-		double t = timer.runningTime()*3.0;
-		double i = 1.0;
+    double t = timer.runningTime()*3.0;
+    double i = 1.0;
 		
-		for (std::map<int, int>::iterator it = axisToValue.begin(); it != axisToValue.end(); it++) {
-			event.id = it->first;
-			if (applySway) {
-				offsetValue[event.id] = sin(((t+1.6)*i )*4.0) * JOYSTICK_MAX ;
-				event.value = joystickLimit( it->second + offsetValue[event.id] );
-				chaosEngine->fakePipelinedEvent(&event, me);
-				i += 1;
-			} else {
-				offsetValue[event.id]  = 0;
-			}
+    for (std::map<int, int>::iterator it = axisToValue.begin(); it != axisToValue.end(); it++) {
+      event.id = it->first;
+      if (applySway) {
+	offsetValue[event.id] = sin(((t+1.6)*i )*4.0) * JOYSTICK_MAX ;
+	event.value = joystickLimit( it->second + offsetValue[event.id] );
+	chaosEngine->fakePipelinedEvent(&event, me);
+	i += 1;
+      } else {
+	offsetValue[event.id]  = 0;
+      }
 			
-		}
+    }
 		
-	}
+  }
 	
-	void finish() {
-		DeviceEvent event = {0,(short)axisToValue[AXIS_RX],TYPE_AXIS,AXIS_RX};
-		chaosEngine->fakePipelinedEvent( &event, me);
-		event = {0,(short)axisToValue[AXIS_RY],TYPE_AXIS,AXIS_RY};
-		chaosEngine->fakePipelinedEvent( &event, me);
-	}
+  void finish() {
+    DeviceEvent event = {0,(short)axisToValue[AXIS_RX],TYPE_AXIS,AXIS_RX};
+    chaosEngine->fakePipelinedEvent( &event, me);
+    event = {0,(short)axisToValue[AXIS_RY],TYPE_AXIS,AXIS_RY};
+    chaosEngine->fakePipelinedEvent( &event, me);
+  }
 	
-	bool tweak( DeviceEvent* event ) {
-		if( event->type == TYPE_AXIS ) {
-			if ( axisToValue.count(event->id) > 0) {
-				axisToValue[event->id] = event->value;
-				event->value = joystickLimit( event->value + offsetValue[event->id] );
-			}
-		}
-		return true;
-	}
+  bool tweak( DeviceEvent* event ) {
+    if( event->type == TYPE_AXIS ) {
+      if ( axisToValue.count(event->id) > 0) {
+	axisToValue[event->id] = event->value;
+	event->value = joystickLimit( event->value + offsetValue[event->id] );
+      }
+    }
+    return true;
+  }
 };
 
 class ProneDive : public Chaos::Modifier {
 public:
-	static void regist() { Chaos::Modifier::factory["Only Prone Diving"] = [](){ return new ProneDive();}; };
-	const char* description() { return "RIP elbows and knees. Any movement results in a prone dive"; }
+  static void regist() { Chaos::Modifier::factory["Only Prone Diving"] = [](){ return new ProneDive();}; };
+  const char* description() { return "RIP elbows and knees. Any movement results in a prone dive"; }
 	
-	//	std::map<int,int> axisToValue;
-	//std::map<int,int> offsetValue;
-	double sequenceTime;
-	bool inSequence;
-	double magnitudeSquared;
+  //	std::map<int,int> axisToValue;
+  //std::map<int,int> offsetValue;
+  double sequenceTime;
+  bool inSequence;
+  double magnitudeSquared;
 	
-	double activeThreshold;
+  double activeThreshold;
 	
-	void begin() {
-		//		axisToValue[AXIS_LX] = dualshock->getState(AXIS_LX, TYPE_AXIS);
-		//		axisToValue[AXIS_LY] = dualshock->getState(AXIS_LY, TYPE_AXIS);
+  void begin() {
+    //		axisToValue[AXIS_LX] = dualshock->getState(AXIS_LX, TYPE_AXIS);
+    //		axisToValue[AXIS_LY] = dualshock->getState(AXIS_LY, TYPE_AXIS);
 		
-		sequenceTime = 0;
-		inSequence = false;
+    sequenceTime = 0;
+    inSequence = false;
 		
-		activeThreshold = pow( JOYSTICK_MAX*0.2, 2);
-	}
+    activeThreshold = pow( JOYSTICK_MAX*0.2, 2);
+  }
 	
-	void update() {
-		DeviceEvent event;	// Event to inject
-		//event.type = TYPE_AXIS;
-		if (!inSequence) {
-			magnitudeSquared = pow(dualshock->getState(AXIS_LX, TYPE_AXIS), 2) + pow(dualshock->getState(AXIS_LY, TYPE_AXIS), 2);
-			//printf("magnitude = %02f\n", sqrt(magnitudeSquared));
-			if (magnitudeSquared > activeThreshold) {	// magnitude of 9 & max 127
-				inSequence = true;
-			}
-		}
+  void update() {
+    DeviceEvent event;	// Event to inject
+    //event.type = TYPE_AXIS;
+    if (!inSequence) {
+      magnitudeSquared = pow(dualshock->getState(AXIS_LX, TYPE_AXIS), 2) + pow(dualshock->getState(AXIS_LY, TYPE_AXIS), 2);
+      //printf("magnitude = %02f\n", sqrt(magnitudeSquared));
+      if (magnitudeSquared > activeThreshold) {	// magnitude of 9 & max 127
+	inSequence = true;
+      }
+    }
 		
-		if (inSequence) {
-			sequenceTime += timer.dTime();
-			if (sequenceTime >= 0  &&
-				sequenceTime <= 0.1 &&
-				dualshock->getState(BUTTON_L1, TYPE_BUTTON) == 0) {
-				event.id = BUTTON_L1;
-				event.type = TYPE_BUTTON;
-				event.value = 1;
-				dualshock->applyEvent(&event);
-				//printf("Dodge!\n");
-			} else if (sequenceTime > 0.1 &&
-					   sequenceTime <= 0.9 &&
-					   dualshock->getState(BUTTON_CIRCLE, TYPE_BUTTON) == 0) {
-				event.id = BUTTON_CIRCLE;
-				event.type = TYPE_BUTTON;
-				event.value = 1;
-				dualshock->applyEvent(&event);
-				//printf("Dive!\n");
-			} else if (sequenceTime > 0.9 &&
-					   sequenceTime < 1.4 &&
-					   dualshock->getState(BUTTON_CIRCLE, TYPE_BUTTON) == 1) {
-				event.id = BUTTON_L1;
-				event.type = TYPE_BUTTON;
-				event.value = 0;
-				dualshock->applyEvent(&event);
-				event.id = BUTTON_CIRCLE;
-				event.type = TYPE_BUTTON;
-				event.value = 0;
-				dualshock->applyEvent(&event);
-				//printf("Release!\n");
-			} else if (sequenceTime > 1.4) {
-				inSequence = false;
-				sequenceTime = 0;
-				//printf("Done.\n");
-			}
-		}
-		
-		//bool applySway = dualshock->getState( BUTTON_L2, TYPE_BUTTON) != 0;
-		
-		//double t = timer.runningTime()*3.0;
-		
-		
-	}
+    if (inSequence) {
+      sequenceTime += timer.dTime();
+      if (sequenceTime >= 0  &&
+	  sequenceTime <= 0.1 &&
+	  dualshock->getState(BUTTON_L1, TYPE_BUTTON) == 0) {
+	event.id = BUTTON_L1;
+	event.type = TYPE_BUTTON;
+	event.value = 1;
+	dualshock->applyEvent(&event);
+	//printf("Dodge!\n");
+      } else if (sequenceTime > 0.1 &&
+		 sequenceTime <= 0.9 &&
+		 dualshock->getState(BUTTON_CIRCLE, TYPE_BUTTON) == 0) {
+	event.id = BUTTON_CIRCLE;
+	event.type = TYPE_BUTTON;
+	event.value = 1;
+	dualshock->applyEvent(&event);
+	//printf("Dive!\n");
+      } else if (sequenceTime > 0.9 &&
+		 sequenceTime < 1.4 &&
+		 dualshock->getState(BUTTON_CIRCLE, TYPE_BUTTON) == 1) {
+	event.id = BUTTON_L1;
+	event.type = TYPE_BUTTON;
+	event.value = 0;
+	dualshock->applyEvent(&event);
+	event.id = BUTTON_CIRCLE;
+	event.type = TYPE_BUTTON;
+	event.value = 0;
+	dualshock->applyEvent(&event);
+	//printf("Release!\n");
+      } else if (sequenceTime > 1.4) {
+	inSequence = false;
+	sequenceTime = 0;
+	//printf("Done.\n");
+      }
+    }		
+  }
 	
-	void finish() {
-		DeviceEvent event = {0,0,TYPE_BUTTON,BUTTON_CIRCLE};
-		dualshock->applyEvent(&event);
-		event = {0,0,TYPE_BUTTON,BUTTON_L1};
-		dualshock->applyEvent(&event);
-		//		chaosEngine->fakePipelinedEvent( &event, this);
-		//		event = {0,(short)axisToValue[AXIS_RY],TYPE_AXIS,AXIS_RY};
-		//		chaosEngine->fakePipelinedEvent( &event, this);
-	}
+  void finish() {
+    DeviceEvent event = {0,0,TYPE_BUTTON,BUTTON_CIRCLE};
+    dualshock->applyEvent(&event);
+    event = {0,0,TYPE_BUTTON,BUTTON_L1};
+    dualshock->applyEvent(&event);
+  }
 	
-	bool tweak( DeviceEvent* event ) {
-		//		if( event->type == TYPE_AXIS ) {
-		//			if ( axisToValue.count(event->id) > 0) {
-		//				axisToValue[event->id] = event->value;	// We only sample the left stick
-		//			}
-		//		}
-		
-		if ( event->type == TYPE_BUTTON) {
-			if (inSequence) {
-				return false;
-			}
-			if ( event->id == BUTTON_L1 ) {
-				return false;
-			}
-			if (event->id == BUTTON_CIRCLE &&
-				magnitudeSquared > activeThreshold) {
-				return false;
-			}
-		}
-		
-		return true;
-	}
+  bool tweak( DeviceEvent* event ) {
+    if ( event->type == TYPE_BUTTON) {
+      if (inSequence) {
+	return false;
+      }
+      if ( event->id == BUTTON_L1 ) {
+	return false;
+      }
+      if (event->id == BUTTON_CIRCLE &&
+	  magnitudeSquared > activeThreshold) {
+	return false;
+      }
+    }
+    return true;
+  }
 };
 
 class Rubbernecking : public Chaos::Modifier {
 public:
-	static void regist() { Chaos::Modifier::factory["Rubbernecking"] = [](){ return new Rubbernecking();}; };
-	const char* description() { return "Woah!  What's behind you?  Invokes periodic 180 quick turn"; }
+  static void regist() { Chaos::Modifier::factory["Rubbernecking"] = [](){ return new Rubbernecking();}; };
+  const char* description() { return "Woah!  What's behind you?  Invokes periodic 180 quick turn"; }
 	
-	//	std::map<int,int> axisToValue;
-	//std::map<int,int> offsetValue;
-	double sequenceTime;
-	bool inSequence;
-	double magnitudeSquared;
+  double sequenceTime;
+  bool inSequence;
+  double magnitudeSquared;
 	
-	//	double activeThreshold;
+  void begin() {
+    sequenceTime = 0;
+    inSequence = false;
+  }
 	
-	void begin() {
-		//		axisToValue[AXIS_LX] = dualshock->getState(AXIS_LX, TYPE_AXIS);
-		//		axisToValue[AXIS_LY] = dualshock->getState(AXIS_LY, TYPE_AXIS);
+  void update() {
+    DeviceEvent event;	// Event to inject
+    sequenceTime += timer.dTime();
+    if (!inSequence) {
+      if (sequenceTime > 6) {	// magnitude of 9 & max 127
+	inSequence = true;
+      }
+    }
 		
-		sequenceTime = 0;
-		inSequence = false;
-		
-		//		activeThreshold = pow( JOYSTICK_MAX*0.2, 2);
-	}
+    if (inSequence) {
+      if (sequenceTime >= 6  &&
+	  sequenceTime <= 6.1 ) {
+	event.id = BUTTON_X;
+	event.type = TYPE_BUTTON;
+	event.value = 0;
+	dualshock->applyEvent(&event);
+	event.id = BUTTON_L2;	// stop aiming
+	dualshock->applyEvent(&event);
+	event.id = AXIS_LY;
+	event.type = TYPE_AXIS;
+	event.value = JOYSTICK_MAX;
+	dualshock->applyEvent(&event);
+	event.id = AXIS_LX;
+	event.value = 0;
+	dualshock->applyEvent(&event);
+	event.id = AXIS_L2;
+	event.value = JOYSTICK_MIN;
+	dualshock->applyEvent(&event);
+      } else if (sequenceTime > 6.1 &&
+		 sequenceTime <= 6.2 ) {
+	event.id = BUTTON_X;
+	event.type = TYPE_BUTTON;
+	event.value = 1;
+	dualshock->applyEvent(&event);
+	//printf("Dive!\n");
+      } else if (sequenceTime > 6.2) {
+	event.id = BUTTON_X;
+	event.type = TYPE_BUTTON;
+	event.value = 0;
+	dualshock->applyEvent(&event);
+	inSequence = false;
+	sequenceTime = 0;
+	//printf("Release!\n");
+      }
+    }
+  }
 	
-	void update() {
-		DeviceEvent event;	// Event to inject
-		//event.type = TYPE_AXIS;
-		sequenceTime += timer.dTime();
-		if (!inSequence) {
-			if (sequenceTime > 6) {	// magnitude of 9 & max 127
-				inSequence = true;
-			}
-		}
-		
-		if (inSequence) {
-			if (sequenceTime >= 6  &&
-				sequenceTime <= 6.1 ) {
-				event.id = BUTTON_X;
-				event.type = TYPE_BUTTON;
-				event.value = 0;
-				dualshock->applyEvent(&event);
-				event.id = BUTTON_L2;	// stop aiming
-				dualshock->applyEvent(&event);
-				event.id = AXIS_LY;
-				event.type = TYPE_AXIS;
-				event.value = JOYSTICK_MAX;
-				dualshock->applyEvent(&event);
-				event.id = AXIS_LX;
-				event.value = 0;
-				dualshock->applyEvent(&event);
-				event.id = AXIS_L2;
-				event.value = JOYSTICK_MIN;
-				dualshock->applyEvent(&event);
-			} else if (sequenceTime > 6.1 &&
-					   sequenceTime <= 6.2 ) {
-				event.id = BUTTON_X;
-				event.type = TYPE_BUTTON;
-				event.value = 1;
-				dualshock->applyEvent(&event);
-				//printf("Dive!\n");
-			} else if (sequenceTime > 6.2) {
-				event.id = BUTTON_X;
-				event.type = TYPE_BUTTON;
-				event.value = 0;
-				dualshock->applyEvent(&event);
-				inSequence = false;
-				sequenceTime = 0;
-				//printf("Release!\n");
-			}
-		}
-	}
+  void finish() {
+    if (inSequence) {
+      DeviceEvent event = {0,0,TYPE_BUTTON,BUTTON_X};
+      dualshock->applyEvent(&event);
+      event = {0,0,TYPE_BUTTON,BUTTON_L2};
+      dualshock->applyEvent(&event);
+      event = {0,0,TYPE_AXIS,AXIS_LY};
+      dualshock->applyEvent(&event);
+    }
+    //		chaosEngine->fakePipelinedEvent( &event, me);
+    //		event = {0,(short)axisToValue[AXIS_RY],TYPE_AXIS,AXIS_RY};
+    //		chaosEngine->fakePipelinedEvent( &event, me);
+  }
 	
-	void finish() {
-		if (inSequence) {
-			DeviceEvent event = {0,0,TYPE_BUTTON,BUTTON_X};
-			dualshock->applyEvent(&event);
-			event = {0,0,TYPE_BUTTON,BUTTON_L2};
-			dualshock->applyEvent(&event);
-			event = {0,0,TYPE_AXIS,AXIS_LY};
-			dualshock->applyEvent(&event);
-		}
-		//		chaosEngine->fakePipelinedEvent( &event, me);
-		//		event = {0,(short)axisToValue[AXIS_RY],TYPE_AXIS,AXIS_RY};
-		//		chaosEngine->fakePipelinedEvent( &event, me);
-	}
-	
-	bool tweak( DeviceEvent* event ) {
+  bool tweak( DeviceEvent* event ) {
 		
-		if (inSequence) {
-			if ( event->type == TYPE_BUTTON &&
-				(event->id == BUTTON_X ||
-				 event->id == BUTTON_L2) ){
-				return false;
-			}
-			if ( event->type == TYPE_AXIS &&
-				(event->id == AXIS_LY ||
-				 event->id == AXIS_LX ||
-				 event->id == AXIS_L2) ){
-				return false;
-			}
-		}
-		
-		return true;
-	}
+    if (inSequence) {
+      if ( event->type == TYPE_BUTTON &&
+	   (event->id == BUTTON_X ||
+	    event->id == BUTTON_L2) ){
+	return false;
+      }
+      if ( event->type == TYPE_AXIS &&
+	   (event->id == AXIS_LY ||
+	    event->id == AXIS_LX ||
+	    event->id == AXIS_L2) ){
+	return false;
+      }
+    }		
+    return true;
+  }
 };
 
 class NoGuns : public Chaos::Modifier {
 public:
-	static void regist() { Chaos::Modifier::factory["No Gun Selection"] = [](){ return new NoGuns();}; };
-	const char* description() { return "D-Pad Left/Right Disabled"; };
+  static void regist() { Chaos::Modifier::factory["No Gun Selection"] = [](){ return new NoGuns();}; };
+  const char* description() { return "D-Pad Left/Right Disabled"; };
 	
-	void begin() {
-		DeviceEvent event = {0,0,TYPE_AXIS, AXIS_DX};
-		dualshock->applyEvent(&event);
+  void begin() {
+    DeviceEvent event = {0,0,TYPE_AXIS, AXIS_DX};
+    dualshock->applyEvent(&event);
 		
-		Chaos::Sequence sequence;
-		sequence.addAxisPress( AXIS_DY, 1);	// select a non-gun
-		sequence.send(dualshock);
-	}
+    Chaos::Sequence sequence;
+    sequence.addAxisPress( AXIS_DY, 1);	// select a non-gun
+    sequence.send(dualshock);
+  }
 	
-	bool tweak( DeviceEvent* event ) {
-		if (event->type == TYPE_AXIS && event->id == AXIS_DX) {
-			return false;
-		}
-		return true;
-	}
+  bool tweak( DeviceEvent* event ) {
+    return drop_axis_event(event, AXIS_DX);
+  }
 };
 
 class NoShortGuns : public Chaos::Modifier {
 public:
-	static void regist() { Chaos::Modifier::factory["No Short Guns"] = [](){ return new NoShortGuns();}; };
-	const char* description() { return "D-Pad Right Disabled"; };
+  static void regist() { Chaos::Modifier::factory["No Short Guns"] = [](){ return new NoShortGuns();}; };
+  const char* description() { return "D-Pad Right Disabled"; };
 	
-	void begin() {
-		DeviceEvent event = {0,0,TYPE_AXIS, AXIS_DX};
-		dualshock->applyEvent(&event);
+  void begin() {
+    DeviceEvent event = {0,0,TYPE_AXIS, AXIS_DX};
+    dualshock->applyEvent(&event);
 		
-		Chaos::Sequence sequence;
-		sequence.addAxisPress( AXIS_DY, 1);	// select a non-gun
-		sequence.send(dualshock);
-	}
+    Chaos::Sequence sequence;
+    sequence.addAxisPress( AXIS_DY, 1);	// select a non-gun
+    sequence.send(dualshock);
+  }
 	
-	bool tweak( DeviceEvent* event ) {
-		if (event->type == TYPE_AXIS && event->id == AXIS_DX && event->value > 0) {
-			return false;
-		}
-		return true;
-	}
+  bool tweak( DeviceEvent* event ) {
+    return drop_pos_axis_event(event, AXIS_DX);
+  }
 };
 
 class NoLongGuns : public Chaos::Modifier {
 public:
-	static void regist() { Chaos::Modifier::factory["No Long Guns"] = [](){ return new NoLongGuns();}; };
-	const char* description() { return "D-Pad Left Disabled"; };
+  static void regist() { Chaos::Modifier::factory["No Long Guns"] = [](){ return new NoLongGuns();}; };
+  const char* description() { return "D-Pad Left Disabled"; };
 	
-	void begin() {
-		DeviceEvent event = {0,0,TYPE_AXIS, AXIS_DX};
-		dualshock->applyEvent(&event);
+  void begin() {
+    DeviceEvent event = {0,0,TYPE_AXIS, AXIS_DX};
+    dualshock->applyEvent(&event);
 		
-		Chaos::Sequence sequence;
-		sequence.addAxisPress( AXIS_DY, 1);	// select a non-gun
-		sequence.send(dualshock);
-	}
+    Chaos::Sequence sequence;
+    sequence.addAxisPress( AXIS_DY, 1);	// select a non-gun
+    sequence.send(dualshock);
+  }
 	
-	bool tweak( DeviceEvent* event ) {
-		if (event->type == TYPE_AXIS && event->id == AXIS_DX && event->value < 0) {
-			return false;
-		}
-		return true;
-	}
+  bool tweak( DeviceEvent* event ) {
+    return drop_neg_axis_event(event, AXIS_DX);
+  }
 };
 
 class NoThrows : public Chaos::Modifier {
 public:
-	static void regist() { Chaos::Modifier::factory["No Throwables"] = [](){return new NoThrows();}; };
-	const char* description() { return "D-Pad Up/Down Disabled"; };
+  static void regist() { Chaos::Modifier::factory["No Throwables"] = [](){return new NoThrows();}; };
+  const char* description() { return "D-Pad Up/Down Disabled"; };
 	
-	void begin() {
-		DeviceEvent event = {0,0,TYPE_AXIS, AXIS_DY};
-		dualshock->applyEvent(&event);
+  void begin() {
+    DeviceEvent event = {0,0,TYPE_AXIS, AXIS_DY};
+    dualshock->applyEvent(&event);
 		
-		Chaos::Sequence sequence;
-		sequence.addAxisPress( AXIS_DX, 1);	// select a non-gun
-		sequence.send(dualshock);
-	}
+    Chaos::Sequence sequence;
+    sequence.addAxisPress( AXIS_DX, 1);	// select a gun
+    sequence.send(dualshock);
+  }
 	
-	bool tweak( DeviceEvent* event ) {
-		if (event->type == TYPE_AXIS &&
-			event->id == AXIS_DY) {
-			return false;
-		}
-		return true;
-	}
+  bool tweak( DeviceEvent* event ) {
+    return drop_axis_event(event, AXIS_DY);
+  }
 };
 
+// gabemusic
 class MaxSensitivity : public Chaos::Modifier {
-	// gabemusic
 public:
-	static void regist() { Chaos::Modifier::factory["Max Sensitivity"] = [](){return new MaxSensitivity();}; };
-	const char* description() { return "Goodbye precision aiming.  Joystick postions multiplied by 5"; };
+  static void regist() { Chaos::Modifier::factory["Max Sensitivity"] = [](){return new MaxSensitivity();}; };
+  const char* description() { return "Goodbye precision aiming.  Joystick postions multiplied by 5"; };
 	
-	bool tweak( DeviceEvent* event ) {
-		if (event->type == TYPE_AXIS) {
-			switch (event->id) {
-				case AXIS_LX:
-				case AXIS_LY:
-				case AXIS_RX:
-				case AXIS_RY:
-					event->value = joystickLimit( (int)event->value * 5 );
+  bool tweak( DeviceEvent* event ) {
+    if (event->type == TYPE_AXIS) {
+      switch (event->id) {
+      case AXIS_LX:
+      case AXIS_LY:
+      case AXIS_RX:
+      case AXIS_RY:
+	event->value = joystickLimit( (int)event->value * 5 );
 					
-				default:
-					break;
-			}
-		}
-		return true;
-	}
+      default:
+	break;
+      }
+    }
+    return true;
+  }
 };
 
 class MinSensitivity : public Chaos::Modifier {
-	// prototoxin
+  // prototoxin
 public:
-	static void regist() { Chaos::Modifier::factory["Min Sensitivity"] = [](){return new MinSensitivity();}; };
-	const char* description() { return "It is like slomo, but not for the enemies.  Joystick positions divided by 2.5"; };
+  static void regist() { Chaos::Modifier::factory["Min Sensitivity"] = [](){return new MinSensitivity();}; };
+  const char* description() { return "It is like slomo, but not for the enemies.  Joystick positions divided by 2.5"; };
 	
-	bool tweak( DeviceEvent* event ) {
-		if (event->type == TYPE_AXIS) {
-			switch (event->id) {
-				case AXIS_LX:
-				case AXIS_LY:
-				case AXIS_RX:
-				case AXIS_RY:
-					event->value = joystickLimit( ((double)event->value) / 2.5 );
+  bool tweak( DeviceEvent* event ) {
+    if (event->type == TYPE_AXIS) {
+      switch (event->id) {
+      case AXIS_LX:
+      case AXIS_LY:
+      case AXIS_RX:
+      case AXIS_RY:
+	event->value = joystickLimit( ((double)event->value) / 2.5 );
 					
-				default:
-					break;
-			}
-		}
-		return true;
-	}
+      default:
+	break;
+      }
+    }
+    return true;
+  }
 };
 
+// PrincessDiodes, cloverfieldmel, DJ_Squall_808
 class ControllerMirror : public Chaos::Modifier {
-	// PrincessDiodes, cloverfieldmel, DJ_Squall_808
 public:
-	static void regist() { Chaos::Modifier::factory["Controller Mirror"] = [](){return new ControllerMirror();}; };
-	const char* description() { return "Left Joystick swapped with Right Joystick, R2 is now L2. Circle is D-Pad Left, etc."; };
+  static void regist() { Chaos::Modifier::factory["Controller Mirror"] = [](){return new ControllerMirror();}; };
+  const char* description() { return "Left Joystick swapped with Right Joystick, R2 is now L2. Circle is D-Pad Left, etc."; };
 	
-	bool tweak( DeviceEvent* event ) {
-		if(event->type == TYPE_AXIS) {
-			switch (event->id) {
-				case AXIS_LX: event->id = AXIS_RX; break;
-				case AXIS_LY: event->id = AXIS_RY; break;
-				case AXIS_RX: event->id = AXIS_LX; break;
-				case AXIS_RY: event->id = AXIS_LY; break;
-				case AXIS_L2: event->id = AXIS_R2; break;
-				case AXIS_R2: event->id = AXIS_L2; break;
-				case AXIS_DX:
-					event->type = TYPE_BUTTON;
-					if (event->value > 0) {
-						event->id = BUTTON_SQUARE;
-						event->value = 1;
-					} else if(event->value < 0) {
-						event->id = BUTTON_CIRCLE;
-						event->value = 1;
-					} else {
-						event->id = BUTTON_CIRCLE;
-						event->value = 0;
+  bool tweak( DeviceEvent* event ) {
+    if(event->type == TYPE_AXIS) {
+      switch (event->id) {
+      case AXIS_LX: event->id = AXIS_RX; break;
+      case AXIS_LY: event->id = AXIS_RY; break;
+      case AXIS_RX: event->id = AXIS_LX; break;
+      case AXIS_RY: event->id = AXIS_LY; break;
+      case AXIS_L2: event->id = AXIS_R2; break;
+      case AXIS_R2: event->id = AXIS_L2; break;
+      case AXIS_DX:
+	event->type = TYPE_BUTTON;
+	if (event->value > 0) {
+	  event->id = BUTTON_SQUARE;
+	  event->value = 1;
+	} else if(event->value < 0) {
+	  event->id = BUTTON_CIRCLE;
+	  event->value = 1;
+	} else {
+	  event->id = BUTTON_CIRCLE;
+	  event->value = 0;
 						
-						
-						DeviceEvent event2;
-						event2.id = BUTTON_SQUARE;
-						event2.value = 0;
-						event2.type = TYPE_BUTTON;
-						dualshock->applyEvent(&event2);
-					}
-					break;
-				case AXIS_DY:
-					event->type = TYPE_BUTTON;
-					if (event->value > 0) {
-						event->id = BUTTON_X;
-						event->value = 1;
-					} else if(event->value < 0) {
-						event->id = BUTTON_TRIANGLE;
-						event->value = 1;
-					} else {
-						event->id = BUTTON_TRIANGLE;
-						event->value = 0;
-						
-						
-						DeviceEvent event2;
-						event2.id = BUTTON_X;
-						event2.value = 0;
-						event2.type = TYPE_BUTTON;
-						dualshock->applyEvent(&event2);
-					}
-					break;
-				default:
-					break;
-			}
-			return true;
-		}
-		if(event->type == TYPE_BUTTON) {
-			switch (event->id) {
-				case BUTTON_R1: event->id = BUTTON_L1; break;
-				case BUTTON_L1: event->id = BUTTON_R1; break;
-				case BUTTON_R2: event->id = BUTTON_L2; break;
-				case BUTTON_L2: event->id = BUTTON_R2; break;
-					
-				case BUTTON_TRIANGLE:
-					event->type = TYPE_AXIS;
-					event->value *= -1;
-					event->id = AXIS_DY;
-					break;
-				case BUTTON_X:
-					event->type = TYPE_AXIS;
-					event->value *= 1;
-					event->id = AXIS_DY;
-					break;
-				case BUTTON_SQUARE:
-					event->type = TYPE_AXIS;
-					event->value *= 1;
-					event->id = AXIS_DX;
-					break;
-				case BUTTON_CIRCLE:
-					event->type = TYPE_AXIS;
-					event->value *= -1;
-					event->id = AXIS_DX;
-					break;
-				default:
-					break;
-			}
-		}
-		
-		return true;
+	  DeviceEvent event2;
+	  event2.id = BUTTON_SQUARE;
+	  event2.value = 0;
+	  event2.type = TYPE_BUTTON;
+	  dualshock->applyEvent(&event2);
 	}
+	break;
+      case AXIS_DY:
+	event->type = TYPE_BUTTON;
+	if (event->value > 0) {
+	  event->id = BUTTON_X;
+	  event->value = 1;
+	} else if(event->value < 0) {
+	  event->id = BUTTON_TRIANGLE;
+	  event->value = 1;
+	} else {
+	  event->id = BUTTON_TRIANGLE;
+	  event->value = 0;
+						
+	  DeviceEvent event2;
+	  event2.id = BUTTON_X;
+	  event2.value = 0;
+	  event2.type = TYPE_BUTTON;
+	  dualshock->applyEvent(&event2);
+	}
+	break;
+      default:
+	break;
+      }
+      return true;
+    }
+    if(event->type == TYPE_BUTTON) {
+      switch (event->id) {
+      case BUTTON_R1: event->id = BUTTON_L1; break;
+      case BUTTON_L1: event->id = BUTTON_R1; break;
+      case BUTTON_R2: event->id = BUTTON_L2; break;
+      case BUTTON_L2: event->id = BUTTON_R2; break;
+					
+      case BUTTON_TRIANGLE:
+	event->type = TYPE_AXIS;
+	event->value *= -1;
+	event->id = AXIS_DY;
+	break;
+      case BUTTON_X:
+	event->type = TYPE_AXIS;
+	event->value *= 1;
+	event->id = AXIS_DY;
+	break;
+      case BUTTON_SQUARE:
+	event->type = TYPE_AXIS;
+	event->value *= 1;
+	event->id = AXIS_DX;
+	break;
+      case BUTTON_CIRCLE:
+	event->type = TYPE_AXIS;
+	event->value *= -1;
+	event->id = AXIS_DX;
+	break;
+      default:
+	break;
+      }
+    }
+		
+    return true;
+  }
 };
 
+// Hipsterobot
 class ControllerFlip : public Chaos::Modifier {
-	// Hipsterobot
 public:
-	static void regist() { Chaos::Modifier::factory["Controller Flip"] = [](){return new ControllerFlip();}; };
-	const char* description() { return "Double joystick inverted, L1 swapped with L2, Triangle swapped with X, etc."; };
+  static void regist() { Chaos::Modifier::factory["Controller Flip"] = [](){return new ControllerFlip();}; };
+  const char* description() { return "Double joystick inverted, L1 swapped with L2, Triangle swapped with X, etc."; };
 	
-	bool tweak( DeviceEvent* event ) {
-		DeviceEvent newEvent;
-		if(event->type == TYPE_AXIS) {
-			switch (event->id) {
-				case AXIS_DY:
-				case AXIS_LY:
-				case AXIS_RY:
-					event->value = joystickLimit(-event->value);
-					break;
-				case AXIS_L2:
-				case AXIS_R2:
-					return false;
-				default:
-					break;
-			}
-			return true;
-		}
-		if(event->type == TYPE_BUTTON) {
-			switch (event->id) {
-				case BUTTON_R1:
-					event->id = BUTTON_R2;
-					newEvent.id	= AXIS_R2;
-					newEvent.type = TYPE_AXIS;
-					newEvent.value = event->value ? JOYSTICK_MAX : JOYSTICK_MIN;
-					chaosEngine->fakePipelinedEvent(&newEvent, me);
-					break;
-				case BUTTON_L1:
-					event->id = BUTTON_L2;
-					newEvent.id	= AXIS_L2;
-					newEvent.type = TYPE_AXIS;
-					newEvent.value = event->value ? JOYSTICK_MAX : JOYSTICK_MIN;
-					chaosEngine->fakePipelinedEvent(&newEvent, me);
-					break;
-				case BUTTON_R2: event->id = BUTTON_R1; break;
-				case BUTTON_L2: event->id = BUTTON_L1; break;
-					
-				case BUTTON_TRIANGLE:
-					event->id = BUTTON_X;
-					break;
-				case BUTTON_X:
-					event->id = BUTTON_TRIANGLE;
-					break;
-				default:
-					break;
-			}
-		}
-		
-		return true;
-	}
+  bool tweak( DeviceEvent* event ) {
+    DeviceEvent newEvent;
+    if(event->type == TYPE_AXIS) {
+      switch (event->id) {
+      case AXIS_DY:
+      case AXIS_LY:
+      case AXIS_RY:
+	event->value = joystickLimit(-event->value);
+	break;
+      case AXIS_L2:
+      case AXIS_R2:
+	return false;
+      default:
+	break;
+      }
+      return true;
+    }
+    if(event->type == TYPE_BUTTON) {
+      switch (event->id) {
+      case BUTTON_R1:
+	event->id = BUTTON_R2;
+	newEvent.id	= AXIS_R2;
+	newEvent.type = TYPE_AXIS;
+	newEvent.value = event->value ? JOYSTICK_MAX : JOYSTICK_MIN;
+	chaosEngine->fakePipelinedEvent(&newEvent, me);
+	break;
+      case BUTTON_L1:
+	event->id = BUTTON_L2;
+	newEvent.id	= AXIS_L2;
+	newEvent.type = TYPE_AXIS;
+	newEvent.value = event->value ? JOYSTICK_MAX : JOYSTICK_MIN;
+	chaosEngine->fakePipelinedEvent(&newEvent, me);
+	break;
+      case BUTTON_R2: event->id = BUTTON_R1; break;
+      case BUTTON_L2: event->id = BUTTON_L1; break;
+	
+      case BUTTON_TRIANGLE:
+	event->id = BUTTON_X;
+	break;
+      case BUTTON_X:
+	event->id = BUTTON_TRIANGLE;
+	break;
+      default:
+	break;
+      }
+    }
+    return true;
+  }
 };
 
 /*
  Main Menu Operation:
  */
-class RestartCheckpoint : public Chaos::Modifier {
+class RestartCheckpoint : public Chaos::MenuModifier {
 public:
-	static void regist() { Chaos::Modifier::factory["Restart Checkpoint"] = [](){return new RestartCheckpoint();}; };
-	const char* description() { return "Best served prior to the end of a long encounter"; };
+  static void regist() { Chaos::Modifier::factory["Restart Checkpoint"] = [](){return new RestartCheckpoint();}; };
+  const char* description() { return "Best served prior to the end of a long encounter"; };
 	
-	bool busy;
-	
-	void begin() {
-		busy = true;
+  void begin() {
+    busy = true;
 		
-		Chaos::Sequence sequence;
-		sequence.disablejoysticks();
-		sequence.addButtonPress( BUTTON_OPTIONS);
-		sequence.addAxisPress( AXIS_DY, -1);
-		sequence.addAxisPress( AXIS_DY, -1);
-		sequence.addButtonPress( BUTTON_X);
-		sequence.addAxisPress( AXIS_DX, -1);
-		sequence.addButtonPress( BUTTON_X);
-		sequence.addTimeDelay(3000);
-		sequence.send(dualshock);
+    Chaos::Sequence sequence;
+    sequence.disablejoysticks();
+    sequence.addButtonPress( BUTTON_OPTIONS);
+    sequence.addAxisPress( AXIS_DY, -1);
+    sequence.addAxisPress( AXIS_DY, -1);
+    sequence.addButtonPress( BUTTON_X);
+    sequence.addAxisPress( AXIS_DX, -1);
+    sequence.addButtonPress( BUTTON_X);
+    sequence.addTimeDelay(3000);
+    sequence.send(dualshock);
 		
-		busy = false;
-	}
-	
-	bool tweak( DeviceEvent* event ) {
-		return !busy;
-	}
+    busy = false;
+  }	
 };
 
 /*
  HUD settings:
  */
-class NoReticle : public Chaos::Modifier {
+class NoReticle : public Chaos::MenuModifier {
 public:
-	static void regist() { Chaos::Modifier::factory["No Reticle"] = [](){return new NoReticle();}; };
-	const char* description() { return "Headshots just got trickier"; };
+  static void regist() { Chaos::MenuModifier::factory["No Reticle"] = [](){return new NoReticle();}; };
+  const char* description() { return "Headshots just got trickier"; };
 	
-	bool busy;
+  void begin() {
+    busy = true;
+    Menuing::getInstance()->selectHudMode(HUD_RETICLE, RETICLE_OFF, dualshock);
+    busy = false;
+  }
 	
-	void begin() {
-		busy = true;
-		Menuing::getInstance()->selectHudMode(HUD_RETICLE, RETICLE_OFF, dualshock);
-		busy = false;
-	}
+  void finish() {
+    busy = true;
+    //  Menuing::getInstance()->selectHudMode(HUD_RETICLE, RETICLE_SIMPLE, dualshock);
+    Menuing::getInstance()->selectHudMode(HUD_RETICLE, RETICLE_DEFAULT, dualshock);
+    busy = false;
+  }
 	
-	void finish() {
-		busy = true;
-//		Menuing::getInstance()->selectHudMode(HUD_RETICLE, RETICLE_SIMPLE, dualshock);
-		Menuing::getInstance()->selectHudMode(HUD_RETICLE, RETICLE_DEFAULT, dualshock);
-		busy = false;
-	}
-	
-	bool tweak( DeviceEvent* event ) {
-		return !busy;
-	}
 };
 
-class NoInventoryHud : public Chaos::Modifier {
+class NoInventoryHud : public Chaos::MenuModifier {
 public:
-	static void regist() { Chaos::Modifier::factory["No Inventory HUD"] = [](){return new NoInventoryHud();}; };
-	const char* description() { return "Blind weapon and throwable selection"; };
+  static void regist() { Chaos::MenuModifier::factory["No Inventory HUD"] = [](){return new NoInventoryHud();}; };
+  const char* description() { return "Blind weapon and throwable selection"; };
 	
-	bool busy;
+  void begin() {
+    busy = true;
+    Menuing::getInstance()->selectHudMode(HUD_WEAPON_CROSS, -1, dualshock);
+    busy = false;
+  }
 	
-	void begin() {
-		busy = true;
-		Menuing::getInstance()->selectHudMode(HUD_WEAPON_CROSS, -1, dualshock);
-		busy = false;
-	}
-	
-	void finish() {
-		busy = true;
-		Menuing::getInstance()->selectHudMode(HUD_WEAPON_CROSS, 1, dualshock);
-		busy = false;
-	}
-	
-	bool tweak( DeviceEvent* event ) {
-		return !busy;
-	}
+  void finish() {
+    busy = true;
+    Menuing::getInstance()->selectHudMode(HUD_WEAPON_CROSS, 1, dualshock);
+    busy = false;
+  }	
 };
 
-class NoDamageIndicators : public Chaos::Modifier {
+class NoDamageIndicators : public Chaos::MenuModifier {
 public:
-	static void regist() { Chaos::Modifier::factory["No Damage Indicators"] = [](){return new NoDamageIndicators();}; };
-	const char* description() { return "Locating the source of damage will be harder"; };
+  static void regist() { Chaos::MenuModifier::factory["No Damage Indicators"] = [](){return new NoDamageIndicators();}; };
+  const char* description() { return "Locating the source of damage will be harder"; };
 	
-	bool busy;
+  void begin() {
+    busy = true;
+    Menuing::getInstance()->selectHudMode(HUD_DAMAGE_INDICATORS, -1, dualshock);
+    busy = false;
+  }
 	
-	void begin() {
-		busy = true;
-		Menuing::getInstance()->selectHudMode(HUD_DAMAGE_INDICATORS, -1, dualshock);
-		busy = false;
-	}
-	
-	void finish() {
-		busy = true;
-		Menuing::getInstance()->selectHudMode(HUD_DAMAGE_INDICATORS, 1, dualshock);
-		busy = false;
-	}
-	
-	bool tweak( DeviceEvent* event ) {
-		return !busy;
-	}
+  void finish() {
+    busy = true;
+    Menuing::getInstance()->selectHudMode(HUD_DAMAGE_INDICATORS, 1, dualshock);
+    busy = false;
+  }	
 };
 
 class NoAwarenessIndicators : public Chaos::Modifier {
 public:
-	static void regist() { Chaos::Modifier::factory["No Awareness Indicators"] = [](){return new NoAwarenessIndicators();}; };
-	const char* description() { return "Stealth strats have no visual feedback"; };
+  static void regist() { Chaos::Modifier::factory["No Awareness Indicators"] = [](){return new NoAwarenessIndicators();}; };
+  const char* description() { return "Stealth strats have no visual feedback"; };
 	
-	bool busy;
+  bool busy;
 	
-	void begin() {
-		busy = true;
-		Menuing::getInstance()->selectHudMode(HUD_AWARENESS_INDICATORS, -2, dualshock);
-		busy = false;
-	}
+  void begin() {
+    busy = true;
+    Menuing::getInstance()->selectHudMode(HUD_AWARENESS_INDICATORS, -2, dualshock);
+    busy = false;
+  }
 	
-	void finish() {
-		busy = true;
-		Menuing::getInstance()->selectHudMode(HUD_AWARENESS_INDICATORS, 1, dualshock);
-		busy = false;
-	}
+  void finish() {
+    busy = true;
+    Menuing::getInstance()->selectHudMode(HUD_AWARENESS_INDICATORS, 1, dualshock);
+    busy = false;
+  }
 	
-	bool tweak( DeviceEvent* event ) {
-		return !busy;
-	}
+  bool tweak( DeviceEvent* event ) {
+    return !busy;
+  }
 };
 
 class NoHitMarkers : public Chaos::Modifier {
 public:
-	static void regist() { Chaos::Modifier::factory["No Hit Markers"] = [](){return new NoHitMarkers();}; };
-	const char* description() { return "No feedback on connected shots"; };
+  static void regist() { Chaos::Modifier::factory["No Hit Markers"] = [](){return new NoHitMarkers();}; };
+  const char* description() { return "No feedback on connected shots"; };
 	
-	bool busy;
+  bool busy;
 	
-	void begin() {
-		busy = true;
-		Menuing::getInstance()->selectHudMode(HUD_HIT_MARKERS, -2, dualshock);
-		busy = false;
-	}
+  void begin() {
+    busy = true;
+    Menuing::getInstance()->selectHudMode(HUD_HIT_MARKERS, -2, dualshock);
+    busy = false;
+  }
 	
-	void finish() {
-		busy = true;
-		Menuing::getInstance()->selectHudMode(HUD_HIT_MARKERS, 2, dualshock);
-		busy = false;
-	}
+  void finish() {
+    busy = true;
+    Menuing::getInstance()->selectHudMode(HUD_HIT_MARKERS, 2, dualshock);
+    busy = false;
+  }
 	
-	bool tweak( DeviceEvent* event ) {
-		return !busy;
-	}
+  bool tweak( DeviceEvent* event ) {
+    return !busy;
+  }
 };
 
 class NoArcs : public Chaos::Modifier {
 public:
-	static void regist() { Chaos::Modifier::factory["No Arc Throw Paths"] = [](){return new NoArcs();}; };
-	const char* description() { return "The trajectory of your throwable will now be based on feel"; };
+  static void regist() { Chaos::Modifier::factory["No Arc Throw Paths"] = [](){return new NoArcs();}; };
+  const char* description() { return "The trajectory of your throwable will now be based on feel"; };
 	
-	bool busy;
+  bool busy;
 	
-	void begin() {
-		busy = true;
-		Menuing::getInstance()->selectHudMode(HUD_ARC_THROW_PATH, -1, dualshock);
-		busy = false;
-	}
+  void begin() {
+    busy = true;
+    Menuing::getInstance()->selectHudMode(HUD_ARC_THROW_PATH, -1, dualshock);
+    busy = false;
+  }
 	
-	void finish() {
-		busy = true;
-		Menuing::getInstance()->selectHudMode(HUD_ARC_THROW_PATH, 1, dualshock);
-		busy = false;
-	}
+  void finish() {
+    busy = true;
+    Menuing::getInstance()->selectHudMode(HUD_ARC_THROW_PATH, 1, dualshock);
+    busy = false;
+  }
 	
-	bool tweak( DeviceEvent* event ) {
-		return !busy;
-	}
+  bool tweak( DeviceEvent* event ) {
+    return !busy;
+  }
 };
 
 class NoHealthHud : public Chaos::Modifier {
 public:
-	static void regist() { Chaos::Modifier::factory["No Health HUD"] = [](){return new NoHealthHud();}; };
-	const char* description() { return "The health and weapon HUD int he lower right is disabled"; };
+  static void regist() { Chaos::Modifier::factory["No Health HUD"] = [](){return new NoHealthHud();}; };
+  const char* description() { return "The health and weapon HUD int he lower right is disabled"; };
 	
-	bool busy;
+  bool busy;
 	
-	void begin() {
-		busy = true;
-		Menuing::getInstance()->selectHudMode(HUD_HEALTH_AND_WEAPON, -1, dualshock);
-		busy = false;
-	}
+  void begin() {
+    busy = true;
+    Menuing::getInstance()->selectHudMode(HUD_HEALTH_AND_WEAPON, -1, dualshock);
+    busy = false;
+  }
 	
-	void finish() {
-		busy = true;
-		Menuing::getInstance()->selectHudMode(HUD_HEALTH_AND_WEAPON, 1, dualshock);
-		busy = false;
-	}
+  void finish() {
+    busy = true;
+    Menuing::getInstance()->selectHudMode(HUD_HEALTH_AND_WEAPON, 1, dualshock);
+    busy = false;
+  }
 	
-	bool tweak( DeviceEvent* event ) {
-		return !busy;
-	}
+  bool tweak( DeviceEvent* event ) {
+    return !busy;
+  }
 };
 
 class PickupNotifications : public Chaos::Modifier {
 public:
-	static void regist() { Chaos::Modifier::factory["Show Pickups"] = [](){return new PickupNotifications();}; };
-	const char* description() { return "Enables the HUD that shows notifications on ammo, crafting, and other pickups"; };
+  static void regist() { Chaos::Modifier::factory["Show Pickups"] = [](){return new PickupNotifications();}; };
+  const char* description() { return "Enables the HUD that shows notifications on ammo, crafting, and other pickups"; };
 	
-	bool busy;
+  bool busy;
 	
-	void begin() {
-		busy = true;
-		Menuing::getInstance()->selectHudMode(HUD_PICK_UP_NOTIFICATIONS, 1, dualshock);
-		busy = false;
-	}
+  void begin() {
+    busy = true;
+    Menuing::getInstance()->selectHudMode(HUD_PICK_UP_NOTIFICATIONS, 1, dualshock);
+    busy = false;
+  }
 	
-	void finish() {
-		busy = true;
-		Menuing::getInstance()->selectHudMode(HUD_PICK_UP_NOTIFICATIONS, -1, dualshock);
-		busy = false;
-	}
+  void finish() {
+    busy = true;
+    Menuing::getInstance()->selectHudMode(HUD_PICK_UP_NOTIFICATIONS, -1, dualshock);
+    busy = false;
+  }
 	
-	bool tweak( DeviceEvent* event ) {
-		return !busy;
-	}
+  bool tweak( DeviceEvent* event ) {
+    return !busy;
+  }
 };
 
 class LargeSubtitles : public Chaos::Modifier {
 public:
-	static void regist() { Chaos::Modifier::factory["Large Subtitles"] = [](){return new LargeSubtitles();}; };
-	const char* description() { return "The ability to read subtitles even at 160p"; };
+  static void regist() { Chaos::Modifier::factory["Large Subtitles"] = [](){return new LargeSubtitles();}; };
+  const char* description() { return "The ability to read subtitles even at 160p"; };
 	
-	bool busy;
+  bool busy;
 	
-	void begin() {
-		busy = true;
-		Menuing::getInstance()->selectSubtitleMode(SUBTITLES_SIZE, 2, dualshock);
-		busy = false;
-	}
+  void begin() {
+    busy = true;
+    Menuing::getInstance()->selectSubtitleMode(SUBTITLES_SIZE, 2, dualshock);
+    busy = false;
+  }
 	
-	void finish() {
-		busy = true;
-		Menuing::getInstance()->selectSubtitleMode(SUBTITLES_SIZE, -1, dualshock);
-		busy = false;
-	}
+  void finish() {
+    busy = true;
+    Menuing::getInstance()->selectSubtitleMode(SUBTITLES_SIZE, -1, dualshock);
+    busy = false;
+  }
 	
-	bool tweak( DeviceEvent* event ) {
-		return !busy;
-	}
+  bool tweak( DeviceEvent* event ) {
+    return !busy;
+  }
 };
 
 
@@ -2089,44 +1929,45 @@ public:
  Render Modes:
  */
 class Graphic : public Chaos::Modifier {
-	bool busy;
+  bool busy;
 public:
-	static void regist() { Chaos::Modifier::factory["Graphic"] = [](){return new Graphic();}; };
-	const char* description() { return "Render Mode"; };
+  static void regist() { Chaos::Modifier::factory["Graphic"] = [](){return new Graphic();}; };
+  const char* description() { return "Render Mode"; };
 	
-	void begin() {
-		busy = true;
-		Menuing::getInstance()->selectRenderMode(RENDER_GRAPHIC, dualshock);
-		busy = false;
-	}
-	void finish() {
-		busy = true;
-		Menuing::getInstance()->teardownRenderMode(dualshock);
-		busy = false;
-	}
-	bool tweak( DeviceEvent* event ) {
-		return !busy;
-	}
+  void begin() {
+    busy = true;
+    Menuing::getInstance()->selectRenderMode(RENDER_GRAPHIC, dualshock);
+    busy = false;
+  }
+  void finish() {
+    busy = true;
+    Menuing::getInstance()->teardownRenderMode(dualshock);
+    busy = false;
+  }
+  bool tweak( DeviceEvent* event ) {
+    return !busy;
+  }
 };
+  
 class Headache : public Chaos::Modifier {
-	bool busy;
+  bool busy;
 public:
-	static void regist() { Chaos::Modifier::factory["Headache"] = [](){return new Headache();}; };
-	const char* description() { return "Render Mode"; };
+  static void regist() { Chaos::Modifier::factory["Headache"] = [](){return new Headache();}; };
+  const char* description() { return "Render Mode"; };
 	
-	void begin() {
-		busy = true;
-		Menuing::getInstance()->selectRenderMode(RENDER_HEADHACHE, dualshock);
-		busy = false;
-	}
-	void finish() {
-		busy = true;
-		Menuing::getInstance()->teardownRenderMode(dualshock);
-		busy = false;
-	}
-	bool tweak( DeviceEvent* event ) {
-		return !busy;
-	}
+  void begin() {
+    busy = true;
+    Menuing::getInstance()->selectRenderMode(RENDER_HEADHACHE, dualshock);
+    busy = false;
+  }
+  void finish() {
+    busy = true;
+    Menuing::getInstance()->teardownRenderMode(dualshock);
+    busy = false;
+  }
+  bool tweak( DeviceEvent* event ) {
+    return !busy;
+  }
 };
 
 class Afterlife : public Chaos::Modifier {

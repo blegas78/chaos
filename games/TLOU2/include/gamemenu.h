@@ -2,6 +2,9 @@
 * This file is part of Twitch Controls Chaos (TCC).
 * Copyright 2021 blegas78
 *
+* Refactor the hard-coded menuing system so that we can setup things with
+* a toml configuration file.
+*
 * TCC is free software: you can redistribute it and/or modify it under the
 * terms of the GNU General Public License as published by the Free Software
 * Foundation, either version 3 of the License, or (at your option) any later

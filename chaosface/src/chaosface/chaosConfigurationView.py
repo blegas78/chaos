@@ -1,20 +1,3 @@
-#-----------------------------------------------------------------------------
-# This file is part of Twitch Controls Chaos (TCC).
-# Copyright 2021 blegas78
-#
-# TCC is free software: you can redistribute it and/or modify it under the
-# terms of the GNU General Public License as published by the Free Software
-# Foundation, either version 3 of the License, or (at your option) any later
-# version.
-#
-# TCC is distributed in the hope that it will be useful, but WITHOUT ANY
-# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-# FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
-# details.
-#
-# You should have received a copy of the GNU General Public License along
-# with TCC.  If not, see <https://www.gnu.org/licenses/>.
-#-----------------------------------------------------------------------------
 
 from flexx import flx
 
@@ -55,20 +38,23 @@ class ConfigurationView(flx.PyWidget):
 			flx.Label(flex=1,style="font-weight: bold; text-align:center", wrap=True, html="Twitch Chat Server Responses:" )
 			
 			with flx.VBox(minsize=450):
+#					flx.Widget(flex=1)
 				self.tmiResponse = flx.MultiLineEdit(flex=2, style="text-align:left; background-color:#CCCCCC;", text=self.model.relay.tmiResponse)
-
+#					self.tmiResponse = flx.Label(flex=2, style="text-align:left; background-color:#CCCCCC", wrap=True, text=self.model.relay.tmiResponse)
+#					flx.Widget(flex=1)
+			#flx.Widget(flex=1)
 			
 	@flx.reaction('submitButton.pointer_click')
 	def _button_clicked(self, *events):
 		ev = events[-1]
 		newData = False
-		if valueChanged(self.bot_oauth.text, self.model.relay.bot_oauth):
+		if self.bot_oauth.text != "":
 			newData = True
 			self.model.relay.set_bot_oauth(self.bot_oauth.text)
-		if valueChanged(self.bot_name.text, self.model.relay.bot_name):
+		if self.bot_name.text != "":
 			newData = True
 			self.model.relay.set_bot_name(self.bot_name.text)
-		if valueChanged(self.channel_name.text, self.model.relay.channel_name):
+		if self.channel_name.text != "":
 			newData = True
 			self.model.relay.set_channel_name('#' + self.channel_name.text)
 		if newData:

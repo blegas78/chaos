@@ -1,0 +1,380 @@
+#----------------------------------------------------------------------------
+# This file is part of Twitch Controls Chaos (TCC).
+# Copyright 2021 blegas78.
+# Additional contributions Copyright 2021 by polysyl.
+#
+# Configuration file for the game's menu system.
+#
+# TCC is free software: you can redistribute it and/or modify it under the
+# terms of the GNU General Public License as published by the Free Software
+# Foundation, either version 3 of the License, or (at your option) any later
+# version.
+#
+# TCC is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+# details.
+#
+# You should have received a copy of the GNU General Public License along
+# with TCC.  If not, see <https://www.gnu.org/licenses/>.
+#----------------------------------------------------------------------------
+
+game = "TLOU2"
+engineVersion = "1.1"
+
+# This is the top-level (main) menu
+[menu]
+invoke_on = "BUTTON_OPTION"
+exit_on = "BUTTON_CIRCLE"
+
+# position is the number of down (or up for negative numbers) presses
+# to select this menu from the parent menu.
+[menu.options]
+position = 0
+
+[menu.options.difficulty]
+position = 0
+
+[menu.options.controls]
+position = 1
+
+[menu.options.hud]
+position = 2
+
+[menu.options.hud.reticle]
+position = 0
+settings = { off = 0, simple = 1, default = 2 }
+
+[menu.options.hud.weapon_cross]
+position = 1
+
+[menu.options.hud.damage_indicators]
+position = 2
+
+[menu.options.hud.awareness_indicators]
+position = 3
+
+[menu.options.hud.hit_markers]
+position = 4
+
+[menu.options.hud.arc_throw_path]
+position = 5
+
+[menu.options.hud.health_and_weapon]
+position = 6
+
+[menu.options.hud.pickup_notifications]
+position = -6
+
+[menu.options.subtitles]
+position = 3
+
+[menu.options.subtitles.subtitle_display]
+position = 0
+
+[menu.options.subtitles.subtitle_size]
+position = 1
+
+[menu.options.display]
+position = 4
+
+[menu.options.display.brightness]
+position = 0
+
+[menu.options.display.framerate]
+position = 2
+
+[menu.options.audio]
+position = -3
+
+[menu.options.audio.effects]
+position = 0
+
+[menu.options.audio.dialogue]
+position = 1
+
+[menu.options.audio.music]
+position = 2
+
+[menu.options.audio.cinematics]
+position = 3
+
+[menu.options.audio.accessibility_cues]
+position = 4
+
+[menu.options.audio.mono]
+position = -2
+
+[menu.options.language]
+position = -2
+
+[menu.options.accessibility]
+position = -1
+
+[menu.options.accessibility.alternate_controls]
+position = 0
+
+[menu.options.accessibility.alternate_controls.customize]
+position = 0
+
+[menu.options.accessibility.alternate_controls.camera_assist]
+position = -7
+
+[menu.options.accessibility.alternate_controls.lock_on_aim]
+position = -6
+
+[menu.options.accessibility.alternate_controls.arc_throw_lock_on]
+position = -4
+
+[menu.options.accessibility.alternate_controls.auto_pickup]
+position = -1
+
+[menu.options.accessibility.magnification]
+position = 1
+
+[menu.options.accessibility.magnification.hud_scale]
+position = 0
+
+[menu.options.accessibility.magnification.high_contrast]
+position = -3
+
+[menu.options.accessibility.motion_sickness]
+position = 2
+
+[menu.options.accessibility.navigation]
+position = 3
+
+[menu.options.accessibility.navigation.navigation_assistance]
+position = 0
+
+[menu.options.accessibility.navigation.traversal_assistance]
+position = 1
+
+[menu.options.accessibility.navigation.ledge_guard]
+position = 2
+
+[menu.options.accessibility.navigation.enhanced_listen_mode]
+position = 3
+
+[menu.options.accessibility.navigation.scan_range]
+position = 4
+
+[menu.options.accessibility.navigation.scan_time]
+position = -3
+
+[menu.options.accessibility.navigation.infinite_breath]
+position = -2
+
+[menu.options.accessibility.navigation.skip_puzzle]
+position = -1
+
+[menu.options.accessibility.tts_and_audio_cues]
+position = -2
+
+[menu.options.accessibility.tts_and_audio_cues.tts]
+position = 0
+
+[menu.options.accessibility.tts_and_audio_cues.traversal_cues]
+position = 1
+
+[menu.options.accessibility.tts_and_audio_cues.combat_cues]
+position = 2
+
+[menu.options.accessibility.combat]
+position = -1
+
+[menu.options.accessibility.combat.enable]
+position = 0
+
+[menu.options.accessibility.combat.hostages_dont_escape]
+position = 1
+
+[menu.options.accessibility.combat.allies_dont_get_grabbed]
+position = 2
+
+[menu.options.accessibility.combat.enemies_dont_flank]
+position = 3
+
+[menu.options.accessibility.combat.reduced_enemy_perception]
+position = 4
+
+[menu.options.accessibility.combat.reduced_enemy_accuracy]
+position = 5
+
+[menu.options.accessibility.combat.enhanced_dodge]
+position = -4
+
+[menu.options.accessibility.combat.invisible_while_prone]
+position = -3
+settings = {off = 0, limited = 1, unlimited = 2 }
+
+[menu.options.accessibility.combat.combat_weapon_sway]
+position = -2
+
+# This option enables selection from touchpad. Not really
+# usable. We implement elsewhere.
+[menu.options.accessibility.combat.combat_slow_motion]
+position = -1
+
+[menu.photomode]
+position = 1
+
+[menu.extras]
+position = 2
+
+[menu.extras.render]
+position = 0
+
+[menu.extras.render.none]
+position = 0
+
+[menu.extras.render.graphic]
+position = 1
+
+[menu.extras.render.headache]
+position = 2
+
+[menu.extras.render.afterlife]
+position = 3
+
+[menu.extras.render.eightbit]
+position = 4
+
+[menu.extras.render.watercolor]
+position = 5
+
+[menu.extras.render.dungeon]
+position = 6
+
+[menu.extras.render.void]
+position = 7
+
+[menu.extras.render.popposter]
+position = 8
+
+[menu.extras.render.1960s]
+position = 9
+
+[menu.extras.render.cool]
+position = 10
+
+[menu.extras.render.warm]
+position = 11
+
+[menu.extras.render.vibrant]
+position = 12
+
+[menu.extras.render.noir]
+position = 13
+
+[menu.extras.render.blorange]
+position = 14
+
+[menu.extras.render.sepia]
+position = 15
+
+[menu.extras.render.vintage]
+position = -14
+
+[menu.extras.render.beasts]
+position = -13
+
+[menu.extras.render.terminated]
+position = -12
+
+[menu.extras.render.gridlocked]
+position = -11
+
+[menu.extras.render.blacklight]
+position = -10
+
+[menu.extras.render.desert_fog]
+position = -9
+
+[menu.extras.render.blood]
+position = -8
+
+[menu.extras.render.inferno]
+position = -7
+
+[menu.extras.render.fire]
+position = -6
+
+[menu.extras.render.trinity]
+position = -5
+
+[menu.extras.render.pusher]
+position = -4
+
+[menu.extras.render.demons]
+position = -3
+
+[menu.extras.render.drugzone]
+position = -2
+
+[menu.extras.render.moonlight]
+position = -1
+
+[menu.extras.gameplay]
+position = 1
+
+[menu.extras.gameplay.mirror]
+position = 0
+
+[menu.extras.gameplay.mirror_on_death]
+position = 1
+
+[menu.extras.gameplay.slow_motion]
+position = 2
+
+[menu.extras.gameplay.bullet_speed]
+position = 3
+
+[menu.extras.gameplay.infinite_ammo]
+position = 4
+
+[menu.extras.gameplay.infinite_craft]
+position = 5
+
+[menu.extras.gameplay.infinite_melee_durability]
+position = 6
+
+[menu.extras.gameplay.infinite_listen_range]
+position = 7
+
+[menu.extras.gameplay.one_shot]
+position = -6
+
+[menu.extras.gameplay.touch_of_death]
+position = -5
+
+[menu.extras.gameplay.audio_eight_bit]
+position = -4
+
+[menu.extras.gameplay.audio_four_bit]
+position = -3
+
+[menu.extras.gameplay.audio_helium]
+position = -2
+
+[menu.extras.gameplay.audio_xenon]
+position = -1
+
+[menu.tutorials]
+position = 3
+
+[menu.save]
+position = 4
+
+[menu.load]
+position = 5
+
+[menu.restart1]
+position = -3
+
+[menu.restart2]
+position = -2
+
+[menu.quit]
+position = -1
+

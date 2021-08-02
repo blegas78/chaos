@@ -21,45 +21,42 @@
 
 namespace Chaos {
 
-
-
  // This is for the PS4:
 typedef enum ButtonID {
-	BUTTON_X = 0,
-	BUTTON_CIRCLE = 1,
-	BUTTON_TRIANGLE = 2,
-	BUTTON_SQUARE = 3,
-	BUTTON_L1 = 4,
-	BUTTON_R1 = 5,
-	BUTTON_L2 = 6,
-	BUTTON_R2 = 7,
-	BUTTON_SHARE = 8,
-	BUTTON_OPTIONS = 9,
-	BUTTON_PS = 10,
-	BUTTON_L3 = 11,
-	BUTTON_R3 = 12,
-	//BUTTON_TOUCHPAD = 200	// This is handled separately as a mouse event
-	BUTTON_TOUCHPAD = 13,	// This is handled separately as a mouse event
-	BUTTON_TOUCHPAD_ACTIVE = 14
+  BUTTON_X = 0,
+  BUTTON_CIRCLE = 1,
+  BUTTON_TRIANGLE = 2,
+  BUTTON_SQUARE = 3,
+  BUTTON_L1 = 4,
+  BUTTON_R1 = 5,
+  BUTTON_L2 = 6,
+  BUTTON_R2 = 7,
+  BUTTON_SHARE = 8,
+  BUTTON_OPTIONS = 9,
+  BUTTON_PS = 10,
+  BUTTON_L3 = 11,
+  BUTTON_R3 = 12,
+  BUTTON_TOUCHPAD = 13,	// This is handled separately as a mouse event
+  BUTTON_TOUCHPAD_ACTIVE = 14
 } ButtonID;
  
  typedef enum AxisID {
-	 AXIS_LX = 0,
-	 AXIS_LY = 1,
-	 AXIS_L2 = 2,
-	 AXIS_RX = 3,
-	 AXIS_RY = 4,
-	 AXIS_R2 = 5,
-	 AXIS_DX = 6,
-	 AXIS_DY = 7,
-	 AXIS_ACCX = 8,
-	 AXIS_ACCY = 9,
-	 AXIS_ACCZ = 10,
-	 AXIS_GYRX = 11,
-	 AXIS_GYRY = 12,
-	 AXIS_GYRZ = 13,
-	 AXIS_TOUCHPAD_X = 14,
-	 AXIS_TOUCHPAD_Y = 15
+   AXIS_LX = 0,
+   AXIS_LY = 1,
+   AXIS_L2 = 2,
+   AXIS_RX = 3,
+   AXIS_RY = 4,
+   AXIS_R2 = 5,
+   AXIS_DX = 6,
+   AXIS_DY = 7,
+   AXIS_ACCX = 8,
+   AXIS_ACCY = 9,
+   AXIS_ACCZ = 10,
+   AXIS_GYRX = 11,
+   AXIS_GYRY = 12,
+   AXIS_GYRZ = 13,
+   AXIS_TOUCHPAD_X = 14,
+   AXIS_TOUCHPAD_Y = 15
  } AxisID;
  
 /*
@@ -111,26 +108,26 @@ typedef enum AxisID {
  ? = 7
 */
 typedef enum ButtonType {
-	TYPE_BUTTON = 0,
-	TYPE_AXIS = 1
+  TYPE_BUTTON = 0,
+  TYPE_AXIS = 1
 } ButtonType;
 
 
 // Structures
 
 typedef struct DeviceEvent {
-	unsigned int time;
-	short int value;
-	unsigned char type;
-	unsigned char id;
+  unsigned int time;
+  short int value;
+  unsigned char type;
+  unsigned char id;
 	
-	bool operator==(const DeviceEvent &other) const {
-		return type == other.type && id == other.id;
-	}
+  bool operator==(const DeviceEvent &other) const {
+    return type == other.type && id == other.id;
+  }
 
-	bool operator<(const DeviceEvent &other) const {
-		return type < other.type || (type == other.type && id < other.id);
-	}
+  bool operator<(const DeviceEvent &other) const {
+    return type < other.type || (type == other.type && id < other.id);
+  }
 } DeviceEvent;
 
 };

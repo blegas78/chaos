@@ -1,20 +1,3 @@
-#-----------------------------------------------------------------------------
-# This file is part of Twitch Controls Chaos (TCC).
-# Copyright 2021 blegas78
-#
-# TCC is free software: you can redistribute it and/or modify it under the
-# terms of the GNU General Public License as published by the Free Software
-# Foundation, either version 3 of the License, or (at your option) any later
-# version.
-#
-# TCC is distributed in the hope that it will be useful, but WITHOUT ANY
-# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-# FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
-# details.
-#
-# You should have received a copy of the GNU General Public License along
-# with TCC.  If not, see <https://www.gnu.org/licenses/>.
-#-----------------------------------------------------------------------------
 
 from flexx import flx
 
@@ -25,24 +8,17 @@ class ChaosVoteView(flx.PyWidget):
 		
 		self.label = []
 		self.progress = []
-
-		textFormat = "color: " + self.model.relay.text_color
-		if self.model.relay.text_bold:
-			";".join([textFormat,"font-weight: bold"])
-		if self.model.relay.text_italic:
-			";".join([textFormat,"font-style: italic"])
-		if self.model.relay.text_outline:
-			";".join([textFormat,"text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black"])
 		
-		styleModText   = textFormat + ";text-align:left; vertical-align: middle; line-height: 1.5; min-width:250px;"
-		styleTitleText = textFormat + ";text-align:center; vertical-align: bottom; line-height: 1.5; min-width:250px;"
-		styleVoteProgress = "background:" + self.model.relay.vote_count_color + "; foreground-color:#808080; border-color:#000000; border-radius:5px;" + textFormat
+		styleModText = "color:white;text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;text-align:left;font-weight: bold; vertical-align: middle; line-height: 1.5; min-width:250px;"
+		styleTitleText = "color:white;text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;text-align:center;font-weight: bold; vertical-align: bottom; line-height: 1.5; min-width:250px;"
+		styleVoteProgress = " background-color:#808080; foreground-color:#808080; color:#FFFFFF; border-color:#000000; border-radius:5px; text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black; font-weight: bold;"
 
 		totalVotes = sum(self.model.relay.votes)
 		with flx.VBox(flex=0):
 			with flx.HFix(flex=1):
 				self.voteLabel = flx.Label(flex=0,style=styleTitleText, text="Total Votes: " + str(int(totalVotes)) )
 				self.blankLabel = flx.Label(flex=0,style=styleTitleText, text=" ")
+			#with flx.VBox(flex=1):
 				
 			with flx.HFix(flex=1):
 				with flx.VFix(flex=1):
