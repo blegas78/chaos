@@ -19,11 +19,15 @@ class SettingsView(flx.PyWidget):
 					flx.Label(style=styleLabel, text="Browser Update Rate (Hz):" )
 					flx.Label(style=styleLabel, text="Repeat Mod Probability (%):" )
 					flx.Label(style=styleLabel, text="Reset Repeat Mod Memory:" )
+#					flx.Label(style=styleLabel, text="Twitch Bot Oauth:" )
+#					flx.Label(style=styleLabel, text="Your Channel Name:" )
 				with flx.VBox(flex=1):
 					self.timePerModifier = flx.LineEdit(style=styleField, text=str(self.model.relay.timePerModifier))
 					self.uiRate = flx.LineEdit(style=styleField, text=str(self.model.relay.ui_rate))
 					self.softmaxFactor = flx.Slider(min=1, max=100, step=1, value=self.model.relay.softmaxFactor)
 					self.resetButton = flx.Button(flex=0,text="Reset")
+#					self.bot_oauth = flx.LineEdit(style=styleField, placeholder_text=self.model.relay.bot_oauth)
+#					self.channel_name = flx.LineEdit(style=styleField, placeholder_text=self.model.relay.channel_name[1:])
 				with flx.VBox(flex=1):
 					flx.Widget(flex=1)
 			with flx.HBox():

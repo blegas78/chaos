@@ -8,7 +8,7 @@ cd /home/pi/chaos/raw-gadget-timeout/raw_gadget
 
 #while true;
 #do
-	/home/pi/chaos/build/games/TLOU2/tlou2
+	/home/pi/chaos/build/examples/TLOU2/tlou2
 #done
 
 echo "Done."
