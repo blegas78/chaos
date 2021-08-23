@@ -419,6 +419,9 @@ class ChaosModel():
 	def updateUI(self):
 		try:
 			relay.set_mods( self.currentMods )
+		except Exception as e:
+			logging.info(e)
+		try:
 			relay.set_activeMods( self.activeMods )
 		except Exception as e:
 			logging.info(e)
@@ -428,6 +431,9 @@ class ChaosModel():
 			logging.info(e)
 		try:
 			relay.set_voteTime( self.timeToSend )
+		except Exception as e:
+			logging.info(e)
+		try:
 			relay.set_modTimes( self.activeModTimes )
 		except Exception as e:
 			logging.info(e)
