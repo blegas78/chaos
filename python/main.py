@@ -34,16 +34,11 @@ import chaosSettingsView
 import chaosConnectionView
 
 import chaoscommunicator
-#import sys
-#sys.path.append("flexx_gamepad/")
-#
-#from server import GamepadServer
 
 from flexx import flx, ui
 logging.basicConfig(level="INFO")
 
 import pprint
-
 
 class ChaosModel():
 	def __init__(self, chatbot):
@@ -131,7 +126,9 @@ class ChaosModel():
 		toSend["winner"] = mod
 		toSend["timePerModifier"] = relay.timePerModifier
 		message = self.chaosCommunicator.sendMessage(json.dumps(toSend))
-	
+	        if relay.announceMods:
+               		self.chatbot.sendReply( "Winning mod: " + mod)
+
 	def initializeData(self):
 		logging.info("Initializing modifierData")
 		self.modifierData = {}
@@ -408,6 +405,8 @@ class ChaosModel():
 					self.activeModTimes[finishedModIndex] = 1.0
 				
 				self.getNewVotingPool()
+	                        if relay.announceMods:
+               		                self.announceVoting()
 					
 				self.votedUsers = []
 			
@@ -436,8 +435,15 @@ class ChaosModel():
 		except Exception as e:
 			logging.info(e)
 		
-		
-		
+	def announceMods(self):
+                message = "The currently active mods are " + ", ".join(filter(None, self.activeMods))
+		self.chatbot.sendReply( message )
+                
+        def announceVoting(self):
+		message = "You can currently vote for the following mods: "
+		for num, mod in enumerate(self.currentMods, start=1):
+                        message += " {}: {}.".format(num, mod)
+                self.chatbot.sendReply( message )
 			
 	def checkMessages(self):
 		#if q.qsize() > 0:
@@ -446,7 +452,7 @@ class ChaosModel():
 		while self.chatbot.messageQueue.qsize() > 0:
 			# q.empty(), q.get(), q.qsize()
 #			notice = q.get();
-			notice = self.chatbot.messageQueue.get();
+			notice = self.chatbot.messageQueue.get()
 			
 			if notice["user"] == "tmi":
 				self.tmiChatText += "tmi: " + notice["message"] + "\r\n"
@@ -464,13 +470,13 @@ class ChaosModel():
 			command = message.split(" ",1)
 			firstWord = command[0]
 			if firstWord == "!mods":
-				self.chatbot.sendReply( "!mods: There are currently " + str(len(self.allMods)) + " modifiers!  See them all with descriptions here: https://github.com/blegas78/chaos/tree/main/docs/TLOU2 @" + notice["user"] );
+				self.chatbot.sendReply( "!mods: There are currently " + str(len(self.allMods)) + " modifiers!  See them all with descriptions here: https://github.com/blegas78/chaos/tree/main/docs/TLOU2 @" + notice["user"] )
 				continue
 							
 			if firstWord == "!mod":
 				if len(command) == 1:
 					message = "Usage: !mod <mod name>"
-					self.chatbot.sendReply( message );
+					self.chatbot.sendReply( message )
 					continue
 #				argument = command[1]
 				argument = (''.join(c for c in command[1] if c.isalnum())).lower()
@@ -487,8 +493,13 @@ class ChaosModel():
 							message = "!mod " + key + ": " + mod["desc"]
 						break
 				message += " @" + notice["user"]
-				self.chatbot.sendReply( message );
-				
+				self.chatbot.sendReply( message )
+                                
+			if firstWord == "!activemods":
+                                self.announceMods()
+                                
+                        if firstWord == "!nowvoting":
+                                self.announceVoting()
 
 #  This is how Flexx API states that data passing should work
 relay = chaosRelay.ChaosRelay()
