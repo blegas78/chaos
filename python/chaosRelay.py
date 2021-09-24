@@ -11,13 +11,21 @@ def get_attribute(data, attribute, default_value):
 
 class ChaosRelay(flx.Component):
 
-#	def __init__(self):
-	chaosConfigFile="/home/pi/chaosConfig.json"
-	try:
-		with open(chaosConfigFile) as json_data_file:
-			chaosConfig = json.load(json_data_file)
-	except Exception as e:
-		chaosConfig = {}
+	def __init__(self):
+	#self.chaosConfigFile = configFile
+		self.chaosConfigFile = "chaosRelay.json"
+#		print("ChaosRelay(): configFile = :" + self.chaosConfigFile)
+		super().__init__()
+		
+	
+	#try:
+	#	print("ChaosRelay initializing with file:" + chaosConfigFile)
+	#	with open(chaosConfigFile) as json_data_file:
+	#		chaosConfig = json.load(json_data_file)
+	#except Exception as e:
+	chaosConfig = {}
+	
+		
 			
 	# Model-View bridge:
 	voteTime = flx.FloatProp(0.5, settable=True)
@@ -56,6 +64,35 @@ class ChaosRelay(flx.Component):
 #		self.chaosConfigFile="/home/pi/chaosConfig.json"
 #		with open(chaosConfigFile) as json_data_file:
 #			self.chaosConfig = json.load(json_data_file)
+
+	def openConfig(self, configFile):
+		try:
+			self.chaosConfigFile = configFile
+			print("ChaosRelay initializing with file:" + self.chaosConfigFile)
+			with open(self.chaosConfigFile) as json_data_file:
+				ChaosRelay.chaosConfig = json.load(json_data_file)
+		except Exception as e:
+			print("openConfig(): Error in opening file:" + self.chaosConfigFile)
+			ChaosRelay.chaosConfig = {}
+			
+		self.set_timePerModifier(get_attribute(self.chaosConfig, "modifier_time", 180.0))
+		self.set_softmaxFactor(get_attribute(self.chaosConfig, "softmax_factor", 33))
+		
+		self.set_ircHost(get_attribute(self.chaosConfig, "host", "irc.twitch.tv"))
+		self.set_ircPort(get_attribute(self.chaosConfig, "port", 6667))
+			
+		self.set_bot_name(get_attribute(self.chaosConfig, "bot_name", "see_bot"))
+		self.set_bot_oauth(get_attribute(self.chaosConfig, "bot_oauth", "oauth:abcdefghijklmnopqrstuvwxyz1234"))
+		print('self.chaosConfig["channel_name"] = ' + ChaosRelay.chaosConfig["channel_name"])
+		print('channel_name = ' + self.channel_name)
+		self.set_channel_name(get_attribute(ChaosRelay.chaosConfig, "channel_name", "blegas7"))
+		print('self.chaosConfig["channel_name"] = ' + ChaosRelay.chaosConfig["channel_name"])
+		print('channel_name = ' + self.channel_name)
+		
+		self.set_chat_rate(get_attribute(self.chaosConfig, "chat-rate", 0.67))
+			
+		self.set_ui_rate(get_attribute(self.chaosConfig, "ui_rate", 20.0))
+		self.set_uiPort(get_attribute(self.chaosConfig, "uiPort", 80))
 
 	def saveConfig(self):
 		with open(self.chaosConfigFile, 'w') as outfile:

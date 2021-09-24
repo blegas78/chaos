@@ -78,6 +78,8 @@ def responseToDictionary(response):
 
 	if response[0] == '@':
 		splitFirstSpace = response.split(" ", 1)
+		if len(splitFirstSpace) < 2:
+			return None
 		notice["tags"] = responseToTags(splitFirstSpace[0])
 		response = splitFirstSpace[1]
 
@@ -87,6 +89,8 @@ def responseToDictionary(response):
 	
 	if command[0] == ':':
 		splitResponse = command.split(" ", 2)
+		if len(splitResponse) < 3:
+			return None
 		prefix = splitResponse[0]
 		command = splitResponse[1]
 		arguments = splitResponse[2]
