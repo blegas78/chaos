@@ -475,6 +475,7 @@ class ChaosModel():
 
 #  This is how Flexx API states that data passing should work
 relay = chaosRelay.ChaosRelay()
+relay.openConfig("/home/pi/chaosConfig.json")
 
 class ActiveMods(flx.PyWidget):
 	def init(self, relay):
