@@ -38,7 +38,7 @@ class ChaosRelay(flx.Component):
 	connected = flx.BoolProp(True, settable=True)
 	connectedBrightBackground = flx.BoolProp(True, settable=True)
 	resetSoftmax = flx.BoolProp(False, settable=True)
-	
+
 	tmiResponse = flx.StringProp("", settable=True)
 	
 #	allMods = flx.ListProp(["1", "2", "3", "4", "5", "6"], settable=True)
@@ -54,7 +54,9 @@ class ChaosRelay(flx.Component):
 	bot_oauth = flx.StringProp(get_attribute(chaosConfig, "bot_oauth", "oauth:abcdefghijklmnopqrstuvwxyz1234"), settable=True)
 	channel_name = flx.StringProp(get_attribute(chaosConfig, "channel_name", "blegas78"), settable=True)
 	chat_rate = flx.FloatProp(get_attribute(chaosConfig, "chat-rate", 0.67), settable=True)
-	
+
+	announce_mods = flxBoolProp(get_attribute(chaosConfig, "announce_mods", False), settable=True)
+        
 	ui_rate = flx.FloatProp(get_attribute(chaosConfig, "ui_rate", 20.0), settable=True)
 	uiPort = flx.IntProp(get_attribute(chaosConfig, "uiPort", 80), settable=True)
 	
@@ -190,7 +192,12 @@ class ChaosRelay(flx.Component):
 	def on_channel_name(self, *events):
 		for ev in events:
 			self.chaosConfig["channel_name"] = ev.new_value
-			
+
+        @flx.reaction('announce_mods')
+        def on_announce_mods(self, *events):
+                for ev in events:
+                        self.chaosConfig["announce_mods"] = ev.new_value
+                        
 	@flx.reaction('ui_rate')
 	def on_ui_rate(self, *events):
 		for ev in events:

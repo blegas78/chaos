@@ -19,17 +19,13 @@ class SettingsView(flx.PyWidget):
 					flx.Label(style=styleLabel, text="Browser Update Rate (Hz):" )
 					flx.Label(style=styleLabel, text="Repeat Mod Probability (%):" )
 					flx.Label(style=styleLabel, text="Reset Repeat Mod Memory:" )
-#					flx.Label(style=styleLabel, text="Twitch Bot Oauth:" )
-#					flx.Label(style=styleLabel, text="Your Channel Name:" )
 				with flx.VBox(flex=1):
 					self.timePerModifier = flx.LineEdit(style=styleField, text=str(self.model.relay.timePerModifier))
 					self.uiRate = flx.LineEdit(style=styleField, text=str(self.model.relay.ui_rate))
 					self.softmaxFactor = flx.Slider(min=1, max=100, step=1, value=self.model.relay.softmaxFactor)
 					self.resetButton = flx.Button(flex=0,text="Reset")
-#					self.bot_oauth = flx.LineEdit(style=styleField, placeholder_text=self.model.relay.bot_oauth)
-#					self.channel_name = flx.LineEdit(style=styleField, placeholder_text=self.model.relay.channel_name[1:])
 				with flx.VBox(flex=1):
-					flx.Widget(flex=1)
+					self.announceMods = flx.CheckBox(flex=0, text="Announce Mods in Chat")
 			with flx.HBox():
 				flx.Widget(flex=1)
 				self.saveButton = flx.Button(flex=0,text="Save")
@@ -45,7 +41,7 @@ class SettingsView(flx.PyWidget):
 		self.model.relay.set_timePerModifier(float(self.timePerModifier.text))
 		self.model.relay.set_ui_rate(float(self.uiRate.text))
 		self.model.relay.set_softmaxFactor(self.softmaxFactor.value)
-#		self.model.relay.saveConfig()
+                self.model.relay.set_announce_mods(self.announceMods.checked)
 		self.model.relay.set_shouldSave(True)
 		self.successLabel.set_text('Saved!')
 
