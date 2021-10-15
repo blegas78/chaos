@@ -97,7 +97,8 @@ void Engine::doAction() {
 	// Check front element.  If timer ran out, remove it.
 	if (modifiers.size() > 0) {
 		Modifier* front = modifiers.front();
-		if (front->lifetime() > timePerModifier) {
+		if ((front->lifespan() >= 0 && front->lifetime() > front->lifespan()) ||
+			(front->lifespan() < 0 && front->lifetime() > timePerModifier)) {
 //			std::cout << "Killing Modifier: " << typeid(*front).name() << std::endl;
 			lock();
 			//pthread_mutex_lock(&chaosMutex);

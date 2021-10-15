@@ -50,7 +50,8 @@ void Sequence::addAxisPress( AxisID id, short value ) {
 }
 
 void Sequence::addAxisHold( AxisID id, short value ) {
-	events.push_back( {  TIME_PER_BUTTON_PRESS, value, TYPE_AXIS, (unsigned char) id} );
+//	events.push_back( {  TIME_PER_BUTTON_PRESS, value, TYPE_AXIS, (unsigned char) id} );
+	events.push_back( {  0, value, TYPE_AXIS, (unsigned char) id} );
 }
 
 void Sequence::send(Controller* dualshock) {
@@ -58,7 +59,9 @@ void Sequence::send(Controller* dualshock) {
 		DeviceEvent& event = (*it);
 		//std::cout << "Sending event for button " << (int)event.type << ": " << (int)event.id << ":" << (int)event.value << "\t sleeping for " << event.time << std::endl;
 		dualshock->applyEvent( &event );
-		usleep( event.time );
+		if (event.time) {
+			usleep( event.time );
+		}
 	}
 }
 

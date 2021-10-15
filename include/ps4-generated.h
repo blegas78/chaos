@@ -851,8 +851,7 @@ typedef struct
 
 typedef struct {
 	uint8_t timestamp;
-	TouchpadFinger finger1;
-	TouchpadFinger finger2;
+	TouchpadFinger finger[2];
 }__attribute__((packed)) TouchpadEvent;
 
 typedef struct

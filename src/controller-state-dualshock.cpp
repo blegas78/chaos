@@ -8,6 +8,11 @@ ControllerStateDualshock::ControllerStateDualshock() {
 	stateLength = sizeof(inputReport01_t);
 	trueState = (void*)new inputReport01_t;
 	hackedState = (void*)new inputReport01_t;
+	
+	touchCounter = 0;
+	touchTimeStamp = 0;
+	priorFingerActive[0] = 0;
+	priorFingerActive[1] = 0;
 }
 
 ControllerStateDualshock::~ControllerStateDualshock() {
@@ -49,11 +54,91 @@ void ControllerStateDualshock::applyHackedState(unsigned char* buffer, short* ch
 	report->GD_GamePadHatSwitch = packDpad(chaosState[((int)TYPE_AXIS<<8) + (int)AXIS_DX],
 										   chaosState[((int)TYPE_AXIS<<8) + (int)AXIS_DY]);
 	
+	if (shouldClearTouchpadCount) {
+		shouldClearTouchpadCount = false;
+		
+	}
+	
+	// Touchpad hanlding.  Yup it's a lot and shouldn't be handled here:
+	touchTimeStamp += 7;	// sometimes this also increments by 8
+	
+	if ((
+		 chaosState[((int)TYPE_BUTTON<<8) + (int)BUTTON_TOUCHPAD_ACTIVE] &&
+		 (
+		  lastX[0] != chaosState[((int)TYPE_AXIS<<8) + (int)AXIS_TOUCHPAD_X] ||
+		  lastX[1] != chaosState[((int)TYPE_AXIS<<8) + (int)AXIS_TOUCHPAD_X_2])
+		 )
+		||
+		(
+		 chaosState[((int)TYPE_BUTTON<<8) + (int)BUTTON_TOUCHPAD_ACTIVE] &&
+		 (
+		  lastY[0] != chaosState[((int)TYPE_AXIS<<8) + (int)AXIS_TOUCHPAD_Y] ||
+		  lastY[1] != chaosState[((int)TYPE_AXIS<<8) + (int)AXIS_TOUCHPAD_Y_2]
+		  )
+		 )
+		) {
+		touchTimeStampToReport = touchTimeStamp;
+		report->TOUCH_EVENTS[0].timestamp = touchTimeStampToReport;
+		
+		lastX[0] = chaosState[((int)TYPE_AXIS<<8) + (int)AXIS_TOUCHPAD_X];
+		lastX[1] = chaosState[((int)TYPE_AXIS<<8) + (int)AXIS_TOUCHPAD_X_2];
+		lastY[0] = chaosState[((int)TYPE_AXIS<<8) + (int)AXIS_TOUCHPAD_Y];
+		lastY[1] = chaosState[((int)TYPE_AXIS<<8) + (int)AXIS_TOUCHPAD_Y_2];
+	}
+	
+	if (chaosState[((int)TYPE_BUTTON<<8) + (int)BUTTON_TOUCHPAD_ACTIVE]) {
+		report->TOUCH_COUNT = 1;
+		report->TOUCH_EVENTS[0].finger[0].active = 0;
+		report->TOUCH_EVENTS[0].finger[0].x = chaosState[((int)TYPE_AXIS<<8) + (int)AXIS_TOUCHPAD_X];
+		report->TOUCH_EVENTS[0].finger[0].y = chaosState[((int)TYPE_AXIS<<8) + (int)AXIS_TOUCHPAD_Y];
+		
+		if (priorFingerActive[0] == 0) {
+			priorFingerActive[0] = 1;
+			currentTouchpadCount++;
+			currentTouchpadCount &= 0x7f;
+			touchCounterSaved[0] = currentTouchpadCount;
+		}
+		
+		report->TOUCH_EVENTS[0].finger[0].counter = touchCounterSaved[0];
+		
+	} else {
+		priorFingerActive[0] = 0;
+		report->TOUCH_EVENTS[0].finger[0].active = 1;
+	}
+	
+	if (chaosState[((int)TYPE_BUTTON<<8) + (int)BUTTON_TOUCHPAD_ACTIVE_2]) {
+		report->TOUCH_COUNT = 1;
+		report->TOUCH_EVENTS[0].finger[1].active = 0;
+		report->TOUCH_EVENTS[0].finger[1].x = chaosState[((int)TYPE_AXIS<<8) + (int)AXIS_TOUCHPAD_X_2];
+		report->TOUCH_EVENTS[0].finger[1].y = chaosState[((int)TYPE_AXIS<<8) + (int)AXIS_TOUCHPAD_Y_2];
+		
+		if (priorFingerActive[1] == 0) {
+			priorFingerActive[1] = 1;
+			currentTouchpadCount++;
+			currentTouchpadCount &= 0x7f;
+			touchCounterSaved[1] = currentTouchpadCount;
+		}
+		
+		report->TOUCH_EVENTS[0].finger[1].counter = touchCounterSaved[1];
+		
+	} else {
+		priorFingerActive[1] = 0;
+		report->TOUCH_EVENTS[0].finger[1].active = 1;
+	}
+	
+	
+	
+	
 	*(inputReport01_t*)hackedState = *report;
 }
 
 void ControllerStateDualshock::getDeviceEvents(unsigned char* buffer, int length, std::vector<DeviceEvent>& events)  {
 	//std::vector<DeviceEvent> events;
+	
+//	for (int i = 0; i < length; i++) {
+//		printf("%02X ", buffer[i]);
+//	}
+//	printf("\n");
 	
 	inputReport01_t currentState = *(inputReport01_t*)buffer;
 	
@@ -125,20 +210,47 @@ void ControllerStateDualshock::getDeviceEvents(unsigned char* buffer, int length
 	}
 	
 	// Touchpad events:
-	if (currentState.TOUCH_EVENTS[0].finger1.active != ((inputReport01_t*)trueState)->TOUCH_EVENTS[0].finger1.active ) {
-		events.push_back({0, currentState.TOUCH_EVENTS[0].finger1.active, TYPE_BUTTON, BUTTON_TOUCHPAD_ACTIVE}); }
-	//printf("Touch finger1 active: %d\n", currentState.TOUCH_EVENTS[0].finger1.active);
-	//printf("Touch x = %d\ty=%d\n", currentState.TOUCH_EVENTS[0].finger1.x, currentState.TOUCH_EVENTS[0].finger1.y);
-	//printf("sizeof(inputReport01_t) = %d\n", (int)sizeof(inputReport01_t));
-	if (currentState.TOUCH_EVENTS[0].finger1.x != ((inputReport01_t*)trueState)->TOUCH_EVENTS[0].finger1.x) {
-		//printf("Acc y = %d\n", fixShort(currentState.GD_ACC_Y));
-		//printf("Touch x = %d\ty=%d\n", currentState.TOUCH_EVENTS[0].finger1.x, currentState.TOUCH_EVENTS[0].finger1.y);
-		events.push_back({0, currentState.TOUCH_EVENTS[0].finger1.x, TYPE_AXIS, AXIS_TOUCHPAD_X}); }
-	if (currentState.TOUCH_EVENTS[0].finger1.y != ((inputReport01_t*)trueState)->TOUCH_EVENTS[0].finger1.y) {
-		//printf("Acc y = %d\n", fixShort(currentState.GD_ACC_Y));
-		//printf("Touch x = %d\ty=%d\n", currentState.TOUCH_EVENTS[0].finger1.x, currentState.TOUCH_EVENTS[0].finger1.y);
-		events.push_back({0, currentState.TOUCH_EVENTS[0].finger1.y, TYPE_AXIS, AXIS_TOUCHPAD_Y}); }
-	
+	for (int e = 0; e < ((inputReport01_t*)trueState)->TOUCH_COUNT; e++) {
+		/*
+		for (int i = 0; i < e; i++) {
+			printf("- ");
+		}
+		printf("e:%d", e);
+		printf(" t:%5d", ((inputReport01_t*)trueState)->TOUCH_EVENTS[e].timestamp);
+		*/
+		for (int f = 0; f < 2; f++) {
+			
+			if (currentState.TOUCH_EVENTS[e].finger[f].active != ((inputReport01_t*)trueState)->TOUCH_EVENTS[e].finger[f].active ) {
+				events.push_back({0, !currentState.TOUCH_EVENTS[e].finger[f].active, TYPE_BUTTON, BUTTON_TOUCHPAD_ACTIVE}); }
+			//printf("Touch finger1 active: %d\n", currentState.TOUCH_EVENTS[0].finger1.active);
+			//printf("Touch x = %d\ty=%d\n", currentState.TOUCH_EVENTS[0].finger1.x, currentState.TOUCH_EVENTS[0].finger1.y);
+			//printf("sizeof(inputReport01_t) = %d\n", (int)sizeof(inputReport01_t));
+			if (currentState.TOUCH_EVENTS[e].finger[f].x != ((inputReport01_t*)trueState)->TOUCH_EVENTS[e].finger[f].x) {
+				//printf("Acc y = %d\n", fixShort(currentState.GD_ACC_Y));
+				//printf("Touch x = %d\ty=%d\n", currentState.TOUCH_EVENTS[0].finger1.x, currentState.TOUCH_EVENTS[0].finger1.y);
+				events.push_back({0, currentState.TOUCH_EVENTS[e].finger[f].x, TYPE_AXIS, AXIS_TOUCHPAD_X}); }
+			if (currentState.TOUCH_EVENTS[e].finger[f].y != ((inputReport01_t*)trueState)->TOUCH_EVENTS[e].finger[f].y) {
+				//printf("Acc y = %d\n", fixShort(currentState.GD_ACC_Y));
+				//printf("Touch x = %d\ty=%d\n", currentState.TOUCH_EVENTS[0].finger1.x, currentState.TOUCH_EVENTS[0].finger1.y);
+				events.push_back({0, currentState.TOUCH_EVENTS[e].finger[f].y, TYPE_AXIS, AXIS_TOUCHPAD_Y}); }
+			
+//			if (currentState.TOUCH_EVENTS[e].finger[f].active == 0) {
+//				printf("Touch event[%d].finger[%d].counter = %d\n", e, f, currentState.TOUCH_EVENTS[e].finger[f].counter);
+//				printf(" - x = %d\ty=%d\n", currentState.TOUCH_EVENTS[e].finger[f].x, currentState.TOUCH_EVENTS[e].finger[f].y);
+//			}
+			/*
+			printf(" f:%d", f);
+			printf(" a:%d", ((inputReport01_t*)trueState)->TOUCH_EVENTS[e].finger[f].active);
+			printf(" c:%4d", ((inputReport01_t*)trueState)->TOUCH_EVENTS[e].finger[f].counter);
+//			printf(" a:%d", ((inputReport01_t*)trueState)->TOUCH_EVENTS[e].finger[f].active);
+			printf(" x,y:(%4d,%4d)",
+				   ((inputReport01_t*)trueState)->TOUCH_EVENTS[e].finger[f].x,
+				   ((inputReport01_t*)trueState)->TOUCH_EVENTS[e].finger[f].y);
+			 */
+		}
+		
+//		printf("\n");
+	}
 	
 	// Need to compare for next time:
 	*(inputReport01_t*)trueState = currentState;

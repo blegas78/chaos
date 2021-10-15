@@ -17,7 +17,7 @@
 namespace Chaos {
 
 class Sequence {
-private:
+protected:
 	std::vector<DeviceEvent> events;
 	
 public:
@@ -29,12 +29,43 @@ public:
 	void addTimeDelay( unsigned int timeInMilliseconds );
 	void addAxisPress( AxisID id, short value );
 	void addAxisHold( AxisID id, short value );
-	void send(Controller* dualshock);
+	
+	virtual void send(Controller* dualshock);
 	
     void clear();
 	// For building a sequence:
 	//void changeMenuOption();
 };
+
+
+//class SequenceRelative : public Sequence {
+//public:
+//
+//	SequenceAbsolute();
+//}
+
+class SequenceRelative : public Sequence {
+private:
+	int tickTime;
+public:
+	
+	SequenceRelative();
+	
+	void send(Controller* dualshock);
+	void setMinimumTickInMicroseconds( int minTickTime );
+};
+
+class SequenceAbsolute : public Sequence {
+private:
+	int tickTime;
+public:
+	
+	SequenceAbsolute();
+	
+	void send(Controller* dualshock);
+	void setMinimumTickInMicroseconds( int minTickTime );
+};
+
 
 };
 

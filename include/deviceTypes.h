@@ -23,7 +23,8 @@ typedef enum ButtonID {
 	BUTTON_R3 = 12,
 	//BUTTON_TOUCHPAD = 200	// This is handled separately as a mouse event
 	BUTTON_TOUCHPAD = 13,	// This is handled separately as a mouse event
-	BUTTON_TOUCHPAD_ACTIVE = 14
+	BUTTON_TOUCHPAD_ACTIVE = 14,
+	BUTTON_TOUCHPAD_ACTIVE_2 = 15
 } ButtonID;
  
  typedef enum AxisID {
@@ -42,7 +43,9 @@ typedef enum ButtonID {
 	 AXIS_GYRY = 12,
 	 AXIS_GYRZ = 13,
 	 AXIS_TOUCHPAD_X = 14,
-	 AXIS_TOUCHPAD_Y = 15
+	 AXIS_TOUCHPAD_Y = 15,
+	 AXIS_TOUCHPAD_X_2 = 16,
+	 AXIS_TOUCHPAD_Y_2 = 17
  } AxisID;
  
 /*

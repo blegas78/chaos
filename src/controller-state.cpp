@@ -9,6 +9,7 @@ ControllerState::~ControllerState() {
 }
 
 void* ControllerState::getHackedState() {
+	shouldClearTouchpadCount = true;
 	return hackedState;
 }
 

@@ -36,7 +36,7 @@ private:
 	
 	//pthread_mutex_t chaosMutex;
 	
-	void newCommand(const std::string& command);	// override from CommandListenerObserver
+	
 	bool sniffify(const DeviceEvent* input, DeviceEvent* output); // override from DualShockInjector
 	void doAction(); // override from Mogi::Thread
 	
@@ -46,6 +46,8 @@ public:
 	void setInterfaceReply(const std::string& reply);
 	void setTimePerModifier(double time);
 	void fakePipelinedEvent(DeviceEvent* fakeEvent, Modifier* modifierThatSentTheFakeEvent);
+	
+	void newCommand(const std::string& command);	// override from CommandListenerObserver.  Can also be called manually
 	
 	bool isPaused();
 };

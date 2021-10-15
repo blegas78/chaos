@@ -12,6 +12,7 @@ Modifier::Modifier() {
 	this->timer.initialize();
 	me = this;
 	pauseTimeAccumulator = 0;
+	totalLifespan = -1;	// An erroenous value that if set should be positive
 }
 
 void Modifier::setDualshock(Controller* dualshock) {
@@ -65,6 +66,7 @@ Json::Value modifierToJsonObject( std::string name, Modifier* mod ) {
 	Json::Value result;
 	result["name"] = name;
 	result["desc"] = mod->description();
+	result["lifespan"] = mod->lifespan();
 	return result;
 }
 
@@ -102,6 +104,10 @@ std::string Modifier::getModList(double timePerModifier) {
 
 double Modifier::lifetime() {
 	return timer.runningTime() - pauseTimeAccumulator;
+}
+
+double Modifier::lifespan() {
+	return totalLifespan;
 }
 
 bool Modifier::tweak( DeviceEvent* event ) {

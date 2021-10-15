@@ -27,6 +27,8 @@ protected:
 	
 	double pauseTimeAccumulator;
 	
+	double totalLifespan; // Designates a custom lifespan if necesary
+	
 	//void _update(bool isPaused);	// ChaosEngine call this, which then calls virtual update();
 	
 public:
@@ -46,6 +48,7 @@ public:
 	virtual const char* description(); // A short description of this mod, for Twitch bot response
 	
 	double lifetime();
+	double lifespan();
 	
 	virtual bool tweak( DeviceEvent* event );
 	

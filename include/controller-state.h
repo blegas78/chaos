@@ -43,6 +43,10 @@ public:
 protected:
 	int stateLength;
 	
+	unsigned short lastTouchpadCountFromController;
+	unsigned short currentTouchpadCount;
+	bool shouldClearTouchpadCount;
+	
 	void* trueState;
 	void* hackedState;
 	
@@ -69,6 +73,14 @@ class ControllerStateDualshock : public ControllerState {
 friend ControllerState;
 private:
 	void getDeviceEvents(unsigned char* buffer, int length, std::vector<DeviceEvent>& events);
+	
+	bool priorFingerActive[2];
+	unsigned char touchCounter;
+	unsigned char touchCounterSaved[2];
+	unsigned char touchTimeStamp;
+	unsigned char touchTimeStampToReport;
+	short lastX[2];
+	short lastY[2];
 	
 protected:
 	ControllerStateDualshock();

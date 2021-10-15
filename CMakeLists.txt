@@ -35,6 +35,8 @@ add_library( chaos-engine src/interface.cpp
 						src/modifier.cpp
 						include/modifier.h
 						src/sequence.cpp
+						src/sequence-absolute.cpp
+						src/sequence-relative.cpp
 						include/sequence.h
 #						src/menuing.cpp
 						src/chaos-uhid.cpp

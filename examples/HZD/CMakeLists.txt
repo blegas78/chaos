@@ -1,7 +1,7 @@
 
 project( hzd )
 
-include_directories( include )
+#include_directories( include )
 
 add_executable( hzd	src/main.cpp )
 
