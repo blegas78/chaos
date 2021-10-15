@@ -1,0 +1,13 @@
+[Unit]
+Description=Twitch Plays Chatbot
+After=network.target
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=2
+ExecStart=/usr/bin/python3 /home/pi/chaos/python/twitchPlays.py
+#User=pi
+
+[Install]
+WantedBy=multi-user.target

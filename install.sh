@@ -62,7 +62,7 @@ cd ..
 patch raw-gadget-timeout/raw_gadget/raw_gadget.c raw_gadget_timeout.patch
 cd raw-gadget-timeout/raw_gadget/
 make
-cd ..
+cd ../..
 
 echo "Done."
 echo "--------------------------------------------------------"
