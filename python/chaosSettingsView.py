@@ -41,7 +41,7 @@ class SettingsView(flx.PyWidget):
 		self.model.relay.set_timePerModifier(float(self.timePerModifier.text))
 		self.model.relay.set_ui_rate(float(self.uiRate.text))
 		self.model.relay.set_softmaxFactor(self.softmaxFactor.value)
-                self.model.relay.set_announce_mods(self.announceMods.checked)
+		self.model.relay.set_announce_mods(self.announceMods.checked)
 		self.model.relay.set_shouldSave(True)
 		self.successLabel.set_text('Saved!')
 
