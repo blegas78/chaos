@@ -34,7 +34,7 @@ fi
 cd build
 cmake ..
 make -j4
-make install
+sudo make install
 cd ..
 
 
@@ -59,7 +59,9 @@ sudo bash install.sh
 cd ..
 
 #raw-gadget patch:
-patch raw-gadget-timeout/raw_gadget/raw_gadget.c raw_gadget_timeout.patch
+if ! patch -R -s -f --dry-run raw-gadget-timeout/raw_gadget/raw_gadget.c raw_gadget_timeout.patch; then
+	patch raw-gadget-timeout/raw_gadget/raw_gadget.c raw_gadget_timeout.patch
+fi
 cd raw-gadget-timeout/raw_gadget/
 make
 cd ../..

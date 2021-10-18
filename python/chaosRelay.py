@@ -87,7 +87,8 @@ class ChaosRelay(flx.Component):
 		self.set_bot_oauth(get_attribute(self.chaosConfig, "bot_oauth", "oauth:abcdefghijklmnopqrstuvwxyz1234"))
 		print('self.chaosConfig["channel_name"] = ' + ChaosRelay.chaosConfig["channel_name"])
 		print('channel_name = ' + self.channel_name)
-		self.set_channel_name(get_attribute(ChaosRelay.chaosConfig, "channel_name", "blegas7"))
+#		self.set_channel_name(get_attribute(ChaosRelay.chaosConfig, "channel_name", "blegas7"))
+		self.set_channel_name(get_attribute(self.chaosConfig, "channel_name", "blegas7"))
 		print('self.chaosConfig["channel_name"] = ' + ChaosRelay.chaosConfig["channel_name"])
 		print('channel_name = ' + self.channel_name)
 		

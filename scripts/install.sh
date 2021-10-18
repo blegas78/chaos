@@ -7,4 +7,9 @@ systemctl daemon-reload
 systemctl enable chaos
 systemctl enable chaosface
 
+if [ -f /etc/systemd/system/plays.service ]; then
+	systemctl disable plays
+	systemctl disable playsface
+fi
+
 echo "Please reboot the system"

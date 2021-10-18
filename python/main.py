@@ -223,6 +223,7 @@ class ChaosModel():
 		self.chatbot.setChannelName(relay.channel_name)
 		self.chatbot.setBotCredentials(relay.bot_name, relay.bot_oauth)
 		self.chatbot.setIrcInfo(relay.ircHost, relay.ircPort)
+#		logging.info("Credentions set to: " + relay.channel_name + " using bot: " + relay.bot_name + " " + relay.bot_oauth)
 
 	def flashPause(self):
 		if self.pausedFlashingTimer > 0.5 and relay.pausedBrightBackground == True:
@@ -376,8 +377,8 @@ class ChaosModel():
 					
 				self.votedUsers = []
 
-				self.announceMods()
-				self.announceVoting()
+				#self.announceMods()
+				#self.announceVoting()
 				
 			self.timeToSend = self.voteTime/self.timePerVote
 
