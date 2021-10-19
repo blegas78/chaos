@@ -3,7 +3,7 @@
 echo "--------------------------------------------------------"
 echo "Installing Plays:"
 
-sudo bash install.sh
+bash install.sh
 
 cd scripts/
 sudo bash installPlays.sh
