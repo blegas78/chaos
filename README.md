@@ -38,6 +38,7 @@ This is a collection of streamers that have used chaos along with some example c
 - [Shoot Her!](https://clips.twitch.tv/DeafObservantWrenKeepo-ANKfhZgAcjh-gkye) - Run/Dodge disabled
 
 
+Feel free to check out my [YouTube channel](https://www.youtube.com/channel/UCDJVtdkaxW1GHextweQuPug) for videos that showcase Chaos.
 
 
 ## Required Hardware
