@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <map>
+#include <stdint.h>	// For uint8_t on newer pi images
 
 #include "deviceTypes.h"
 
